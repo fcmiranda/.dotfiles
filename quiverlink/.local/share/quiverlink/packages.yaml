@@ -1,1 +1,7 @@
-packages: {}
+packages:
+    bat:
+        version: latest
+        installed_at: "2025-08-01T18:36:18Z"
+    fzf:
+        version: latest
+        installed_at: "2025-08-01T18:36:18Z"

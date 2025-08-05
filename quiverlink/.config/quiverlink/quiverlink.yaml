@@ -16,7 +16,7 @@ app_config:
   download_timeout_sec: 300
   backup_original_configs: true
   download_mode: "auto"  # Options: "manual", "auto"
-  download_dir: ""       # Empty means use default cache directory
+  download_dir: ""       # Empty means use default (~/Downloads for manual)
 
 # Dotfiles configuration
 dotfiles_config:

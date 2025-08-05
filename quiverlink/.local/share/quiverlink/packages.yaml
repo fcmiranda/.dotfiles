@@ -1,10 +1,20 @@
 packages:
     bat:
         version: latest
-        installed_at: "2025-08-01T18:36:18Z"
+        installed_at: "2025-08-05T23:02:11Z"
     fzf:
         version: latest
-        installed_at: "2025-08-01T18:36:18Z"
+        installed_at: "2025-08-05T23:02:12Z"
+    oh-my-zsh:
+        version: latest
+        installed_at: "2025-08-05T23:02:08Z"
+        plugins:
+            zsh-autosuggestions:
+                version: latest
+                installed_at: "2025-08-05T23:02:08Z"
+            zsh-syntax-highlighting:
+                version: latest
+                installed_at: "2025-08-05T23:02:09Z"
     starship:
         version: latest
-        installed_at: "2025-08-01T18:37:38Z"
+        installed_at: "2025-08-05T23:02:10Z"

@@ -1,0 +1,20 @@
+# QuiverLink Configuration
+# This file configures the behavior of the QuiverLink package manager
+
+# Package installation settings
+packages_dir: "${XDG_DATA_HOME:-$HOME/.local/share}/quiverlink/packages"
+downloads_dir: "${XDG_CACHE_HOME:-$HOME/.cache}/quiverlink/downloads"
+
+# Default settings for package installations
+defaults:
+  auto_confirm: false
+  backup_existing: true
+  verbose_output: false
+
+# Plugin settings
+plugins:
+  auto_install_dependencies: true
+  update_on_package_update: true
+
+# Schema version
+schema_version: 1

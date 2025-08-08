@@ -1,20 +1,23 @@
 packages:
     bat:
         version: 0.25.0
-        installed_at: "2025-08-08T20:36:42Z"
+        installed_at: "2025-08-08T21:37:21Z"
     fzf:
         version: 0.65.1
-        installed_at: "2025-08-08T20:36:43Z"
+        installed_at: "2025-08-08T21:37:17Z"
     oh-my-zsh:
         version: latest
-        installed_at: "2025-08-08T20:36:44Z"
+        installed_at: "2025-08-08T21:37:18Z"
         plugins:
             zsh-autosuggestions:
                 version: latest
-                installed_at: "2025-08-08T20:36:44Z"
+                installed_at: "2025-08-08T21:37:19Z"
             zsh-syntax-highlighting:
                 version: latest
-                installed_at: "2025-08-08T20:36:45Z"
+                installed_at: "2025-08-08T21:37:19Z"
+    ripgrep:
+        version: 14.1.1
+        installed_at: "2025-08-08T21:38:35Z"
     starship:
         version: 1.23.0
-        installed_at: "2025-08-08T20:36:41Z"
+        installed_at: "2025-08-08T21:37:20Z"

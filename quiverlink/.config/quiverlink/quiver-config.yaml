@@ -1,20 +1,26 @@
-# QuiverLink Configuration
-# This file configures the behavior of the QuiverLink package manager
+# Global QuiverLink Configuration
+# This file contains global settings and shell configuration
 
-# Package installation settings
-packages_dir: "${XDG_DATA_HOME:-$HOME/.local/share}/quiverlink/packages"
-downloads_dir: "${XDG_CACHE_HOME:-$HOME/.cache}/quiverlink/downloads"
+# Shell configuration settings
+shell_config:
+  shell_type: "zsh"
+  config_file: ".zshrc"
+  backup_original: true
+  global_config: |
+    export PATH="$HOME/.local/bin:$PATH"
 
-# Default settings for package installations
-defaults:
-  auto_confirm: false
-  backup_existing: true
-  verbose_output: false
+# Global application settings
+app_config:
+  cache_dir: "cache"
+  log_level: "info"
+  download_timeout_sec: 300
+  backup_original_configs: true
+  download_mode: "manual"  # Options: "manual", "auto"
+  download_dir: ""       # Empty means use default (~/Downloads for manual)
 
-# Plugin settings
-plugins:
-  auto_install_dependencies: true
-  update_on_package_update: true
+# Dotfiles configuration
+dotfiles_config:
+  base_dir: ".dotfiles"
 
 # Schema version
 schema_version: 1

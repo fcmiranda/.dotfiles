@@ -1,0 +1,11 @@
+schema: 1
+updated: "2025-08-08T16:36:37Z"
+entries:
+    bat:
+        version: 0.25.0
+    fzf:
+        version: 0.65.1
+    oh-my-zsh:
+        version: latest
+    starship:
+        version: 1.23.0

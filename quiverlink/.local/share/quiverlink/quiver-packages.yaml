@@ -1,1 +1,20 @@
-packages: {}
+packages:
+    bat:
+        version: 0.25.0
+        installed_at: "2025-08-08T20:36:42Z"
+    fzf:
+        version: 0.65.1
+        installed_at: "2025-08-08T20:36:43Z"
+    oh-my-zsh:
+        version: latest
+        installed_at: "2025-08-08T20:36:44Z"
+        plugins:
+            zsh-autosuggestions:
+                version: latest
+                installed_at: "2025-08-08T20:36:44Z"
+            zsh-syntax-highlighting:
+                version: latest
+                installed_at: "2025-08-08T20:36:45Z"
+    starship:
+        version: 1.23.0
+        installed_at: "2025-08-08T20:36:41Z"

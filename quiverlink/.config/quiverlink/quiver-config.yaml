@@ -2,7 +2,7 @@
 # This file contains global settings and shell configuration
 
 # Shell configuration settings
-shell_config:
+shell:
   shell_type: "zsh"
   config_file: ".zshrc"
   backup_original: true
@@ -10,16 +10,17 @@ shell_config:
     export PATH="$HOME/.local/bin:$PATH"
 
 # Global application settings
-app_config:
+app:
   cache_dir: "cache"
   log_level: "info"
   download_timeout_sec: 300
   backup_original_configs: true
-  download_mode: "manual"  # Options: "manual", "auto"
-  download_dir: ""       # Empty means use default (~/Downloads for manual)
+  download_mode: "auto"  # Options: "manual", "auto"
+  #download_dir: ""       # Empty means use default (~/Downloads for manual)
+  #manual_open_browser: true
 
 # Dotfiles configuration
-dotfiles_config:
+dotfiles:
   base_dir: ".dotfiles"
 
 # Schema version

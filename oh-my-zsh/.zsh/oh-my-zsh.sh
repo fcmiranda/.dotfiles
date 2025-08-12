@@ -3,11 +3,12 @@ export ZSH="$HOME/.oh-my-zsh"
 
 # Plugins configuration
 plugins=(
-    git
-    starship
-    transient-prompt
-    zsh-autosuggestions
-    zsh-syntax-highlighting
+git
+starship
+transient-prompt
+zsh-autosuggestions
+zsh-syntax-highlighting
+you-should-use
 )
 
 # Load Oh My Zsh

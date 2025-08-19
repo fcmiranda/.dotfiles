@@ -1,17 +1,11 @@
-# Configure Oh My Zsh with Starship integration
 export ZSH="$HOME/.oh-my-zsh"
-
-# Plugins configuration
 plugins=(
 git
 starship
-transient-prompt
-zsh-autosuggestions
 zsh-syntax-highlighting
-you-should-use
+zsh-autosuggestions
+transient-prompt
 )
-
-# Load Oh My Zsh
 [[ -f $ZSH/oh-my-zsh.sh ]] && source $ZSH/oh-my-zsh.sh
 
 # Starship with enhanced transient prompt configuration

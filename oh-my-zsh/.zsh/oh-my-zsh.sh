@@ -8,6 +8,8 @@ transient-prompt
 )
 [[ -f $ZSH/oh-my-zsh.sh ]] && source $ZSH/oh-my-zsh.sh
 
+bindkey '\t\t' autosuggest-accept
+
 # Starship with enhanced transient prompt configuration
 if command -v starship >/dev/null 2>&1; then
     # Initialize Starship

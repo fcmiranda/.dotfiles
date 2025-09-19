@@ -47,7 +47,10 @@ color_purple = '#9B8AFB'    # The purple from the image's gradient
 [os]
 disabled = false
 style = "bg:color_purple fg:color_bg" # Dark foreground for contrast
-format = '[☠ ]($style)'
+# format = '[☠ ]($style)'
+# format = '[󰉁 ]($style)'
+ format = '[ ]($style)'
+# format = '[󱐌 ]($style)'
 # format = '[★ ]($style)'
 
 

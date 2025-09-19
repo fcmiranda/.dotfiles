@@ -1,5 +1,7 @@
-theme = catppuccin-frappe
+    
+theme = "nix_flake_theme"
 background-opacity = 0.75
 background-blur-radius = 40
 keybind = ctrl+backspace=text:\x1b\x7f
 window-decoration = "none"
+font-family = "JetBrainsMono Nerd Font"

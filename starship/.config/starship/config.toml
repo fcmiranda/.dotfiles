@@ -3,14 +3,13 @@
 # A format that transitions through the theme's colors, inspired by the image's gradient.
 format = """
 [](color_purple)\
-$username\
+$os\
 [](bg:color_mid_blue fg:color_purple)\
 $directory\
 [](fg:color_mid_blue bg:color_blue)\
 $git_branch\
 $git_status\
 [](fg:color_blue bg:color_purple)\
-$os\
 $c\
 $cpp\
 $rust\
@@ -48,7 +47,12 @@ color_purple = '#9B8AFB'    # The purple from the image's gradient
 [os]
 disabled = false
 style = "bg:color_purple fg:color_bg" # Dark foreground for contrast
-format = '[ 🗲 ]($style)'
+# format = '[☠ ]($style)'
+# format = '[󰉁 ]($style)'
+ format = '[ ]($style)'
+# format = '[󱐌 ]($style)'
+# format = '[★ ]($style)'
+
 
 [os.symbols]
 Windows = "󰍲"

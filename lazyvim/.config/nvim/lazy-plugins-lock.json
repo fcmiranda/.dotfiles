@@ -1,5 +1,4 @@
 {
-  "plugins": {
     "LazyVim/LazyVim": {
       "branch": "main",
       "commit": "92b7fcf7b156600b86952bf6f2c777adc68fd0b8"
@@ -137,5 +136,4 @@
       "branch": "main",
       "commit": "c4ca798ab95b316a768d51eaaaee48f64a4a46bc"
     }
-  }
 }

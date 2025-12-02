@@ -10,6 +10,8 @@ clear
 
 # Source Order: Utils → Packages → Plugins
 source_utils \
+	aliases \
+	functions \
 	binds
 source_packages \
 	mise \

@@ -1,5 +1,7 @@
 
 # Source the Omarchy initialization script
+PATH="$HOME/.local/bin:$PATH"
+
 source ~/.zsh/init.zsh
 
 # All the default Omarchy aliases and functions

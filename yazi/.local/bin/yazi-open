@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Wrapper to run yazi and resume an interactive shell at the directory yazi was in on exit.
+# Usage: yazi-open [yazi-args]
+
+set -euo pipefail
+
+# Temporary file to capture Yazi's cwd on exit
+tmpfile=$(mktemp -t yazi-cwd.XXXXXX)
+trap 'rm -f "$tmpfile"' EXIT
+
+# Run yazi and save cwd to the file (yazi supports --cwd-file)
+yazi "$@" --cwd-file="$tmpfile"
+
+# If the file exists and contains a directory, cd into it
+if [ -s "$tmpfile" ]; then
+  cwd=$(cat "$tmpfile")
+  if [ -n "$cwd" ] && [ -d "$cwd" ]; then
+    cd "$cwd"
+  fi
+fi
+
+# Launch an interactive shell so the terminal remains open in the final directory
+exec "${SHELL:-/bin/bash}" -i

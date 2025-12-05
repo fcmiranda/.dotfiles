@@ -52,10 +52,6 @@ dotadd() {
     echo "Files:   ${files[*]}"
     echo
 
-    # Confirm before copying
-    read -q "REPLY?Proceed? [y/N] " || { echo; return 1; }
-    echo
-
     # Create target directory
     mkdir -p "$target_dir"
 
@@ -82,8 +78,7 @@ dotadd() {
 
     if [[ $copied -gt 0 ]]; then
         echo
-        echo "Next steps:"
-        echo "  1. cd $dotfiles_dir"
-        echo "  2. ./stow.sh -a $package   # Adopt and create symlinks"
+        echo "Running stow to create symlinks..."
+        (cd "$dotfiles_dir" && ./stow.sh -a "$package")
     fi
 }

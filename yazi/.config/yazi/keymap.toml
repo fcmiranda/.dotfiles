@@ -3,7 +3,7 @@
 
 [mgr]
 prepend_keymap = [
-  # FZF Integration (uses FZF_DEFAULT_OPTS from environment for theme/bindings)
+  # FZF Integration (inherits FZF_DEFAULT_OPTS from environment)
   { on = "<C-t>", run = '''shell 'fd --type f --strip-cwd-prefix --hidden --follow --exclude .git | fzf \
     --preview "bat --color=always --style=numbers --line-range=:500 {}" \
     --preview-window=right:60%:border-left \
@@ -19,5 +19,6 @@ prepend_keymap = [
     --preview-window=right:60%:border-left \
     --header="Zoxide: Jump to directory" \
     | xargs -r yazi' --block''', desc = "FZF zoxide jump" },
+  { on = "z", run = "plugin zoxide", desc = "Jump to a directory using zoxide" },
 
 ]

@@ -8,37 +8,8 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # FZF Configuration
 # ─────────────────────────────────────────────────────────────────────────────
-
-# Default command - use fd if available, otherwise find
-if command -v fd &> /dev/null; then
-    export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
-else
-    export FZF_DEFAULT_COMMAND='find . -type f -not -path "*/\.git/*"'
-fi
-
-# Default options with catppuccin-inspired theme
-export FZF_DEFAULT_OPTS="
-    --height=60%
-    --layout=reverse
-    --border=rounded
-    --info=inline
-    --margin=1
-    --padding=1
-    --prompt='❯ '
-    --pointer='▶'
-    --marker='✓'
-    --header-first
-    --cycle
-    --scroll-off=5
-    --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8
-    --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc
-    --color=marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8
-    --bind='ctrl-/:toggle-preview'
-    --bind='ctrl-d:preview-page-down'
-    --bind='ctrl-u:preview-page-up'
-    --bind='ctrl-a:select-all'
-    --bind='ctrl-y:execute-silent(echo {+} | xclip -selection clipboard)'
-"
+# Note: FZF_DEFAULT_COMMAND and FZF_DEFAULT_OPTS are defined in ~/.zshenv
+# so they're available to all subshells (including yazi's shell commands)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CTRL-T: Paste selected files/directories onto command line

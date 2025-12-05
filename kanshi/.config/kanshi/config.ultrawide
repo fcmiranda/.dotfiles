@@ -1,0 +1,12 @@
+# Kanshi monitor configuration
+# See https://github.com/emersion/kanshi for more details
+
+profile {
+    output "eDP-1" disable
+    output "HDMI-A-1" mode 2560x1080 position 0,0
+    exec hyprctl keyword monitor "HDMI-A-1,addreserved,-10,0,0,0"
+}
+
+profile {
+    output "eDP-1" enable
+}

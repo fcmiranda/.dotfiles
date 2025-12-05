@@ -1,0 +1,200 @@
+# Yazi Theme Configuration
+# https://yazi-rs.github.io/docs/configuration/theme
+# This is a clean, modern theme inspired by popular color schemes
+
+[manager]
+cwd = { fg = "cyan" }
+
+# Hovered
+hovered = { fg = "black", bg = "lightblue" }
+preview_hovered = { underline = true }
+
+# Find
+find_keyword = { fg = "yellow", italic = true }
+find_position = { fg = "magenta", bg = "reset", italic = true }
+
+# Marker
+marker_copied = { fg = "lightgreen", bg = "lightgreen" }
+marker_cut = { fg = "lightred", bg = "lightred" }
+marker_selected = { fg = "lightyellow", bg = "lightyellow" }
+
+# Tab
+tab_active = { fg = "black", bg = "lightblue" }
+tab_inactive = { fg = "white", bg = "darkgray" }
+tab_width = 1
+
+# Count
+count_copied = { fg = "black", bg = "lightgreen" }
+count_cut = { fg = "black", bg = "lightred" }
+count_selected = { fg = "black", bg = "lightyellow" }
+
+# Border
+border_symbol = "│"
+border_style = { fg = "gray" }
+
+# Highlighting (syntax highlighting from bat/treesitter)
+syntect_theme = ""  # Uses terminal colors
+
+[status]
+separator_open = ""
+separator_close = ""
+separator_style = { fg = "darkgray", bg = "darkgray" }
+
+# Mode
+mode_normal = { fg = "black", bg = "lightblue", bold = true }
+mode_select = { fg = "black", bg = "lightgreen", bold = true }
+mode_unset = { fg = "black", bg = "lightmagenta", bold = true }
+
+# Progress
+progress_label = { fg = "white", bold = true }
+progress_normal = { fg = "blue", bg = "black" }
+progress_error = { fg = "red", bg = "black" }
+
+# Permissions
+permissions_t = { fg = "lightgreen" }
+permissions_r = { fg = "lightyellow" }
+permissions_w = { fg = "lightred" }
+permissions_x = { fg = "lightcyan" }
+permissions_s = { fg = "darkgray" }
+
+[input]
+border = { fg = "blue" }
+title = {}
+value = {}
+selected = { reversed = true }
+
+[select]
+border = { fg = "blue" }
+active = { fg = "magenta" }
+inactive = {}
+
+[tasks]
+border = { fg = "blue" }
+title = {}
+hovered = { underline = true }
+
+[which]
+mask = { bg = "black" }
+cand = { fg = "lightcyan" }
+rest = { fg = "darkgray" }
+desc = { fg = "magenta" }
+separator = "  "
+separator_style = { fg = "darkgray" }
+
+[help]
+on = { fg = "magenta" }
+run = { fg = "cyan" }
+desc = {}
+hovered = { bg = "darkgray", bold = true }
+footer = { fg = "black", bg = "white" }
+
+[confirm]
+border = { fg = "blue" }
+title = { fg = "red", bold = true }
+content = {}
+list = {}
+btn_yes = { fg = "lightgreen", bold = true }
+btn_no = { fg = "lightred", bold = true }
+btn_labels = ["Y:es", "N:o"]
+
+[notify]
+title_info = { fg = "lightcyan" }
+title_warn = { fg = "lightyellow" }
+title_error = { fg = "lightred" }
+
+[completion]
+border = { fg = "blue" }
+active = { bg = "darkgray" }
+inactive = {}
+icon_file = ""
+icon_folder = ""
+icon_command = ""
+
+[filetype]
+rules = [
+  # Images
+  { mime = "image/*", fg = "cyan" },
+  
+  # Media
+  { mime = "video/*", fg = "yellow" },
+  { mime = "audio/*", fg = "yellow" },
+  
+  # Archives
+  { mime = "application/zip", fg = "magenta" },
+  { mime = "application/gzip", fg = "magenta" },
+  { mime = "application/x-tar", fg = "magenta" },
+  { mime = "application/x-bzip", fg = "magenta" },
+  { mime = "application/x-bzip2", fg = "magenta" },
+  { mime = "application/x-7z-compressed", fg = "magenta" },
+  { mime = "application/x-rar", fg = "magenta" },
+  { mime = "application/x-xz", fg = "magenta" },
+  
+  # Documents
+  { mime = "application/pdf", fg = "red" },
+  { mime = "application/*office*", fg = "red" },
+  { mime = "application/msword", fg = "red" },
+  
+  # Text/Code
+  { mime = "text/*", fg = "green" },
+  { mime = "application/json", fg = "green" },
+  { mime = "application/javascript", fg = "green" },
+  { mime = "application/x-yaml", fg = "green" },
+  
+  # Executables
+  { mime = "application/x-executable", fg = "lightgreen" },
+  { mime = "application/x-sharedlib", fg = "lightgreen" },
+  
+  # Special
+  { name = "*.md", fg = "blue" },
+  { name = "*.rs", fg = "lightyellow" },
+  { name = "*.py", fg = "yellow" },
+  { name = "*.js", fg = "yellow" },
+  { name = "*.ts", fg = "blue" },
+  { name = "*.tsx", fg = "blue" },
+  { name = "*.jsx", fg = "blue" },
+  { name = "*.go", fg = "cyan" },
+  { name = "*.lua", fg = "blue" },
+  { name = "*.sh", fg = "green" },
+  { name = "*.bash", fg = "green" },
+  { name = "*.zsh", fg = "green" },
+  { name = "*.fish", fg = "green" },
+  { name = "*.vim", fg = "green" },
+  { name = "*.toml", fg = "lightcyan" },
+  { name = "*.yaml", fg = "lightcyan" },
+  { name = "*.yml", fg = "lightcyan" },
+  { name = "*.json", fg = "lightcyan" },
+  { name = "*.css", fg = "lightblue" },
+  { name = "*.scss", fg = "lightblue" },
+  { name = "*.html", fg = "lightyellow" },
+  { name = "*.vue", fg = "green" },
+  { name = "*.svelte", fg = "lightyellow" },
+  { name = "*.nix", fg = "lightblue" },
+  { name = "*.lock", fg = "darkgray" },
+  { name = "*-lock.*", fg = "darkgray" },
+  { name = "*.log", fg = "darkgray" },
+  { name = ".gitignore", fg = "darkgray" },
+  { name = ".gitmodules", fg = "darkgray" },
+  { name = ".gitattributes", fg = "darkgray" },
+  { name = ".env*", fg = "yellow" },
+  { name = "Dockerfile*", fg = "lightblue" },
+  { name = "docker-compose*", fg = "lightblue" },
+  { name = "Makefile", fg = "lightyellow" },
+  { name = "Cargo.toml", fg = "lightyellow" },
+  { name = "Cargo.lock", fg = "darkgray" },
+  { name = "package.json", fg = "lightyellow" },
+  { name = "package-lock.json", fg = "darkgray" },
+  { name = "README*", fg = "yellow", bold = true },
+  { name = "LICENSE*", fg = "gray" },
+  
+  # Fallback
+  { name = "*", fg = "white" },
+  { name = "*/", fg = "lightblue", bold = true },
+]
+
+[icon]
+# Enable Nerd Font icons (make sure you have a Nerd Font installed)
+globs = []
+dirs = []
+files = []
+exts = []
+conds = []

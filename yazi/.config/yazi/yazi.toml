@@ -1,7 +1,7 @@
 # Yazi Configuration - Best Practices
 # https://yazi-rs.github.io/docs/configuration/yazi
 
-[manager]
+[mgr]
 # Layout ratios: [parent, current, preview]
 ratio = [1, 4, 3]
 
@@ -155,7 +155,7 @@ cd_origin = "top-center"
 cd_offset = [0, 2, 50, 3]
 
 # create
-create_title = "Create:"
+create_title = ["Create:", "Create:"]
 create_origin = "top-center"
 create_offset = [0, 2, 50, 3]
 

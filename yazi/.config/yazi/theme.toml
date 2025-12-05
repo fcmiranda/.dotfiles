@@ -2,7 +2,7 @@
 # https://yazi-rs.github.io/docs/configuration/theme
 # This is a clean, modern theme inspired by popular color schemes
 
-[manager]
+[mgr]
 cwd = { fg = "cyan" }
 
 # Hovered

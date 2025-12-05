@@ -14,6 +14,7 @@ source_utils \
 	functions \
 	binds
 source_packages \
+	git \
 	mise \
 	starship \
 	zoxide \

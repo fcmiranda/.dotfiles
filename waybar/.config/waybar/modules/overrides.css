@@ -1,0 +1,76 @@
+/*
+ * Module-specific spacing and behavioural tweaks layered on top of styles/defaults.css.
+ */
+
+.modules-left {
+    margin-left: 8px;
+}
+
+.modules-right {
+    margin-right: 8px;
+}
+
+#workspaces button {
+    min-width: 12px;
+    padding: 0 6px;
+}
+
+#workspaces button.empty {
+    opacity: 0.5;
+}
+
+#cpu,
+#battery,
+#pulseaudio,
+#custom-omarchy,
+#custom-screenrecording-indicator,
+#custom-update {
+    margin: 0 8px;
+    min-width: 12px;
+}
+
+#custom-omarchy {
+    /* font-size: 15px; */
+}
+
+#tray {
+    margin-right: 16px;
+}
+
+#bluetooth {
+    margin-right: 16px;
+}
+
+#network {
+    margin-right: 12px;
+}
+
+#custom-expand-icon {
+    margin-right: 20px;
+}
+
+#clock {
+    margin-left: 8px;
+}
+
+#custom-update {
+    font-size: 10px;
+}
+
+#custom-screenrecording-indicator {
+    margin-left: 8px;
+    min-width: 12px;
+    font-size: 10px;
+}
+
+#custom-screenrecording-indicator.active {
+    color: #a55555;
+}
+
+.hidden {
+    opacity: 0;
+}
+
+tooltip {
+    padding: 4px 8px;
+}

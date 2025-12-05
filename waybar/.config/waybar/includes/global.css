@@ -1,0 +1,12 @@
+/*
+ * Global Waybar defaults.
+ * Keep this file minimal—only stateless base rules that other partials can override.
+ */
+
+* {
+    border: 0;
+    border-radius: 0;
+    font-family: "icomoon", "CaskaydiaMono Nerd Font", monospace;
+    font-size: 12px;
+    min-height: 0;
+}

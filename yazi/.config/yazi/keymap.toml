@@ -3,22 +3,15 @@
 
 [mgr]
 prepend_keymap = [
-  # FZF Integration (inherits FZF_DEFAULT_OPTS from environment)
-  { on = "<C-t>", run = '''shell 'fd --type f --strip-cwd-prefix --hidden --follow --exclude .git | fzf \
-    --preview "bat --color=always --style=numbers --line-range=:500 {}" \
-    --preview-window=right:60%:border-left \
-    --header="Select file to open" \
-    | xargs -r yazi' --block''', desc = "FZF file search" },
-  { on = "<A-c>", run = '''shell 'fd --type d --strip-cwd-prefix --hidden --follow --exclude .git | fzf \
-    --preview "eza --tree --level=2 --icons --color=always {}" \
-    --preview-window=right:60%:border-left \
-    --header="Select directory" \
-    | xargs -r yazi' --block''', desc = "FZF cd to directory" },
-  { on = "<C-j>", run = '''shell 'zoxide query --list | fzf \
-    --preview "eza --tree --level=2 --icons --color=always {}" \
-    --preview-window=right:60%:border-left \
-    --header="Zoxide: Jump to directory" \
-    | xargs -r yazi' --block''', desc = "FZF zoxide jump" },
-  { on = "z", run = "plugin zoxide", desc = "Jump to a directory using zoxide" },
+  # FZF file search → reveal in yazi
+  { on = "<C-t>", run = "shell 'fd -tf -H -E.git | fzf --preview=\"bat -n --color=always {}\" | xargs -r ya emit reveal' --block", desc = "FZF file search" },
 
+  # FZF directory search → add to zoxide + cd
+  { on = "<A-c>", run = "shell 'fd -td -H -E.git | fzf --preview=\"eza -T -L2 --icons {}\" | tee >(xargs -r zoxide add) | xargs -r ya emit cd' --block", desc = "FZF cd to directory" },
+
+  # Zoxide jump → cd (already tracked)
+  { on = "<C-j>", run = "shell 'zoxide query -l | fzf --preview=\"eza -T -L2 --icons {}\" | xargs -r ya emit cd' --block", desc = "Zoxide jump" },
+
+  # Zoxide plugin
+  { on = "z", run = "plugin zoxide", desc = "Zoxide interactive" },
 ]

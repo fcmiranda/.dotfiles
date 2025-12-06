@@ -1,0 +1,1 @@
+alias ps='procs --tree --sort cpu --header="ALT-C: cd into directory" '

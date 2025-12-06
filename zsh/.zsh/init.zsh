@@ -20,7 +20,12 @@ source_packages \
 	zoxide \
 	fzf \
 	atuin \
-	yazi
+	yazi \
+	duf \
+	lolcat \
+	figlet \
+	procs
+
 source_plugins \
 	zsh-autosuggestions \
 	zsh-syntax-highlighting \

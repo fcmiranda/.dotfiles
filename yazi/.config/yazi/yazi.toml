@@ -14,7 +14,7 @@ sort_translit = false
 
 # Display
 linemode = "size"
-show_hidden = false
+show_hidden = true
 show_symlink = true
 scrolloff = 5
 

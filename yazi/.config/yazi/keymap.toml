@@ -12,6 +12,96 @@ prepend_keymap = [
   # Zoxide jump → cd (already tracked)
   { on = "<C-j>", run = "shell 'zoxide query -l | fzf --preview=\"eza -T -L2 --icons {}\" | xargs -r ya emit cd' --block", desc = "Zoxide jump" },
 
-  # Zoxide plugin
-  { on = "z", run = "plugin zoxide", desc = "Zoxide interactive" },
+  # Archive helpers
+  { on = "<A-z>", run = '''shell '
+# Prompt user for compression format (xz preferred, listed first)
+fmt=$(printf "tar.xz\nzip\n7z" | fzf --prompt="Compression format: " --height=6 --reverse)
+[ -z "$fmt" ] && exit 0
+
+compress() {
+  target="$1"
+  base="${target%/}"
+  dir="$(dirname "$base")"
+  name="$(basename "$base")"
+
+  case "$fmt" in
+    tar.xz)
+      dest="$dir/${name}.tar.xz"
+      i=1
+      while [ -e "$dest" ]; do dest="$dir/${name}-${i}.tar.xz"; i=$((i+1)); done
+      tar -C "$dir" -cJf "$dest" "$name"
+      ;;
+    zip)
+      dest="$dir/${name}.zip"
+      i=1
+      while [ -e "$dest" ]; do dest="$dir/${name}-${i}.zip"; i=$((i+1)); done
+      ( cd "$dir" && zip -r "$dest" "$name" )
+      ;;
+    7z)
+      dest="$dir/${name}.7z"
+      i=1
+      while [ -e "$dest" ]; do dest="$dir/${name}-${i}.7z"; i=$((i+1)); done
+      7z a "$dest" "$target"
+      ;;
+  esac
+}
+
+for target in "$@"; do
+  [ -e "$target" ] || continue
+  compress "$target"
+done
+' --block --confirm''', desc = "Compress selected files" },
+
+  { on = "<A-u>", run = '''shell '
+extract_archive() {
+  archive="$1"
+  dir="$(dirname "$archive")"
+
+  case "$archive" in
+    *.tar.xz|*.txz)
+      tar -xJf "$archive" -C "$dir"
+      ;;
+    *.tar.gz|*.tgz)
+      tar -xzf "$archive" -C "$dir"
+      ;;
+    *.tar.bz2|*.tbz2)
+      tar -xjf "$archive" -C "$dir"
+      ;;
+    *.tar)
+      tar -xf "$archive" -C "$dir"
+      ;;
+    *.zip)
+      if command -v unzip >/dev/null 2>&1; then
+        unzip -o -d "$dir" "$archive"
+      elif command -v bsdtar >/dev/null 2>&1; then
+        bsdtar -xf "$archive" -C "$dir"
+      else
+        printf "No unzip or bsdtar found\n" >&2; return 127
+      fi
+      ;;
+    *.7z)
+      if command -v 7z >/dev/null 2>&1; then
+        7z x -o"$dir" "$archive"
+      else
+        printf "7z not found\n" >&2; return 127
+      fi
+      ;;
+    *)
+      # Fallback: try unar or bsdtar
+      if command -v unar >/dev/null 2>&1; then
+        unar -o "$dir" "$archive"
+      elif command -v bsdtar >/dev/null 2>&1; then
+        bsdtar -xf "$archive" -C "$dir"
+      else
+        printf "No extractor found\n" >&2; return 127
+      fi
+      ;;
+  esac
+}
+
+for archive in "$@"; do
+  [ -e "$archive" ] || continue
+  extract_archive "$archive" || exit $?
+done
+' --block --confirm''', desc = "Extract selected archives" }
 ]

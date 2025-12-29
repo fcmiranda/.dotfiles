@@ -5,3 +5,11 @@ unmap r
 unmap t
 unmap o
 map t Vomnibar.activate
+unmap H
+map <c-h> goBack
+unmap L
+map <c-l> goForward
+unmap J
+map <c-j> previousTab
+unmap K
+map <c-k> previousTab 

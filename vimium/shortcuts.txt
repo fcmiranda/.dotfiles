@@ -1,0 +1,7 @@
+# Insert your preferred key mappings here. 
+unmap x
+unmap X
+unmap r
+unmap t
+unmap o
+map t Vomnibar.activate

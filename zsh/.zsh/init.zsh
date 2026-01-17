@@ -13,6 +13,7 @@ source_utils \
 	aliases \
 	functions \
 	binds
+
 source_packages \
 	git \
 	mise \
@@ -27,7 +28,7 @@ source_packages \
 	procs
 
 source_plugins \
-	zsh-vi-mode \
+    zsh-vi-mode \
 	zsh-autosuggestions \
 	zsh-syntax-highlighting \
 	zsh-transient-prompt

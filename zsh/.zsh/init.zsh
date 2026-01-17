@@ -27,6 +27,7 @@ source_packages \
 	procs
 
 source_plugins \
+	zsh-vi-mode \
 	zsh-autosuggestions \
 	zsh-syntax-highlighting \
 	zsh-transient-prompt

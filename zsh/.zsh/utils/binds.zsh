@@ -1,3 +1,3 @@
-# binds to switch to vi command mode with ESC key
-bindkey -e
-bindkey '\e' vi-cmd-mode
+# # binds to use emacs mode (disables vi mode)
+# bindkey -e
+# bindkey '\e' vi-cmd-mode

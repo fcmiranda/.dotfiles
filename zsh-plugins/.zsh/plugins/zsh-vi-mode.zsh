@@ -1,4 +1,4 @@
 # Source zsh-vi-mode configuration
-if [ -f "${HOME}/.dotfiles/zsh-plugins/.zsh/zsh-vi-mode.zsh" ]; then
-    source "${HOME}/.dotfiles/zsh-plugins/.zsh/zsh-vi-mode.zsh"
+if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
+    source "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
 fi

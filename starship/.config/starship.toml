@@ -1,10 +1,20 @@
 add_newline = true
 command_timeout = 200
-format = "[$directory$git_branch$git_status]($style)$character"
+format = "[$directory$git_branch$git_status]($style)${custom.vi_mode}"
 
-[character]
-error_symbol = "[✗](bold cyan)"
-success_symbol = "[❯](bold cyan)"
+[custom.vi_mode]
+command = '''
+case "$ZVM_MODE" in
+  n) echo "" ;;
+  i) echo "" ;;
+  v|vl) echo "󰒉" ;;
+  r) echo "" ;;
+  *) echo "" ;;
+esac
+'''
+when = true
+format = "[$output](bold cyan) "
+shell = ["zsh", "-c"]
 
 [directory]
 truncation_length = 2

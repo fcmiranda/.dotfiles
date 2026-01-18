@@ -2,6 +2,14 @@
 function zvm_config() {
     # Keep last mode behavior - the plugin default
     ZVM_LINE_INIT_MODE=$ZVM_MODE_LAST
+    # Export ZVM_MODE so starship custom modules can read it
+    typeset -gx ZVM_MODE
+}
+
+# Refresh prompt on vi mode change for starship integration
+function zvm_after_select_vi_mode() {
+    typeset -gx ZVM_MODE
+    zle reset-prompt 2>/dev/null
 }
 
 if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then

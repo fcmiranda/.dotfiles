@@ -8,6 +8,85 @@ if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
     source "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
 fi
 
+# Load omarchy-based colors for zsh-vi-mode prompt indicator
+if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh"
+elif [ -f "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
+elif [ -f "${HOME}/.dotfiles/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.dotfiles/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
+fi
+
+# Mode indicator (icons + colors) for prompt
+ZVM_MODE_PROMPT=""
+if [[ -z "${ZVM_MODE_PROMPT_SIDE+x}" ]]; then
+    if [[ "$PROMPT" == *"starship prompt"* ]]; then
+        ZVM_MODE_PROMPT_SIDE="right"
+    else
+        ZVM_MODE_PROMPT_SIDE="left"
+    fi
+fi
+
+function _zvm_format_mode_icon() {
+    local icon="$1"
+    local color="$2"
+    if [[ -n "$color" ]]; then
+        echo "%F{$color}${icon}%f"
+    else
+        echo "$icon"
+    fi
+}
+
+function _zvm_apply_mode_prompt() {
+    local indicator="$1"
+    local side="${ZVM_MODE_PROMPT_SIDE:-right}"
+
+    if [[ "$side" == "left" ]]; then
+        if [[ -z "${ZVM_PROMPT_BASE+x}" ]]; then
+            ZVM_PROMPT_BASE="$PROMPT"
+        fi
+        PROMPT="${indicator} ${ZVM_PROMPT_BASE}"
+    else
+        if [[ -z "${ZVM_RPROMPT_BASE+x}" ]]; then
+            ZVM_RPROMPT_BASE="$RPROMPT"
+        fi
+        if [[ -n "$ZVM_RPROMPT_BASE" ]]; then
+            RPROMPT="${ZVM_RPROMPT_BASE} ${indicator}"
+        else
+            RPROMPT="${indicator}"
+        fi
+    fi
+}
+
+function _zvm_update_mode_prompt() {
+    local icon=""
+    local color=""
+
+    case "$ZVM_MODE" in
+        $ZVM_MODE_INSERT)
+            icon=""
+            color="$ZVM_VI_MODE_INSERT_COLOR"
+            ;;
+        $ZVM_MODE_NORMAL)
+            icon=""
+            color="$ZVM_VI_MODE_NORMAL_COLOR"
+            ;;
+        $ZVM_MODE_VISUAL|$ZVM_MODE_VISUAL_LINE)
+            icon="󰒉"
+            color="$ZVM_VI_MODE_VISUAL_COLOR"
+            ;;
+        *)
+            icon=""
+            color="$ZVM_VI_MODE_INSERT_COLOR"
+            ;;
+    esac
+
+    ZVM_MODE_PROMPT="$(_zvm_format_mode_icon "$icon" "$color")"
+    _zvm_apply_mode_prompt "$ZVM_MODE_PROMPT"
+}
+
+zvm_after_select_vi_mode_commands+=('_zvm_update_mode_prompt')
+
 # Custom zle-line-init to always start in insert mode with proper prompt reset
 function _zvm_custom_zle_line_init() {
     # Always reset to insert mode first without prompt reset (like original)

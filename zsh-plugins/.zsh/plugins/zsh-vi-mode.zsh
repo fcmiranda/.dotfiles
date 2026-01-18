@@ -1,7 +1,25 @@
 # Source zsh-vi-mode configuration
+function zvm_config() {
+    # Keep last mode behavior - the plugin default
+    ZVM_LINE_INIT_MODE=$ZVM_MODE_LAST
+}
+
 if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
     source "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
 fi
+
+# Custom zle-line-init to always start in insert mode with proper prompt reset
+function _zvm_custom_zle_line_init() {
+    # Always reset to insert mode first without prompt reset (like original)
+    ZVM_MODE=''
+    zvm_select_vi_mode $ZVM_MODE_INSERT
+}
+
+# Hook to override zle-line-init after zvm_init completes
+function zvm_after_init_override_line_init() {
+    zle -N zle-line-init _zvm_custom_zle_line_init
+}
+zvm_after_init_commands+=('zvm_after_init_override_line_init')
 
 # =============================================================================
 # Combined surround text objects: ib (inside brackets) and iq (inside quotes)

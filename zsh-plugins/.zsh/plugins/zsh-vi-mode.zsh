@@ -16,6 +16,15 @@ if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
     source "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
 fi
 
+# Load omarchy-based colors for zsh-vi-mode prompt indicator
+if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh"
+elif [ -f "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
+elif [ -f "${HOME}/.dotfiles/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.dotfiles/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
+fi
+
 # Custom zle-line-init to always start in insert mode with proper prompt reset
 function _zvm_custom_zle_line_init() {
     # Always reset to insert mode first without prompt reset (like original)

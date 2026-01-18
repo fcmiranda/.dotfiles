@@ -27,7 +27,7 @@ $pixi\
 [](fg:color_mid_blue bg:color_bg)\
 $time\
 [ ](fg:color_bg)\
-$line_break$character"""
+$line_break$custom"""
 
 # The palette is named "nix_flake_theme" after the shape in the image.
 # Colors are sampled directly from the provided image.
@@ -185,3 +185,34 @@ error_symbol = '[](bold fg:color_red)'
 vimcmd_symbol = '[](bold fg:color_green)'
 vimcmd_replace_one_symbol = '[](bold fg:color_purple)'
 vimcmd_replace_symbol = '[](bold fg:color_purple)'
+vimcmd_visual_symbol = '[󰒉](bold fg:color_yellow)'
+
+[custom.zvm_visual]
+command = 'echo 󰒉  '
+when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
+style = 'bold fg:color_yellow'
+format = '[$output]($style)'
+
+[custom.zvm_replace]
+command = 'echo   '
+when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
+style = 'bold fg:color_purple'
+format = '[$output]($style)'
+
+[custom.zvm_normal]
+command = 'echo   '
+when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
+style = 'bold fg:color_green'
+format = '[$output]($style)'
+
+[custom.zvm_insert_ok]
+command = 'echo  '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
+style = 'bold fg:color_green'
+format = '[$output]($style)'
+
+[custom.zvm_insert_err]
+command = 'echo  '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
+style = 'bold fg:color_red'
+format = '[$output]($style)'

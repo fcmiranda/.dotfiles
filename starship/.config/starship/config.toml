@@ -25,7 +25,8 @@ $docker_context\
 $conda\
 $pixi\
 $custom\
-$line_break"""
+$line_break\
+$character"""
 
 # The palette is named "nix_flake_theme" after the shape in the image.
 # Colors are sampled directly from the provided image.
@@ -189,10 +190,10 @@ format = '[$output]($style)'
 command = 'echo visual'
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
 style = 'inverted bg:transparent fg:color_vim_visual'
-format = '[$output]($style)'
+format = '[ $output]($style)'
 
 [custom.zvm_visual_arrow_after]
-command = 'echo  sss'
+command = 'echo  '
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
 style = 'fg:color_vim_visual'
 format = '[$output]($style) '
@@ -210,13 +211,13 @@ format = '[$output]($style)'
 command = 'echo normal'
 when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
 style = 'inverted bg:transparent fg:color_mid_blue'
-format = '[$output]($style)'
+format = '[ $output]($style)'
 
 [custom.zvm_normal]
 command = 'echo normal'
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
 style = 'inverted bg:transparent fg:color_vim_normal'
-format = '[$output]($style)'
+format = '[ $output]($style)'
 
 [custom.zvm_normal_arrow_after]
 command = 'echo  '
@@ -238,16 +239,21 @@ format = '[$output]($style)'
 command = 'echo insert'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
 style = 'inverted bg:transparent fg:color_vim_insert'
-format = '[$output]($style)'
+format = '[ $output]($style)'
 
 [custom.zvm_insert_err]
-command = 'echo INSERT'
+command = 'echo insert'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
 style = 'inverted bg:transparent fg:color_red'
-format = '[$output]($style)'
+format = '[ $output]($style)'
 
 [custom.zvm_insert_ok_arrow_after]
 command = 'echo  '
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
 style = 'fg:color_vim_insert'
 format = '[$output]($style) '
+
+[character]
+success_symbol = ""
+error_symbol = ""
+vimcmd_symbol = ""

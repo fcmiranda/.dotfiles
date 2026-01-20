@@ -186,7 +186,7 @@ style = 'bg:color_yellow fg:color_purple'
 format = '[$output]($style)'
 
 [custom.zvm_visual]
-command = 'echo 󰬃󰫶󰬀󰬂󰫮󰫹'
+command = 'echo visual'
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
 style = 'inverted bg:transparent fg:color_yellow'
 format = '[$output]($style)'
@@ -204,7 +204,7 @@ style = 'bg:color_purple fg:color_purple'
 format = '[$output]($style)'
 
 [custom.zvm_replace]
-command = 'echo 󰫻󰫼󰫿󰫺󰫮󰫹'
+command = 'echo normal'
 when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
 style = 'inverted bg:transparent fg:color_purple'
 format = '[$output]($style)'
@@ -222,7 +222,7 @@ style = 'bg:color_green fg:color_purple'
 format = '[$output]($style)'
 
 [custom.zvm_normal]
-command = 'echo 󰫻󰫼󰫿󰫺󰫮󰫹'
+command = 'echo normal'
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
 style = 'inverted bg:transparent fg:color_green'
 format = '[$output]($style)'
@@ -240,7 +240,7 @@ style = 'bg:color_green fg:color_purple'
 format = '[$output]($style)'
 
 [custom.zvm_insert_ok]
-command = 'echo 󰫶󰫻󰬀󰫲󰫿󰬁'
+command = 'echo insert'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
 style = 'inverted bg:transparent fg:color_green'
 format = '[$output]($style)'
@@ -259,7 +259,7 @@ style = 'bg:color_red fg:color_purple'
 format = '[$output]($style)'
 
 [custom.zvm_insert_err]
-command = 'echo 󰫶󰫻󰬀󰫲󰫿󰬁'
+command = 'echo INSERT'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
 style = 'inverted bg:transparent fg:color_red'
 format = '[$output]($style)'

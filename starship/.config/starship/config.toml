@@ -4,7 +4,8 @@
 format = """
 [](color_purple)\
 $os\
-[](bg:color_mid_blue fg:color_purple)\
+(bg:color_mid_blue fg:color_purple)\
+$custom\
 $directory\
 [](fg:color_mid_blue bg:color_blue)\
 $git_branch\
@@ -27,7 +28,7 @@ $pixi\
 [](fg:color_mid_blue bg:color_bg)\
 $time\
 [ ](fg:color_bg)\
-$line_break$custom"""
+$line_break"""
 
 # The palette is named "nix_flake_theme" after the shape in the image.
 # Colors are sampled directly from the provided image.
@@ -37,7 +38,7 @@ palette = 'nix_flake_theme'
 color_bg = '#000000'      # Black background, as in the image
 color_foreground = '#E0E0E0'  # A light, clean foreground for text
 color_comment = '#6272a4'   # A muted color for less important info
-color_green = '#50FA7B'     # A vibrant green for success states
+color_green = '#4e7357'     # A vibrant green for success states
 color_red = '#FF5555'       # A standard red for error states
 color_yellow = '#F1FA8C'    # A bright yellow for warnings
 color_blue = '#5CD9FF'      # The light blue from the image's gradient
@@ -178,32 +179,93 @@ format = '[[  $time ](fg:color_foreground bg:color_bg)]($style)'
 [line_break]
 disabled = false
 
-[custom.zvm_visual]
-command = 'echo 󰒉  '
+[custom.zvm_visual_arrow_before]
+command = 'echo '
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
-style = 'bold fg:color_yellow'
-format = '[$output]($style)  '
+style = 'bg:color_yellow fg:color_purple'
+format = '[$output]($style)'
+
+[custom.zvm_visual]
+command = 'echo 󰬃󰫶󰬀󰬂󰫮󰫹'
+when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
+style = 'inverted bg:transparent fg:color_yellow'
+format = '[$output]($style)'
+
+[custom.zvm_visual_arrow_after]
+command = 'echo '
+when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
+style = 'bg:color_mid_blue fg:color_yellow'
+format = '[$output]($style)'
+
+[custom.zvm_replace_arrow_before]
+command = 'echo '
+when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
+style = 'bg:color_purple fg:color_purple'
+format = '[$output]($style)'
 
 [custom.zvm_replace]
-command = 'echo   '
+command = 'echo 󰫻󰫼󰫿󰫺󰫮󰫹'
 when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
-style = 'bold fg:color_purple'
-format = '[$output]($style)  '
+style = 'inverted bg:transparent fg:color_purple'
+format = '[$output]($style)'
+
+[custom.zvm_replace_arrow_after]
+command = 'echo '
+when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
+style = 'bg:color_mid_blue fg:color_purple'
+format = '[$output]($style)'
+
+[custom.zvm_normal_arrow_before]
+command = 'echo '
+when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
+style = 'bg:color_green fg:color_purple'
+format = '[$output]($style)'
 
 [custom.zvm_normal]
-command = 'echo   '
+command = 'echo 󰫻󰫼󰫿󰫺󰫮󰫹'
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
-style = 'bold fg:color_green'
-format = '[$output]($style)  '
+style = 'inverted bg:transparent fg:color_green'
+format = '[$output]($style)'
+
+[custom.zvm_normal_arrow_after]
+command = 'echo '
+when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
+style = 'bg:color_mid_blue fg:color_green'
+format = '[$output]($style)'
+
+[custom.zvm_insert_ok_arrow_before]
+command = 'echo '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
+style = 'bg:color_green fg:color_purple'
+format = '[$output]($style)'
 
 [custom.zvm_insert_ok]
-command = 'echo  '
+command = 'echo 󰫶󰫻󰬀󰫲󰫿󰬁'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
-style = 'bold fg:color_green'
-format = '[$output]($style)  '
+style = 'inverted bg:transparent fg:color_green'
+format = '[$output]($style)'
+
+[custom.zvm_insert_ok_arrow_after]
+command = 'echo '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
+style = 'bg:color_mid_blue fg:color_green'
+format = '[$output]($style)'
+
+
+[custom.zvm_insert_err_arrow_before]
+command = 'echo '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
+style = 'bg:color_red fg:color_purple'
+format = '[$output]($style)'
 
 [custom.zvm_insert_err]
-command = 'echo  '
+command = 'echo 󰫶󰫻󰬀󰫲󰫿󰬁'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
-style = 'bold fg:color_red'
-format = '[$output]($style)  '
+style = 'inverted bg:transparent fg:color_red'
+format = '[$output]($style)'
+
+[custom.zvm_insert_err_arrow_after]
+command = 'echo '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
+style = 'bg:color_mid_blue fg:color_red'
+format = '[$output]($style)'

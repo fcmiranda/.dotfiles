@@ -4,10 +4,9 @@
 format = """
 [](color_purple)\
 $os\
-(bg:color_vim_normal fg:color_purple)\
-$custom\
+[](bg:color_mid_blue fg:color_purple)\
 $directory\
-[](fg:color_vim_normal bg:color_blue)\
+[](fg:color_mid_blue bg:color_blue)\
 $git_branch\
 $git_status\
 [](fg:color_blue bg:color_purple)\
@@ -21,13 +20,11 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:color_purple bg:color_vim_normal)\
+[](fg:color_purple bg:color_mid_blue)\
 $docker_context\
 $conda\
 $pixi\
-[](fg:color_vim_normal bg:color_bg)\
-$time\
-[ ](fg:color_bg)\
+$custom\
 $line_break"""
 
 # The palette is named "nix_flake_theme" after the shape in the image.
@@ -42,7 +39,7 @@ color_comment = '#6272a4'   # A muted color for less important info
 color_red = '#FF5555'       # A standard red for error states
 
 color_blue = '#5CD9FF'      # The light blue from the image's gradient
-color_vim_blue = '#7aa2f7'
+color_mid_blue = '#d1dcf8'
 color_purple = '#9B8AFB'    # The purple from the image's gradient
 color_vim_insert = '#9ece6a'     # A vibrant green for success states
 color_vim_normal = '#7EAEFC'  # A color from the middle of the gradient
@@ -88,7 +85,7 @@ style_root = "bg:color_purple fg:color_red"
 format = '[ $user ]($style)'
 
 [directory]
-style = "fg:color_bg bg:color_vim_normal"
+style = "fg:color_bg bg:color_mid_blue"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -161,17 +158,17 @@ format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
 
 [docker_context]
 symbol = ""
-style = "bg:color_vim_normal"
-format = '[[ $symbol( $context) ](fg:color_bg bg:color_vim_normal)]($style)'
+style = "bg:color_mid_blue"
+format = '[[ $symbol( $context) ](fg:color_bg bg:color_mid_blue)]($style)'
 
 [conda]
 symbol = ""
-style = "bg:color_vim_normal"
-format = '[[ $symbol( $environment) ](fg:color_bg bg:color_vim_normal)]($style)'
+style = "bg:color_mid_blue"
+format = '[[ $symbol( $environment) ](fg:color_bg bg:color_mid_blue)]($style)'
 
 [pixi]
-style = "bg:color_vim_normal"
-format = '[[ $symbol( $version)( $environment) ](fg:color_bg bg:color_vim_normal)]($style)'
+style = "bg:color_mid_blue"
+format = '[[ $symbol( $version)( $environment) ](fg:color_bg bg:color_mid_blue)]($style)'
 
 [time]
 disabled = false
@@ -185,7 +182,7 @@ disabled = false
 [custom.zvm_visual_arrow_before]
 command = 'echo '
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_visual fg:color_purple'
+style = 'bg:color_vim_visual fg:color_mid_blue'
 format = '[$output]($style)'
 
 [custom.zvm_visual]
@@ -195,51 +192,46 @@ style = 'inverted bg:transparent fg:color_vim_visual'
 format = '[$output]($style)'
 
 [custom.zvm_visual_arrow_after]
-command = 'echo '
+command = 'echo  sss'
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_normal fg:color_vim_visual'
-format = '[$output]($style)'
+style = 'fg:color_vim_visual'
+format = '[$output]($style) '
 
-[custom.zvm_replace_arrow_before]
+
+
+
+[custom.zvm_normal_arrow_before]
 command = 'echo '
-when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
-style = 'bg:color_purple fg:color_purple'
+when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
+style = 'bg:color_vim_normal fg:color_mid_blue'
 format = '[$output]($style)'
 
 [custom.zvm_replace]
 command = 'echo normal'
 when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
-style = 'inverted bg:transparent fg:color_purple'
-format = '[$output]($style)'
-
-[custom.zvm_replace_arrow_after]
-command = 'echo '
-when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_normal fg:color_purple'
-format = '[$output]($style)'
-
-[custom.zvm_normal_arrow_before]
-command = 'echo '
-when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_blue fg:color_purple'
+style = 'inverted bg:transparent fg:color_mid_blue'
 format = '[$output]($style)'
 
 [custom.zvm_normal]
 command = 'echo normal'
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
-style = 'inverted bg:transparent fg:color_vim_blue'
+style = 'inverted bg:transparent fg:color_vim_normal'
 format = '[$output]($style)'
 
 [custom.zvm_normal_arrow_after]
-command = 'echo '
+command = 'echo  '
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_normal fg:color_vim_blue'
-format = '[$output]($style)'
+style = 'fg:color_vim_normal'
+format = '[$output]($style) '
+
+
+
+
 
 [custom.zvm_insert_ok_arrow_before]
 command = 'echo '
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
-style = 'bg:color_vim_insert fg:color_purple'
+style = 'bg:color_vim_insert fg:color_mid_blue'
 format = '[$output]($style)'
 
 [custom.zvm_insert_ok]
@@ -248,27 +240,14 @@ when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
 style = 'inverted bg:transparent fg:color_vim_insert'
 format = '[$output]($style)'
 
-[custom.zvm_insert_ok_arrow_after]
-command = 'echo '
-when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
-style = 'bg:color_vim_normal fg:color_vim_insert'
-format = '[$output]($style)'
-
-
-[custom.zvm_insert_err_arrow_before]
-command = 'echo '
-when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
-style = 'bg:color_red fg:color_purple'
-format = '[$output]($style)'
-
 [custom.zvm_insert_err]
 command = 'echo INSERT'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
 style = 'inverted bg:transparent fg:color_red'
 format = '[$output]($style)'
 
-[custom.zvm_insert_err_arrow_after]
-command = 'echo '
-when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
-style = 'bg:color_vim_normal fg:color_red'
-format = '[$output]($style)'
+[custom.zvm_insert_ok_arrow_after]
+command = 'echo  '
+when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
+style = 'fg:color_vim_insert'
+format = '[$output]($style) '

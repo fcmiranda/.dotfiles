@@ -269,19 +269,47 @@ function zvm_change_around_bracket_c() { zvm_change_around_bracket c; }
 function zvm_change_inside_quote_c() { zvm_change_inside_quote c; }
 function zvm_change_around_quote_c() { zvm_change_around_quote c; }
 
+# Track consecutive up presses for atuin activation
+_zvm_up_press_count=0
+
+# Custom up handler: double-up triggers atuin
+function _zvm_up_or_atuin() {
+    ((_zvm_up_press_count++))
+    if [[ $_zvm_up_press_count -ge 3 ]]; then
+        _zvm_up_press_count=0
+        BUFFER=""
+        CURSOR=0
+        zle atuin-search
+    else
+        # Schedule reset after a brief delay
+        (sleep 0.5; _zvm_up_press_count=0) &!
+        zle up-line-or-history
+    fi
+}
+
+# Custom down handler: reset counter and go down
+function _zvm_down_reset_counter() {
+    _zvm_up_press_count=0
+    zle down-line-or-history
+}
+
 # Custom keybindings after zsh-vi-mode initialization
 function zvm_after_init() {
     # Unbind ctrl-p/ctrl-n and bind ctrl-j/ctrl-k for history navigation
     bindkey -M viins -r '^P'
     bindkey -M viins -r '^N'
 
-    bindkey -M viins '^[[A' up-line-or-history
-    bindkey -M viins '^K' up-line-or-history
-    bindkey -M viins '^J' down-line-or-history
-    bindkey -M viins '^[[B' down-line-or-history
+    # Define custom up handler widget
+    zvm_define_widget _zvm_up_or_atuin
+    zvm_define_widget _zvm_down_reset_counter
 
-    # Bind ctrl-r to atuin-search in insert mode
-    bindkey -M viins '^R' atuin-search
+    bindkey -M viins '^[[A' _zvm_up_or_atuin
+    bindkey -M viins '^K' up-line-or-history
+    bindkey -M viins '^J' _zvm_down_reset_counter
+    bindkey -M viins '^[[B' _zvm_down_reset_counter
+
+    # Bind ctrl-r to backward-kill-word in insert mode
+    bindkey -M viins '^R' backward-kill-word
 
     # ==========================================================================
     # Register combined surround widgets and keybindings

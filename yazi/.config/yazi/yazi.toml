@@ -106,12 +106,6 @@ image_alloc = 536870912  # 512MB
 image_bound = [0, 0]
 suppress_preload = false
 
-[plugin]
-fetchers = [
-  # Mimetype
-  { id = "mime", name = "*", run = "mime", if = "!mime", prio = "high" },
-]
-
 preloaders = [
   # Image
   { name = "*.{avif,bmp,gif,heic,heif,ico,jpeg,jpg,jxl,png,svg,webp}", run = "image" },

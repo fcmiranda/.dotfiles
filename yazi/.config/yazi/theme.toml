@@ -111,39 +111,7 @@ icon_folder = ""
 icon_command = ""
 
 [filetype]
-rules = [
-  # Images
-  { mime = "image/*", fg = "cyan" },
-  
-  # Media
-  { mime = "video/*", fg = "yellow" },
-  { mime = "audio/*", fg = "yellow" },
-  
-  # Archives
-  { mime = "application/zip", fg = "magenta" },
-  { mime = "application/gzip", fg = "magenta" },
-  { mime = "application/x-tar", fg = "magenta" },
-  { mime = "application/x-bzip", fg = "magenta" },
-  { mime = "application/x-bzip2", fg = "magenta" },
-  { mime = "application/x-7z-compressed", fg = "magenta" },
-  { mime = "application/x-rar", fg = "magenta" },
-  { mime = "application/x-xz", fg = "magenta" },
-  
-  # Documents
-  { mime = "application/pdf", fg = "red" },
-  { mime = "application/*office*", fg = "red" },
-  { mime = "application/msword", fg = "red" },
-  
-  # Text/Code
-  { mime = "text/*", fg = "green" },
-  { mime = "application/json", fg = "green" },
-  { mime = "application/javascript", fg = "green" },
-  { mime = "application/x-yaml", fg = "green" },
-  
-  # Executables
-  { mime = "application/x-executable", fg = "lightgreen" },
-  { mime = "application/x-sharedlib", fg = "lightgreen" },
-  
+rules = [  
   # Special
   { name = "*.md", fg = "blue" },
   { name = "*.rs", fg = "lightyellow" },
@@ -190,11 +158,3 @@ rules = [
   { name = "*", fg = "white" },
   { name = "*/", fg = "lightblue", bold = true },
 ]
-
-[icon]
-# Enable Nerd Font icons (make sure you have a Nerd Font installed)
-globs = []
-dirs = []
-files = []
-exts = []
-conds = []

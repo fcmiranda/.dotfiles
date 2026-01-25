@@ -20,9 +20,10 @@ else
     export FZF_CTRL_T_COMMAND='find . -type f -o -type d -not -path "*/\.git/*"'
 fi
 
+# --preview='sesh preview {} && eza --tree --level=2 --icons --color=always {} || bat --style=numbers --color=always --line-range=:300 {}'
 export FZF_CTRL_T_OPTS="
     --preview='[[ -d {} ]] && eza --tree --level=2 --icons --color=always {} || bat --style=numbers --color=always --line-range=:300 {}'
-    --preview-window=right:60%:border-left
+    --preview-window=right:60%
     --bind='ctrl-/:toggle-preview'
     --header='CTRL-T: Select files/directories'
 "
@@ -50,7 +51,7 @@ fi
 
 export FZF_ALT_C_OPTS="
     --preview='eza --tree --level=2 --icons --color=always {}'
-    --preview-window=right:60%:border-left
+    --preview-window=right:60%
     --bind='ctrl-/:toggle-preview'
     --header='ALT-C: cd into directory'
 "

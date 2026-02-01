@@ -1,33 +1,25 @@
 
 
-sesh
 
-create session for download
+- session project opening
+- window for nvim
+- toggle test panel
+- window for opencode
+- server
 
 .tmux.conf
-- fix sesh prefix + J
+- kill unused session after a period
 
 --------
-tmux dialogs
-
-
---------
-
-
-fzf
-- fix the ctrl T
-- fix the alt C
-
-
-
-
 
 fix omarchy icons topbar
-
-
+- chrome - is opening a 'x' icon
+- maybe remove the block point icon
+- better constrast color
+---------
 vimium
 
-- add option to search with google when ctrl is hold
+- add option to search with google when tab is hold
 
 
 --------

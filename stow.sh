@@ -14,7 +14,8 @@
 #   -s, --status    Show stowed packages from lock file
 #   -h, --help      Show this help message
 #
-# If no packages are specified, all packages will be processed.
+# Without arguments: shows unstowed packages and prompts to stow them.
+# With packages: stows the specified packages.
 #
 # Lock file: stow.lock (JSON) tracks all stowed packages and their symlinks.
 
@@ -243,6 +244,73 @@ for package in sorted(packages.keys()):
 PY
 }
 
+# Get stowed packages from lock file
+get_stowed_packages() {
+    [[ ! -f "$LOCK_FILE" ]] && return 0
+
+    python - "$LOCK_FILE" <<'PY'
+import json
+import sys
+
+lock_path = sys.argv[1]
+
+try:
+    with open(lock_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(0)
+
+packages = data.get("packages", {})
+if isinstance(packages, dict):
+    for name in sorted(packages.keys()):
+        print(name)
+PY
+}
+
+# Sync: show unstowed packages and optionally stow them
+sync_packages() {
+    local -a all_packages=()
+    local -a stowed_packages=()
+    local -a unstowed=()
+    local reply
+
+    mapfile -t all_packages < <(printf '%s\n' $(get_packages))
+    mapfile -t stowed_packages < <(get_stowed_packages)
+
+    declare -A stowed_map
+    for p in "${stowed_packages[@]:-}"; do
+        [[ -n "$p" ]] && stowed_map["$p"]=1
+    done
+
+    for pkg in "${all_packages[@]:-}"; do
+        [[ -z "$pkg" ]] && continue
+        if [[ -z "${stowed_map[$pkg]:-}" ]]; then
+            unstowed+=("$pkg")
+        fi
+    done
+
+    if [[ ${#unstowed[@]} -eq 0 ]]; then
+        log_success "All packages are stowed."
+        return 0
+    fi
+
+    echo -e "${YELLOW}Unstowed packages:${NC}"
+    for pkg in "${unstowed[@]}"; do
+        echo -e "  ${RED}○${NC} $pkg"
+    done
+    echo
+
+    if [[ -t 0 ]]; then
+        read -r -p "Stow these packages? [y/N] " reply
+        if [[ "$reply" =~ ^[Yy]$ ]]; then
+            process_packages "stow" "${unstowed[@]}"
+            return $?
+        fi
+    else
+        log_info "Run './stow.sh <package>' to stow specific packages."
+    fi
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Stow Operations
 # ─────────────────────────────────────────────────────────────────────────────
@@ -336,9 +404,18 @@ main() {
     local packages=()
     DRY_RUN=false
     VERBOSE=false
+    local had_args=false
+
+    # No arguments = sync mode
+    if [[ $# -eq 0 ]]; then
+        check_dependencies
+        sync_packages
+        exit $?
+    fi
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
+        had_args=true
         case "$1" in
             -a|--adopt)
                 action="adopt"

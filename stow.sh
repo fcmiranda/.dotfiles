@@ -11,9 +11,12 @@
 #   -r, --restow    Restow packages (useful after changes)
 #   -n, --dry-run   Show what would be done without making changes
 #   -v, --verbose   Enable verbose output
+#   -s, --status    Show stowed packages from lock file
 #   -h, --help      Show this help message
 #
 # If no packages are specified, all packages will be processed.
+#
+# Lock file: stow.lock (JSON) tracks all stowed packages and their symlinks.
 
 set -uo pipefail
 
@@ -23,6 +26,7 @@ set -uo pipefail
 
 readonly DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 readonly TARGET_DIR="${STOW_TARGET:-$HOME}"
+readonly LOCK_FILE="$DOTFILES_DIR/stow-lock.json"
 
 # Directories to ignore (not stow packages)
 readonly IGNORE_DIRS=(
@@ -99,6 +103,147 @@ check_dependencies() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Lock File Operations
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Get symlinks for a package
+get_package_symlinks() {
+    local package="$1"
+    local package_dir="$DOTFILES_DIR/$package"
+    local symlinks=()
+
+    while IFS= read -r -d '' file; do
+        local rel_path="${file#$package_dir/}"
+        local target_path="$TARGET_DIR/$rel_path"
+        if [[ -L "$target_path" ]]; then
+            symlinks+=("$target_path")
+        fi
+    done < <(find "$package_dir" -type f -print0 2>/dev/null)
+
+    printf '%s\n' "${symlinks[@]}"
+}
+
+# Add package to lock file
+add_to_lock() {
+    local package="$1"
+    local timestamp
+    timestamp=$(date -Iseconds)
+    local temp_file
+    temp_file=$(mktemp)
+
+    get_package_symlinks "$package" > "$temp_file"
+
+    python - "$LOCK_FILE" "$package" "$timestamp" "$TARGET_DIR" "$temp_file" <<'PY'
+import json
+import os
+import sys
+
+lock_path, package, ts, target, files_path = sys.argv[1:6]
+
+files = []
+with open(files_path, 'r', encoding='utf-8') as f:
+    for line in f:
+        line = line.strip()
+        if line:
+            files.append(line)
+
+data = {}
+if os.path.exists(lock_path):
+    try:
+        with open(lock_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+
+if not isinstance(data, dict):
+    data = {}
+
+packages = data.get("packages")
+if not isinstance(packages, dict):
+    packages = {}
+
+packages[package] = {
+    "stowed_at": ts,
+    "target": target,
+    "files": files,
+}
+
+data["packages"] = packages
+
+with open(lock_path, 'w', encoding='utf-8') as f:
+    json.dump(data, f, indent=2, sort_keys=True)
+PY
+
+    rm -f "$temp_file"
+}
+
+# Remove package from lock file
+remove_from_lock() {
+    local package="$1"
+    [[ ! -f "$LOCK_FILE" ]] && return 0
+
+    python - "$LOCK_FILE" "$package" <<'PY'
+import json
+import os
+import sys
+
+lock_path, package = sys.argv[1:3]
+
+if not os.path.exists(lock_path):
+    sys.exit(0)
+
+try:
+    with open(lock_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(0)
+
+packages = data.get("packages")
+if isinstance(packages, dict) and package in packages:
+    packages.pop(package, None)
+    data["packages"] = packages
+    with open(lock_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, sort_keys=True)
+PY
+}
+
+# Show status from lock file
+show_status() {
+    if [[ ! -f "$LOCK_FILE" ]]; then
+        log_warning "No lock file found. No packages have been stowed yet."
+        exit 0
+    fi
+
+    env GREEN="$GREEN" RED="$RED" BLUE="$BLUE" BOLD="$BOLD" NC="$NC" \
+        python - "$LOCK_FILE" <<'PY'
+import json
+import os
+import sys
+
+lock_path = sys.argv[1]
+
+GREEN = os.environ.get("GREEN", "")
+RED = os.environ.get("RED", "")
+BLUE = os.environ.get("BLUE", "")
+BOLD = os.environ.get("BOLD", "")
+NC = os.environ.get("NC", "")
+
+try:
+    with open(lock_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(0)
+
+packages = data.get("packages", {})
+if not isinstance(packages, dict) or not packages:
+    sys.exit(0)
+
+for package in sorted(packages.keys()):
+    print(package)
+PY
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Stow Operations
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -132,6 +277,19 @@ stow_package() {
     if output=$(stow "${flags[@]}" 2>&1); then
         [[ -n "$output" && "$VERBOSE" == true ]] && echo "$output"
         log_success "$action: $package"
+
+        # Update lock file (skip in dry-run mode)
+        if [[ "$DRY_RUN" != true ]]; then
+            case "$action" in
+                stow|adopt|restow)
+                    add_to_lock "$package"
+                    ;;
+                delete)
+                    remove_from_lock "$package"
+                    ;;
+            esac
+        fi
+
         return 0
     else
         log_error "Failed to $action: $package"
@@ -201,6 +359,10 @@ main() {
             -v|--verbose)
                 VERBOSE=true
                 shift
+                ;;
+            -s|--status)
+                show_status
+                exit 0
                 ;;
             -h|--help)
                 show_help

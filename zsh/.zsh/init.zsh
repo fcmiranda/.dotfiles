@@ -26,7 +26,8 @@ source_packages \
 	lolcat \
 	figlet \
 	procs \
-	sesh
+	sesh \
+	fed
 
 source_plugins \
     zsh-vi-mode \

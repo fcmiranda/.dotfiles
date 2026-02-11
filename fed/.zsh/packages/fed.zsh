@@ -1,0 +1,1 @@
+source ~/.config/frankmd/fed.sh

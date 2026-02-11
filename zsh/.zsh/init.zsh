@@ -14,7 +14,7 @@ source_utils \
 	functions \
 	binds
 
-source_packages \
+source_packages \  
 	git \
 	mise \
 	starship \
@@ -26,8 +26,9 @@ source_packages \
 	lolcat \
 	figlet \
 	procs \
-	sesh \
-	fed
+	sesh
+
+source_if_exists packages fed
 
 source_plugins \
     zsh-vi-mode \

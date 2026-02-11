@@ -10,6 +10,8 @@
 .tmux.conf
 - kill unused session after a period
 
+![screenshot 2026 02 10 22 35 08](/images/preview/screenshot-2026-02-10_22-35-08.png)
+
 --------
 
 fix omarchy icons topbar

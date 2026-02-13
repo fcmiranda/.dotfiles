@@ -28,19 +28,19 @@ $time\
 [ ](fg:color_bg)\
 $line_break$custom"""
 
-palette = 'catppuccin_theme'
+palette = 'ristretto_theme'
 
-[palettes.catppuccin_theme]
-color_bg = '#1e1e2e'
-color_foreground = '#cdd6f4'
-color_comment = '#585b70'
-color_red = '#f38ba8'
-color_blue = '#89b4fa'
-color_mid_blue = '#b4befe'
-color_purple = '#cba6f7'
-color_vim_insert = '#a6e3a1'
-color_vim_normal = '#89b4fa'
-color_vim_visual = '#f5c2e7'
+[palettes.ristretto_theme]
+color_bg = '#2c2525'
+color_foreground = '#e6d9db'
+color_comment = '#72696a'
+color_red = '#fd6883'
+color_blue = '#f38d70'
+color_mid_blue = '#85dacc'
+color_purple = '#a8a9eb'
+color_vim_insert = '#adda78'
+color_vim_normal = '#f8a788'
+color_vim_visual = '#f9cc6c'
 
 [os]
 disabled = false

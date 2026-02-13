@@ -1,14 +1,15 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# A format that transitions through the theme's colors, inspired by the image's gradient.
 format = """
-[](color_purple)\
+[](color_purple)\
 $os\
-[](bg:color_mid_blue fg:color_purple)\
+[](bg:color_mid_blue fg:color_purple)\
 $directory\
-[](fg:color_mid_blue bg:color_blue)\
+[](fg:color_mid_blue bg:color_blue)\
 $git_branch\
 $git_status\
-[](fg:color_blue bg:color_purple)\
+[](fg:color_blue bg:color_purple)\
 $c\
 $cpp\
 $rust\
@@ -19,28 +20,28 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:color_purple bg:color_mid_blue)\
+[](fg:color_purple bg:color_mid_blue)\
 $docker_context\
 $conda\
 $pixi\
-[](fg:color_mid_blue bg:color_bg)\
+[](fg:color_mid_blue bg:color_bg)\
 $time\
-[ ](fg:color_bg)\
+[ ](fg:color_bg)\
 $line_break$custom"""
 
-palette = 'catppuccin_theme'
+palette = 'nord_theme'
 
-[palettes.catppuccin_theme]
-color_bg = '#1e1e2e'
-color_foreground = '#cdd6f4'
-color_comment = '#585b70'
-color_red = '#f38ba8'
-color_blue = '#89b4fa'
-color_mid_blue = '#b4befe'
-color_purple = '#cba6f7'
-color_vim_insert = '#a6e3a1'
-color_vim_normal = '#89b4fa'
-color_vim_visual = '#f5c2e7'
+[palettes.nord_theme]
+color_bg = '#2e3440'
+color_foreground = '#d8dee9'
+color_comment = '#4c566a'
+color_red = '#bf616a'
+color_blue = '#81a1c1'
+color_mid_blue = '#88c0d0'
+color_purple = '#b48ead'
+color_vim_insert = '#a3be8c'
+color_vim_normal = '#81a1c1'
+color_vim_visual = '#ebcb8b'
 
 [os]
 disabled = false

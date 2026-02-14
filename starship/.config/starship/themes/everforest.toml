@@ -1,14 +1,15 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# A format that transitions through the theme's colors, inspired by the image's gradient.
 format = """
-[](color_purple)\
+[](color_purple)\
 $os\
-[](bg:color_mid_blue fg:color_purple)\
+[](bg:color_mid_blue fg:color_purple)\
 $directory\
-[](fg:color_mid_blue bg:color_blue)\
+[](fg:color_mid_blue bg:color_blue)\
 $git_branch\
 $git_status\
-[](fg:color_blue bg:color_purple)\
+[](fg:color_blue bg:color_purple)\
 $c\
 $cpp\
 $rust\
@@ -19,14 +20,13 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:color_purple bg:color_mid_blue)\
+[](fg:color_purple bg:color_mid_blue)\
 $docker_context\
 $conda\
 $pixi\
-[](fg:color_mid_blue bg:color_bg)\
-$time\
-[ ](fg:color_bg)\
-$line_break$custom"""
+$custom\
+$line_break\
+$character"""
 
 palette = 'everforest_theme'
 
@@ -44,8 +44,14 @@ color_vim_visual = '#dbbc7f'
 
 [os]
 disabled = false
-style = "bg:color_purple fg:color_bg"
-format = '[ ]($style)'
+style = "bg:color_purple fg:color_bg" # Dark foreground for contrast
+# format = '[☠ ]($style)'
+# format = '[󰉁 ]($style)'
+# format = '[ ]($style)'
+# format = '[󱐌 ]($style)'
+# format = '[★ ]($style)'
+ format = '[󰌪 ]($style)'
+
 
 [os.symbols]
 Windows = "󰍲"
@@ -172,7 +178,7 @@ format = '[[  $time ](fg:color_foreground bg:color_bg)]($style)'
 disabled = false
 
 [custom.zvm_visual_arrow_before]
-command = 'echo '
+command = 'echo '
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
 style = 'bg:color_vim_visual fg:color_mid_blue'
 format = '[$output]($style)'
@@ -184,13 +190,13 @@ style = 'inverted bg:transparent fg:color_vim_visual'
 format = '[ $output]($style)'
 
 [custom.zvm_visual_arrow_after]
-command = 'echo  '
+command = 'echo  '
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
 style = 'fg:color_vim_visual'
 format = '[$output]($style) '
 
 [custom.zvm_normal_arrow_before]
-command = 'echo '
+command = 'echo '
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
 style = 'bg:color_vim_normal fg:color_mid_blue'
 format = '[$output]($style)'
@@ -208,13 +214,13 @@ style = 'inverted bg:transparent fg:color_vim_normal'
 format = '[ $output]($style)'
 
 [custom.zvm_normal_arrow_after]
-command = 'echo  '
+command = 'echo  '
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
 style = 'fg:color_vim_normal'
 format = '[$output]($style) '
 
 [custom.zvm_insert_ok_arrow_before]
-command = 'echo '
+command = 'echo '
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
 style = 'bg:color_vim_insert fg:color_mid_blue'
 format = '[$output]($style)'
@@ -232,7 +238,7 @@ style = 'inverted bg:transparent fg:color_red'
 format = '[ $output]($style)'
 
 [custom.zvm_insert_ok_arrow_after]
-command = 'echo  '
+command = 'echo  '
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
 style = 'fg:color_vim_insert'
 format = '[$output]($style) '

@@ -7,10 +7,13 @@
 - window for opencode
 - server
 
+---------
+yazi order by last modified
+
+
+----------
 .tmux.conf
 - kill unused session after a period
-
-![screenshot 2026 02 10 22 35 08](/images/preview/screenshot-2026-02-10_22-35-08.png)
 
 --------
 
@@ -18,14 +21,7 @@ fix omarchy icons topbar
 - chrome - is opening a 'x' icon
 - maybe remove the block point icon
 - better constrast color
----------
-vimium
-
-- add option to search with google when tab is hold
-
-
---------
-
+------  
 create a githubpage using hugo to explain whe workflow
 
 - add a section for tips

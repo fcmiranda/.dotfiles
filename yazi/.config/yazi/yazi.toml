@@ -6,9 +6,9 @@
 ratio = [1, 4, 3]
 
 # Sorting
-sort_by = "natural"
+sort_by = "mtime"         # sort by last modified time
 sort_sensitive = false
-sort_reverse = false
+sort_reverse = true        # newest files first
 sort_dir_first = true
 sort_translit = false
 

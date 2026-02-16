@@ -1,5 +1,5 @@
 Name = "sesh"
-NamePretty = "Sesh Sessions"
+NamePretty = "⚡ Sesh"
 
 local function shell_escape(value)
   return "'" .. tostring(value):gsub("'", "'\\''") .. "'"

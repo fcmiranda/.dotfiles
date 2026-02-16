@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -u
+
+selection="$((/usr/bin/sesh list -d -c -t -T -z 2>/dev/null || true) | omarchy-launch-walker --dmenu --width 720 --minheight 1 --maxheight 620 -p 'Sesh…' 2>/dev/null)"
+
+if [[ -z "$selection" ]]; then
+  exit 0
+fi
+
+/usr/bin/sesh connect --switch -- "$selection" 2>/dev/null && exit 0
+exec /usr/bin/uwsm-app -- /usr/bin/xdg-terminal-exec -e /usr/bin/sesh connect -- "$selection"

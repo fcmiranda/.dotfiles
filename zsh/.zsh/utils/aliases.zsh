@@ -6,3 +6,4 @@ alias code.omc='GIT_DIR=/home/fecavmi/.omc GIT_WORK_TREE=/home/fecavmi code /hom
 alias install-packages='~/omc/install/install.zsh'
 alias clear="clear && [ -n \"\$TMUX\" ] && tmux clear-history"
 alias scrollback='tmux capture-pane -epS - > /tmp/tmux_scrollback.ansi && nvim -c "BaleiaColorize" -c "normal G" /tmp/tmux_scrollback.ansi'
+alias stow-adopt-path='$HOME/.dotfiles/scripts/stow-adopt-path.sh'

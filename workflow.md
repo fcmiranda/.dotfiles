@@ -1,11 +1,15 @@
-- session project opening
+
 - window for nvim
 - toggle test panel
 - window for opencode
 - server
 ----------
 .tmux.conf
-- kill unused session after a period
+
+- https://www.joshmedeski.com/posts/tmux-nerd-font-window-name-plugin/
+- https://github.com/joshmedeski/dotfiles/blob/main/.config/tmux/tmux.conf
+
+![alt text](image.png)
 --------
 fix omarchy icons topbar
 - chrome - is opening a 'x' icon

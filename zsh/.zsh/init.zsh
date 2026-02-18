@@ -26,7 +26,8 @@ source_packages \
 	lolcat \
 	figlet \
 	procs \
-	sesh
+	sesh \
+	tmux
 
 source_if_exists packages fed
 

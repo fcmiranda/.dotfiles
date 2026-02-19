@@ -1,0 +1,8 @@
+// Make the backtick (grave) key a live key in us-intl layout.
+// Without this, us-intl maps <TLDE> to dead_grave / dead_tilde,
+// requiring two keypresses to produce a literal `.
+// dead_acute on the apostrophe key (<AC11>) is untouched.
+partial alphanumeric_keys
+xkb_symbols "fixgrave" {
+    key <TLDE> { [ grave, asciitilde ] };
+};

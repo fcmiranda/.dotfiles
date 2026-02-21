@@ -4,8 +4,8 @@ config-file = ?"~/.config/omarchy/current/theme/ghostty.conf"
 # Font
 font-family = "JetBrainsMono Nerd Font Mono"
 font-style = Regular
-font-size = 9
-font-thicken = false
+font-size = 10
+font-thicken = true
 font-feature = -calt
 font-feature = -liga
 

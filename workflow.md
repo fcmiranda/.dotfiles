@@ -6,7 +6,6 @@
 ----------
 .tmux.conf
 
-- https://www.joshmedeski.com/posts/tmux-nerd-font-window-name-plugin/
 - https://github.com/joshmedeski/dotfiles/blob/main/.config/tmux/tmux.conf
 
 ![alt text](image.png)

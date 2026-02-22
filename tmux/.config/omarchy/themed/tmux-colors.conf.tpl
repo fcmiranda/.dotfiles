@@ -5,6 +5,7 @@
 CURRENT_COLOR="{{ color14 }}"
 PREFIX_COLOR="{{ color13 }}"
 SESSION_COLOR="{{ color4 }}"
+SESSION_ACTIVE_FG="{{ background }}"
 HOST_COLOR="{{ color4 }}"
 ACTIVE_BORDER_COLOR="{{ color4 }}"
 MESSAGE_COLOR="{{ color3 }}"

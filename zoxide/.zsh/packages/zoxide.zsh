@@ -5,7 +5,6 @@ eval "$(zoxide init zsh --cmd j)"
 #   CTRL-Z          toggle to zoxide-only results
 #   CTRL-A          restore full combined list
 #   CTRL-Y          copy selected path to clipboard
-#   CTRL-O          open selected dir in yazi
 #   CTRL-S          toggle sort (folders-first ↔ alphabetical)
 #   TAB             toggle focus: filter mode ↔ navigate mode
 #   → / ←           (navigate mode) browse into dir / go back
@@ -18,15 +17,33 @@ zcd() {
         esac
     done
 
+    # capture launch directory for relative-path display
+    local _cwd="$PWD"
+
     # temp files for state
-    local _stack _sortfile _curdir _modefile _sourcefile _togglescript
+    local _stack _sortfile _curdir _modefile _sourcefile _togglescript _relscript
     _stack=$(mktemp)
     _sortfile=$(mktemp)
     _curdir=$(mktemp)
     _modefile=$(mktemp)
     _sourcefile=$(mktemp)
     _togglescript=$(mktemp)
+    _relscript=$(mktemp)
     chmod +x "$_togglescript"
+    # python script: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
+    cat > "$_relscript" <<RELEOF
+import sys, os
+cwd = '$_cwd'
+for line in sys.stdin:
+    p = line.rstrip('\n')
+    if not p:
+        continue
+    try:
+        rel = os.path.relpath(p, cwd)
+    except Exception:
+        rel = p
+    print(p + '\t' + rel)
+RELEOF
     echo "dirsfirst" > "$_sortfile"
     echo "filter"    > "$_modefile"
     (( zoxide_only )) && echo "zo" > "$_sourcefile" || echo "all" > "$_sourcefile"
@@ -40,25 +57,26 @@ zcd() {
     # Build --bind string: a:ignore,b:ignore,...
     local _input_binds="${(j:,:)${_input_keys[@]/%/:ignore}}"
 
-    local _init_all='zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null'
-    local _init_zo='zoxide query -l'
-    local _init_reload
-    (( zoxide_only )) && _init_reload=$_init_zo || _init_reload=$_init_all
+    # rel-path variants: emit "fullpath\trelpath" for fzf display
+    local _init_all_rel="( zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
+    local _init_zo_rel="zoxide query -l | python3 '$_relscript'"
+    local _init_reload_rel
+    (( zoxide_only )) && _init_reload_rel=$_init_zo_rel || _init_reload_rel=$_init_all_rel
 
-    # Browse command: reads _curdir + _sortfile
+    # Browse command: reads _curdir + _sortfile; pipes through relscript
     local _browse="d=\$(cat '$_curdir'); s=\$(cat '$_sortfile'); \
 if [ -z \"\$d\" ]; then \
-  $_init_reload; \
+  $_init_reload_rel; \
 elif [ \"\$s\" = 'sorted' ]; then \
-  fd -H -E.git -a . \"\$d\" 2>/dev/null | sort; \
+  fd -H -E.git -a . \"\$d\" 2>/dev/null | sort | python3 '$_relscript'; \
 else \
-  { fd -td -H -E.git -a . \"\$d\"; fd -tf -H -E.git -a . \"\$d\"; } 2>/dev/null; \
+  { fd -td -H -E.git -a . \"\$d\"; fd -tf -H -E.git -a . \"\$d\"; } 2>/dev/null | python3 '$_relscript'; \
 fi"
 
     # Header rows — ESC var expands into the heredoc (TOGGLEEOF unquoted)
     local ESC=$'\033'
-    local _h1_all="Zoxide + fd  │  CTRL-Z: zo only  │  CTRL-Y: copy  │  CTRL-O: yazi"
-    local _h1_zo="Zoxide only  │  CTRL-A: all  │  CTRL-Y: copy  │  CTRL-O: yazi"
+    local _h1_all="Zoxide + fd  │  CTRL-Z: zo only  │  CTRL-Y: copy"
+    local _h1_zo="Zoxide only  │  CTRL-A: all  │  CTRL-Y: copy"
     local _h2_filter="${ESC}[1;36m▌ FILTER${ESC}[0m  ${ESC}[2mTAB: navigate  │  CTRL-S: sort  │  CTRL-/: preview${ESC}[0m"
     local _h2_nav="${ESC}[1;33m▌ NAVIGATE${ESC}[0m  ${ESC}[1;33m→${ESC}[0m: browse  │  ${ESC}[1;33m←${ESC}[0m: back  │  TAB: filter  │  CTRL-S: sort"
     local _prompt_filter="${ESC}[1;36m❯ ${ESC}[0m"
@@ -86,29 +104,29 @@ TOGGLEEOF
     local _bind_tab="tab:transform($_togglescript)"
 
     # Source switches: also reset to filter mode and clear navigation state
-    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_zo)+change-header(${_h1_zo}\n${_h2_filter})"
-    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_all)+change-header(${_h1_all}\n${_h2_filter})"
+    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
+    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
 
-    local _bind_copy='ctrl-y:execute-silent(echo -n {} | xclip -selection clipboard)'
-    local _bind_yazi='ctrl-o:become(yazi {})'
+    local _bind_copy='ctrl-y:execute-silent(echo -n {1} | xclip -selection clipboard)'
 
     # Navigation (only active in navigate mode via rebind/unbind)
-    local _bind_right="right:execute-silent(cur=\$(cat '$_curdir'); if [ -z \"\$cur\" ]; then echo __ROOT__ >> '$_stack'; else echo \"\$cur\" >> '$_stack'; fi; echo {} > '$_curdir')+reload($_browse)"
+    local _bind_right="right:execute-silent(cur=\$(cat '$_curdir'); if [ -z \"\$cur\" ]; then echo __ROOT__ >> '$_stack'; else echo \"\$cur\" >> '$_stack'; fi; echo {1} > '$_curdir')+reload($_browse)"
     local _bind_left="left:execute-silent(if [ -s '$_stack' ]; then prev=\$(tail -1 '$_stack'); sed -i '\$d' '$_stack'; if [ \"\$prev\" = '__ROOT__' ]; then printf '' > '$_curdir'; else echo \"\$prev\" > '$_curdir'; fi; else printf '' > '$_curdir'; fi)+reload($_browse)"
 
     # Sort toggle
     local _bind_sort="ctrl-s:execute-silent(if [ \"\$(cat '$_sortfile')\" = 'dirsfirst' ]; then echo sorted > '$_sortfile'; else echo dirsfirst > '$_sortfile'; fi)+reload($_browse)"
 
-    # Preview: tree for dirs, bat for files
-    local _preview='[[ -d {} ]] && eza --tree --level=2 --icons --color=always {} || bat --style=numbers --color=always --line-range=:300 {}'
+    # Preview: tree for dirs, bat for files  ({1} = full path)
+    local _preview='[[ -d {1} ]] && eza --tree --level=2 --icons --color=always {1} || bat --style=numbers --color=always --line-range=:300 {1}'
 
     local _common_binds=(
+        --delimiter=$'\t'
+        --with-nth=2
         --bind='ctrl-/:toggle-preview'
         --bind="$_bind_tab"
         --bind="$_bind_zo"
         --bind="$_bind_all"
         --bind="$_bind_copy"
-        --bind="$_bind_yazi"
         --bind="$_bind_right"
         --bind="$_bind_left"
         --bind="$_bind_sort"
@@ -118,7 +136,7 @@ TOGGLEEOF
 
     local dir
     if (( zoxide_only )); then
-        dir=$(eval "$_init_zo" | fzf \
+        dir=$(eval "$_init_zo_rel" | fzf \
             --ansi \
             --prompt="$_prompt_filter" \
             --header="$_h_zo" \
@@ -126,7 +144,7 @@ TOGGLEEOF
             --preview-window=right:60% \
             "${_common_binds[@]}")
     else
-        dir=$( { zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null; } | awk '!seen[$0]++' | fzf \
+        dir=$(eval "$_init_all_rel" | fzf \
             --ansi \
             --prompt="$_prompt_filter" \
             --header="$_h_all" \
@@ -135,9 +153,10 @@ TOGGLEEOF
             "${_common_binds[@]}")
     fi
 
-    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript"
+    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript"
 
-    [[ -n "$dir" ]] && echo "$dir"
+    # fzf returns "fullpath\trelpath"; extract just the full path
+    [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"
 }
 
 # ALT-J: trigger zcd from the command line

@@ -1,14 +1,14 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """
-[](color_purple)\
+[](color_os)\
 $os\
-[](bg:color_mid_blue fg:color_purple)\
+[](bg:color_dir fg:color_os)\
 $directory\
-[](fg:color_mid_blue bg:color_blue)\
+[](fg:color_dir bg:color_git)\
 $git_branch\
 $git_status\
-[](fg:color_blue bg:color_purple)\
+[](fg:color_git bg:color_lang)\
 $c\
 $cpp\
 $rust\
@@ -19,10 +19,6 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:color_purple bg:color_mid_blue)\
-$docker_context\
-$conda\
-$pixi\
 $custom\
 $line_break\
 $character"""
@@ -33,17 +29,17 @@ palette = 'omarchy_theme'
 color_bg = '{{ background }}'
 color_foreground = '{{ foreground }}'
 color_comment = '{{ color8 }}'
-color_red = '{{ color1 }}'
-color_blue = '{{ color4 }}'
-color_mid_blue = '{{ color6 }}'
-color_purple = '{{ color5 }}'
+color_os = '{{ color1 }}'
+color_dir = '{{ color6 }}'
+color_git = '{{ color4 }}'
+color_lang = '{{ color5 }}'
 color_vim_insert = '{{ color2 }}'
 color_vim_normal = '{{ color4 }}'
 color_vim_visual = '{{ color3 }}'
 
 [os]
 disabled = false
-style = "bg:color_purple fg:color_bg"
+style = "bg:color_os fg:color_bg"
 format = '[󱐌 ]($style)'
 
 [os.symbols]
@@ -71,12 +67,12 @@ Pop = ""
 
 [username]
 show_always = true
-style_user = "bg:color_purple fg:color_bg"
-style_root = "bg:color_purple fg:color_red"
+style_user = "bg:color_lang fg:color_bg"
+style_root = "bg:color_lang fg:color_os"
 format = '[ $user ]($style)'
 
 [directory]
-style = "fg:color_bg bg:color_mid_blue"
+style = "fg:color_bg bg:color_dir"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -90,76 +86,63 @@ truncation_symbol = "…/"
 
 [git_branch]
 symbol = ""
-style = "bg:color_blue"
-format = '[[ $symbol $branch ](fg:color_bg bg:color_blue)]($style)'
+style = "fg:color_bg bg:color_git"
+format = '[[ $symbol $branch ]($style)]($style)'
 
 [git_status]
-style = "bg:color_blue"
-format = '[[($all_status$ahead_behind )](fg:color_bg bg:color_blue)]($style)'
+style = "fg:color_bg bg:color_git"
+format = '[[($all_status$ahead_behind )]($style)]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [c]
 symbol = " "
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [cpp]
 symbol = " "
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [rust]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [golang]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [php]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [java]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [kotlin]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [haskell]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
 [python]
 symbol = ""
-style = "bg:color_purple"
-format = '[[ $symbol( $version) ](fg:color_bg bg:color_purple)]($style)'
+style = "fg:color_bg bg:color_lang"
+format = '[[ $symbol( $version) ]($style)]($style)'
 
-[docker_context]
-symbol = ""
-style = "bg:color_mid_blue"
-format = '[[ $symbol( $context) ](fg:color_bg bg:color_mid_blue)]($style)'
-
-[conda]
-symbol = ""
-style = "bg:color_mid_blue"
-format = '[[ $symbol( $environment) ](fg:color_bg bg:color_mid_blue)]($style)'
-
-[pixi]
-style = "bg:color_mid_blue"
-format = '[[ $symbol( $version)( $environment) ](fg:color_bg bg:color_mid_blue)]($style)'
 
 [time]
 disabled = false
@@ -173,7 +156,7 @@ disabled = false
 [custom.zvm_visual_arrow_before]
 command = 'echo '
 when = 'case "$ZVM_MODE" in v|vl) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_visual fg:color_mid_blue'
+style = 'bg:color_vim_visual fg:color_lang'
 format = '[$output]($style)'
 
 [custom.zvm_visual]
@@ -191,13 +174,13 @@ format = '[$output]($style) '
 [custom.zvm_normal_arrow_before]
 command = 'echo '
 when = 'case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac'
-style = 'bg:color_vim_normal fg:color_mid_blue'
+style = 'bg:color_vim_normal fg:color_lang'
 format = '[$output]($style)'
 
 [custom.zvm_replace]
 command = 'echo normal'
 when = 'case "$ZVM_MODE" in r) exit 0;; *) exit 1;; esac'
-style = 'inverted bg:transparent fg:color_mid_blue'
+style = 'inverted bg:transparent fg:color_lang'
 format = '[ $output]($style)'
 
 [custom.zvm_normal]
@@ -215,7 +198,7 @@ format = '[$output]($style) '
 [custom.zvm_insert_ok_arrow_before]
 command = 'echo '
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -eq 0 ]'
-style = 'bg:color_vim_insert fg:color_mid_blue'
+style = 'bg:color_vim_insert fg:color_lang'
 format = '[$output]($style)'
 
 [custom.zvm_insert_ok]
@@ -227,7 +210,7 @@ format = '[ $output]($style)'
 [custom.zvm_insert_err]
 command = 'echo insert'
 when = '[ "${ZVM_MODE:-}" = "i" ] && [ "${STARSHIP_CMD_STATUS:-0}" -ne 0 ]'
-style = 'inverted bg:transparent fg:color_red'
+style = 'inverted bg:transparent fg:color_os'
 format = '[ $output]($style)'
 
 [custom.zvm_insert_ok_arrow_after]

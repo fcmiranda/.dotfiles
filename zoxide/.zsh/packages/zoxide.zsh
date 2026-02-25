@@ -21,7 +21,7 @@ zcd() {
     local _cwd="$PWD"
 
     # temp files for state
-    local _stack _sortfile _curdir _modefile _sourcefile _togglescript _relscript
+    local _stack _sortfile _curdir _modefile _sourcefile _togglescript _relscript _leftaction _rightaction _leftscript _rightscript
     _stack=$(mktemp)
     _sortfile=$(mktemp)
     _curdir=$(mktemp)
@@ -29,11 +29,20 @@ zcd() {
     _sourcefile=$(mktemp)
     _togglescript=$(mktemp)
     _relscript=$(mktemp)
-    chmod +x "$_togglescript"
+    _leftaction=$(mktemp)
+    _rightaction=$(mktemp)
+    _leftscript=$(mktemp)
+    _rightscript=$(mktemp)
+    chmod +x "$_togglescript" "$_leftscript" "$_rightscript"
     # python script: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
-    cat > "$_relscript" <<RELEOF
-import sys, os
-cwd = '$_cwd'
+    cat > "$_relscript" <<'RELEOF'
+import sys, os, signal
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+cwd = None  # set below
+RELEOF
+    # inject cwd after the heredoc opener so the shell expands it
+    echo "cwd = '$_cwd'" >> "$_relscript"
+    cat >> "$_relscript" <<'RELEOF'
 for line in sys.stdin:
     p = line.rstrip('\n')
     if not p:
@@ -42,7 +51,10 @@ for line in sys.stdin:
         rel = os.path.relpath(p, cwd)
     except Exception:
         rel = p
-    print(p + '\t' + rel)
+    try:
+        print(p + '\t' + rel)
+    except BrokenPipeError:
+        break
 RELEOF
     echo "dirsfirst" > "$_sortfile"
     echo "filter"    > "$_modefile"
@@ -79,7 +91,7 @@ fi"
     local _h1_zo="Zoxide only  │  CTRL-A: all  │  CTRL-Y: copy"
     local _h2_filter="${ESC}[1;36m▌ FILTER${ESC}[0m  ${ESC}[2mTAB: navigate  │  CTRL-S: sort  │  CTRL-/: preview${ESC}[0m"
     local _h2_nav="${ESC}[1;33m▌ NAVIGATE${ESC}[0m  ${ESC}[1;33m→${ESC}[0m: browse  │  ${ESC}[1;33m←${ESC}[0m: back  │  TAB: filter  │  CTRL-S: sort"
-    local _prompt_filter="${ESC}[1;36m❯ ${ESC}[0m"
+    local _prompt_filter="${ESC}[1;36m  ${ESC}[0m"
     local _prompt_nav="${ESC}[1;33m⇆ ${ESC}[0m"
 
     local _h_all="${_h1_all}\n${_h2_filter}"
@@ -93,10 +105,10 @@ src=\$(cat '$_sourcefile')
 [ "\$src" = 'zo' ] && h1='$_h1_zo' || h1='$_h1_all'
 if [ "\$mode" = 'filter' ]; then
   echo navigate > '$_modefile'
-  printf 'disable-search+rebind(left,right)+rebind($_input_keys_str)+change-prompt($_prompt_nav)+change-header(%s\\n$_h2_nav)' "\$h1"
+  printf 'disable-search+rebind($_input_keys_str)+change-prompt($_prompt_nav)+change-header(%s\\n$_h2_nav)' "\$h1"
 else
   echo filter > '$_modefile'
-  printf 'enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+change-header(%s\\n$_h2_filter)' "\$h1"
+  printf 'enable-search+unbind($_input_keys_str)+change-prompt($_prompt_filter)+change-header(%s\\n$_h2_filter)' "\$h1"
 fi
 TOGGLEEOF
 
@@ -104,14 +116,28 @@ TOGGLEEOF
     local _bind_tab="tab:transform($_togglescript)"
 
     # Source switches: also reset to filter mode and clear navigation state
-    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
-    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind(left,right)+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
+    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
+    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
 
     local _bind_copy='ctrl-y:execute-silent(echo -n {1} | xclip -selection clipboard)'
 
-    # Navigation (only active in navigate mode via rebind/unbind)
-    local _bind_right="right:execute-silent(cur=\$(cat '$_curdir'); if [ -z \"\$cur\" ]; then echo __ROOT__ >> '$_stack'; else echo \"\$cur\" >> '$_stack'; fi; echo {1} > '$_curdir')+reload($_browse)"
-    local _bind_left="left:execute-silent(if [ -s '$_stack' ]; then prev=\$(tail -1 '$_stack'); sed -i '\$d' '$_stack'; if [ \"\$prev\" = '__ROOT__' ]; then printf '' > '$_curdir'; else echo \"\$prev\" > '$_curdir'; fi; else printf '' > '$_curdir'; fi)+reload($_browse)"
+    # Navigation actions stored in files so transform scripts can cat them without quoting hell
+    # {1} is an fzf placeholder — appears literally so fzf expands it when executing the action
+    cat > "$_rightaction" <<RIGHTEOF
+execute-silent(cur=\$(cat $_curdir); if [ -z "\$cur" ]; then echo __ROOT__ >> $_stack; else echo "\$cur" >> $_stack; fi; echo {1} > $_curdir)+reload($_browse)
+RIGHTEOF
+    cat > "$_leftaction" <<LEFTEOF
+execute-silent(if [ -s $_stack ]; then prev=\$(tail -1 $_stack); count=\$(wc -l < $_stack); head -n "\$((count-1))" $_stack > $_stack.tmp && mv $_stack.tmp $_stack; if [ "\$prev" = "__ROOT__" ]; then printf '' > $_curdir; else echo "\$prev" > $_curdir; fi; else printf '' > $_curdir; fi)+reload($_browse)
+LEFTEOF
+
+    # Transform scripts: check mode → emit cursor action (filter) or navigate action (navigate)
+    printf '#!/bin/sh\n[ "$(cat %s)" = "navigate" ] && cat %s || echo forward-char\n' \
+        "$_modefile" "$_rightaction" > "$_rightscript"
+    printf '#!/bin/sh\n[ "$(cat %s)" = "navigate" ] && cat %s || echo backward-char\n' \
+        "$_modefile" "$_leftaction" > "$_leftscript"
+
+    local _bind_right="right:transform($_rightscript)"
+    local _bind_left="left:transform($_leftscript)"
 
     # Sort toggle
     local _bind_sort="ctrl-s:execute-silent(if [ \"\$(cat '$_sortfile')\" = 'dirsfirst' ]; then echo sorted > '$_sortfile'; else echo dirsfirst > '$_sortfile'; fi)+reload($_browse)"
@@ -130,8 +156,8 @@ TOGGLEEOF
         --bind="$_bind_right"
         --bind="$_bind_left"
         --bind="$_bind_sort"
-        --bind="$_input_binds"                          # define printable keys as ignore
-        --bind="start:unbind(left,right)+unbind($_input_keys_str)" # start in filter mode (restore defaults)
+        --bind="$_input_binds"                          # block printable keys in navigate mode
+        --bind="start:unbind($_input_keys_str)"          # start in filter mode
     )
 
     local dir
@@ -153,7 +179,7 @@ TOGGLEEOF
             "${_common_binds[@]}")
     fi
 
-    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript"
+    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript"
 
     # fzf returns "fullpath\trelpath"; extract just the full path
     [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"

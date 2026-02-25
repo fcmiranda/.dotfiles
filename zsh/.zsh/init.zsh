@@ -32,7 +32,7 @@ source_packages \
 source_if_exists packages fed
 
 source_plugins \
-    zsh-vi-mode \
+  zsh-vi-mode \
 	zsh-autosuggestions \
 	zsh-syntax-highlighting \
 	zsh-transient-prompt

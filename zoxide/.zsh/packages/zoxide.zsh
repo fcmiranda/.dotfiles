@@ -33,7 +33,9 @@ zcd() {
     _rightaction=$(mktemp)
     _leftscript=$(mktemp)
     _rightscript=$(mktemp)
-    chmod +x "$_togglescript" "$_leftscript" "$_rightscript"
+    _upscript=$(mktemp)
+    _downscript=$(mktemp)
+    chmod +x "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript"
     # python script: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
     cat > "$_relscript" <<'RELEOF'
 import sys, os, signal
@@ -105,21 +107,22 @@ src=\$(cat '$_sourcefile')
 [ "\$src" = 'zo' ] && h1='$_h1_zo' || h1='$_h1_all'
 if [ "\$mode" = 'filter' ]; then
   echo navigate > '$_modefile'
-  printf 'disable-search+rebind($_input_keys_str)+change-prompt($_prompt_nav)+change-header(%s\\n$_h2_nav)' "\$h1"
+  printf 'disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)' "$h1"
 else
   echo filter > '$_modefile'
-  printf 'enable-search+unbind($_input_keys_str)+change-prompt($_prompt_filter)+change-header(%s\\n$_h2_filter)' "\$h1"
+  printf 'enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)' "$h1"
 fi
 TOGGLEEOF
 
     # Tab: toggle filter ↔ navigate via external script (avoids multiline bind quoting issues)
     local _bind_tab="tab:transform($_togglescript)"
 
-    # Source switches: also reset to filter mode and clear navigation state
-    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
-    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-prompt($_prompt_filter)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
+    # Source switches: reset to filter mode and clear navigation state atomically
+    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
+    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
 
-    local _bind_copy='ctrl-y:execute-silent(echo -n {1} | xclip -selection clipboard)'
+    # Clipboard: wl-copy (Wayland-native) replaces xclip (X11-only)
+    local _bind_copy="ctrl-y:execute-silent(echo -n {1} | wl-copy)"
 
     # Navigation actions stored in files so transform scripts can cat them without quoting hell
     # {1} is an fzf placeholder — appears literally so fzf expands it when executing the action
@@ -135,9 +138,16 @@ LEFTEOF
         "$_modefile" "$_rightaction" > "$_rightscript"
     printf '#!/bin/sh\n[ "$(cat %s)" = "navigate" ] && cat %s || echo backward-char\n' \
         "$_modefile" "$_leftaction" > "$_leftscript"
+    # up/down: same pattern — navigate mode moves cursor, filter mode ignores
+    printf '#!/bin/sh\n[ "$(cat %s)" = "navigate" ] && echo up || echo ignore\n' \
+        "$_modefile" > "$_upscript"
+    printf '#!/bin/sh\n[ "$(cat %s)" = "navigate" ] && echo down || echo ignore\n' \
+        "$_modefile" > "$_downscript"
 
     local _bind_right="right:transform($_rightscript)"
     local _bind_left="left:transform($_leftscript)"
+    local _bind_up="up:transform($_upscript)"
+    local _bind_down="down:transform($_downscript)"
 
     # Sort toggle
     local _bind_sort="ctrl-s:execute-silent(if [ \"\$(cat '$_sortfile')\" = 'dirsfirst' ]; then echo sorted > '$_sortfile'; else echo dirsfirst > '$_sortfile'; fi)+reload($_browse)"
@@ -148,6 +158,8 @@ LEFTEOF
     local _common_binds=(
         --delimiter=$'\t'
         --with-nth=2
+        --pointer=' '                                   # hidden in filter mode; changed to ▶ in navigate
+        --color='bg+:-1'                               # transparent selection background in all modes
         --bind='ctrl-/:toggle-preview'
         --bind="$_bind_tab"
         --bind="$_bind_zo"
@@ -155,6 +167,8 @@ LEFTEOF
         --bind="$_bind_copy"
         --bind="$_bind_right"
         --bind="$_bind_left"
+        --bind="$_bind_up"
+        --bind="$_bind_down"
         --bind="$_bind_sort"
         --bind="$_input_binds"                          # block printable keys in navigate mode
         --bind="start:unbind($_input_keys_str)"          # start in filter mode
@@ -179,7 +193,7 @@ LEFTEOF
             "${_common_binds[@]}")
     fi
 
-    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript"
+    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript"
 
     # fzf returns "fullpath\trelpath"; extract just the full path
     [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"

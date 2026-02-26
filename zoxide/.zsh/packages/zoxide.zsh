@@ -150,7 +150,11 @@ src=\$(cat '$_sourcefile')
 if [ "\$src" = 'zo' ]; then h1='$_h1_zo'; elif [ "\$src" = 'smart' ]; then h1='$_h1_smart'; else h1='$_h1_all'; fi
 if [ "\$mode" = 'filter' ]; then
   echo navigate > '$_modefile'
-  lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
+  if [ -z "\$FZF_QUERY" ]; then
+    lbl=\$(printf '\033[1;33m%s results\033[0m' "\$FZF_MATCH_COUNT")
+  else
+    lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
+  fi
   printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label(%s)' "$h1" "\$lbl"
 else
   echo filter > '$_modefile'
@@ -173,7 +177,11 @@ else
   if [ "\$mode" = "filter" ]; then
     printf 'toggle-preview-focus+change-preview-label($_preview_label_off)+change-input-label($_input_label_on)+change-list-label($_list_label_off)'
   else
-    lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
+    if [ -z "\$FZF_QUERY" ]; then
+      lbl=\$(printf '\033[1;33m%s results\033[0m' "\$FZF_MATCH_COUNT")
+    else
+      lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
+    fi
     printf 'toggle-preview-focus+change-preview-label($_preview_label_off)+change-input-label($_input_label_off)+change-list-label(%s)' "\$lbl"
   fi
 fi
@@ -218,7 +226,11 @@ LEFTEOF
     cat > "$_result_label_script" <<RLSCEOF
 #!/bin/sh
 if [ "\$(cat '$_modefile')" = 'navigate' ]; then
-  printf 'change-list-label(\033[1;33m%s results for [%s]\033[0m)' "\$FZF_MATCH_COUNT" "\$FZF_QUERY"
+  if [ -z "\$FZF_QUERY" ]; then
+    printf 'change-list-label(\033[1;33m%s results\033[0m)' "\$FZF_MATCH_COUNT"
+  else
+    printf 'change-list-label(\033[1;33m%s results for [%s]\033[0m)' "\$FZF_MATCH_COUNT" "\$FZF_QUERY"
+  fi
 else
   echo ignore
 fi

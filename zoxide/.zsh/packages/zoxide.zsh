@@ -3,7 +3,8 @@ eval "$(zoxide init zsh --cmd j)"
 # zcd - cd using combined zoxide frecency + fd directory search (Alt-J)
 #   -z / --zoxide   show only zoxide results
 #   CTRL-Z          toggle to zoxide-only results
-#   CTRL-A          restore full combined list
+#   CTRL-A          restore full combined list (zoxide + fd)
+#   CTRL-G          smart search (zoxide dirs → their contents → rest of $HOME)
 #   CTRL-Y          copy selected path to clipboard
 #   CTRL-S          toggle sort (folders-first ↔ alphabetical)
 #   TAB             toggle focus: filter mode ↔ navigate mode
@@ -68,7 +69,13 @@ for line in sys.stdin:
 RELEOF
     echo "dirsfirst" > "$_sortfile"
     echo "filter"    > "$_modefile"
-    (( zoxide_only )) && echo "zo" > "$_sourcefile" || echo "all" > "$_sourcefile"
+    if (( zoxide_only )); then
+        echo "zo" > "$_sourcefile"
+    elif [[ "$_cwd" == "$HOME" ]]; then
+        echo "smart" > "$_sourcefile"
+    else
+        echo "all" > "$_sourcefile"
+    fi
     echo "list"      > "$_previewfocusfile"
 
     # Build list of printable keys to block in navigate mode (fzf has no 'any' in older builds)
@@ -83,21 +90,29 @@ RELEOF
     # rel-path variants: emit "fullpath\trelpath" for fzf display
     local _init_all_rel="( zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
     local _init_zo_rel="zoxide query -l | python3 '$_relscript'"
-    local _init_home_rel="{ fd -td -H -E.git -a . '$_cwd'; fd -tf -H -E.git -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
-    local _init_reload_rel
-    (( zoxide_only )) && _init_reload_rel=$_init_zo_rel || _init_reload_rel=$_init_all_rel
-    # When launched outside $HOME (and not zoxide-only), seed with the launched directory listing
+    local _init_cwd_rel="{ fd -td -H -E.git -a . '$_cwd'; fd -tf -H -E.git -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
+    # smart: 3-wave priority list — zoxide dirs → their contents (depth 3) → rest of $HOME
+    local _init_smart_rel="{ zoxide query -l 2>/dev/null; zoxide query -l 2>/dev/null | while IFS= read -r _zd; do fd -H -E.git -a --max-depth 3 . \"\$_zd\" 2>/dev/null; done; fd -H -E.git -a . '$HOME' 2>/dev/null; } | awk '!seen[\$0]++' | python3 '$_relscript'"
+    # Determine initial source based on launch context
     local _init_source_rel
-    if [[ "$_cwd" != "$HOME" ]] && (( ! zoxide_only )); then
-        _init_source_rel=$_init_home_rel
+    if (( zoxide_only )); then
+        _init_source_rel=$_init_zo_rel
+    elif [[ "$_cwd" == "$HOME" ]]; then
+        _init_source_rel=$_init_smart_rel
     else
-        _init_source_rel=$_init_reload_rel
+        _init_source_rel=$_init_cwd_rel
     fi
 
-    # Browse command: reads _curdir + _sortfile; pipes through relscript
-    local _browse="d=\$(cat '$_curdir'); s=\$(cat '$_sortfile'); \
-if [ -z \"\$d\" ]; then \
-  $_init_reload_rel; \
+    # Browse command: reads _curdir + _sortfile + _sourcefile; pipes through relscript
+    local _browse="d=\$(cat '$_curdir'); s=\$(cat '$_sortfile'); src=\$(cat '$_sourcefile'); \\
+if [ -z \"\$d\" ]; then \\
+  if [ \"\$src\" = 'smart' ]; then \\
+    $_init_smart_rel; \\
+  elif [ \"\$src\" = 'zo' ]; then \\
+    $_init_zo_rel; \\
+  else \\
+    $_init_all_rel; \\
+  fi; \\
 elif [ \"\$s\" = 'sorted' ]; then \
   fd -H -E.git -a . \"\$d\" 2>/dev/null | sort | python3 '$_relscript'; \
 else \
@@ -117,15 +132,19 @@ fi"
     local _list_label_off="${ESC}[1;36m results ${ESC}[0m"
     local _preview_label_on="${ESC}[1;35m preview ${ESC}[0m"
     local _preview_label_off="${ESC}[1;36m preview ${ESC}[0m"
-    local _h_all="${_h2_filter}"
-    local _h_zo="${_h2_filter}"
+    local _h1_all="All  │  CTRL-Z: zoxide  │  CTRL-G: smart  │  CTRL-Y: copy"
+    local _h1_zo="Zoxide  │  CTRL-A: all  │  CTRL-G: smart  │  CTRL-Y: copy"
+    local _h1_smart="Smart  │  CTRL-A: all  │  CTRL-Z: zoxide  │  CTRL-Y: copy"
+    local _h_all="${_h1_all}\n${_h2_filter}"
+    local _h_zo="${_h1_zo}\n${_h2_filter}"
+    local _h_smart="${_h1_smart}\n${_h2_filter}"
 
     # Write the tab-toggle script AFTER headers are defined so variables expand correctly
     cat > "$_togglescript" <<TOGGLEEOF
 #!/bin/sh
 mode=\$(cat '$_modefile')
 src=\$(cat '$_sourcefile')
-[ "\$src" = 'zo' ] && h1='$_h1_zo' || h1='$_h1_all'
+if [ "\$src" = 'zo' ]; then h1='$_h1_zo'; elif [ "\$src" = 'smart' ]; then h1='$_h1_smart'; else h1='$_h1_all'; fi
 if [ "\$mode" = 'filter' ]; then
   echo navigate > '$_modefile'
   printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label($_list_label_on)' "$h1"
@@ -158,6 +177,7 @@ PREVEOF
     # Source switches: reset to filter mode and clear navigation state atomically
     local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
     local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
+    local _bind_smart="ctrl-g:execute-silent(echo smart > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_smart_rel)+change-header(${_h1_smart}\n${_h2_filter})"
 
     # Clipboard: wl-copy (Wayland-native) replaces xclip (X11-only)
     local _bind_copy="ctrl-y:execute-silent(echo -n {1} | wl-copy)"
@@ -207,6 +227,7 @@ LEFTEOF
         --bind="$_bind_tab"
         --bind="$_bind_zo"
         --bind="$_bind_all"
+        --bind="$_bind_smart"
         --bind="$_bind_copy"
         --bind="$_bind_right"
         --bind="$_bind_left"
@@ -225,23 +246,21 @@ LEFTEOF
     )
 
     local dir
+    local _h_init
     if (( zoxide_only )); then
-        dir=$(eval "$_init_zo_rel" | fzf \
-            --ansi \
-            --prompt="$_prompt_filter" \
-            --header="$_h_zo" \
-            --preview="$_preview" \
-            --preview-window=right:60% \
-            "${_common_binds[@]}")
+        _h_init="$_h_zo"
+    elif [[ "$_cwd" == "$HOME" ]]; then
+        _h_init="$_h_smart"
     else
-        dir=$(eval "$_init_source_rel" | fzf \
-            --ansi \
-            --prompt="$_prompt_filter" \
-            --header="$_h_all" \
-            --preview="$_preview" \
-            --preview-window=right:60% \
-            "${_common_binds[@]}")
+        _h_init="$_h_all"
     fi
+    dir=$(eval "$_init_source_rel" | fzf \
+        --ansi \
+        --prompt="$_prompt_filter" \
+        --header="$_h_init" \
+        --preview="$_preview" \
+        --preview-window=right:60% \
+        "${_common_binds[@]}")
 
     rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewfocusfile" "$_previewscript"
 

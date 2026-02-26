@@ -9,6 +9,8 @@ eval "$(zoxide init zsh --cmd j)"
 #   TAB             toggle focus: filter mode ↔ navigate mode
 #   → / l           (navigate mode) browse into dir
 #   ← / h           (navigate mode) go back
+#   ↓ / j           (navigate mode) move down
+#   ↑ / k           (navigate mode) move up
 #   CTRL-P          toggle pane focus: results ⇄ preview
 #   CTRL-D/U        scroll preview down / up (half page)
 #   CTRL-/          show / hide preview window
@@ -104,9 +106,9 @@ fi"
     local _input_label_on="${ESC}[1;36m input ${ESC}[0m"
     local _input_label_off=" input "
     local _list_label_on="${ESC}[1;33m results ${ESC}[0m"
-    local _list_label_off=" results "
+    local _list_label_off="${ESC}[1;36m results ${ESC}[0m"
     local _preview_label_on="${ESC}[1;35m preview ${ESC}[0m"
-    local _preview_label_off=" preview "
+    local _preview_label_off="${ESC}[1;36m preview ${ESC}[0m"
     local _h_all="${_h2_filter}"
     local _h_zo="${_h2_filter}"
 
@@ -118,10 +120,10 @@ src=\$(cat '$_sourcefile')
 [ "\$src" = 'zo' ] && h1='$_h1_zo' || h1='$_h1_all'
 if [ "\$mode" = 'filter' ]; then
   echo navigate > '$_modefile'
-  printf 'disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label($_list_label_on)' "$h1"
+  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label($_list_label_on)' "$h1"
 else
   echo filter > '$_modefile'
-  printf 'enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
+  printf 'show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
 fi
 TOGGLEEOF
 
@@ -146,8 +148,8 @@ fi
 PREVEOF
     local _bind_preview_focus="ctrl-p:transform($_previewscript)"
     # Source switches: reset to filter mode and clear navigation state atomically
-    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
-    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
+    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
+    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
 
     # Clipboard: wl-copy (Wayland-native) replaces xclip (X11-only)
     local _bind_copy="ctrl-y:execute-silent(echo -n {1} | wl-copy)"
@@ -209,6 +211,8 @@ LEFTEOF
         --bind="$_input_binds"                          # block printable keys in navigate mode
         --bind="h:transform($_leftscript)"               # h = back (navigate mode) / type normally (filter)
         --bind="l:transform($_rightscript)"              # l = browse (navigate mode) / type normally (filter)
+        --bind="j:transform($_downscript)"               # j = down (navigate mode) / type normally (filter)
+        --bind="k:transform($_upscript)"                 # k = up (navigate mode) / type normally (filter)
         --bind="start:execute-silent(echo navigate > '$_modefile')+transform($_togglescript)"  # enter filter mode via toggle script (same code path as TAB)
     )
 

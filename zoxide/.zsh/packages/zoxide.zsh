@@ -125,8 +125,11 @@ fi"
     local ESC=$'\033'
     local _h2_filter="${ESC}[1;36m▌ FILTER${ESC}[0m  ${ESC}[2mTAB: nav  │  CTRL-/: preview  │  CTRL-P: pane focus  │  CTRL-D/U: scroll${ESC}[0m"
     local _h2_nav="${ESC}[1;33m▌ NAVIGATE${ESC}[0m  ${ESC}[1;33m→${ESC}[0m: browse  │  ${ESC}[1;33m←${ESC}[0m: back  │  TAB: filter  │  CTRL-P: focus  │  CTRL-D/U: scroll"
-    local _prompt_filter="${ESC}[1;36m  ${ESC}[0m"
+    local _prompt_filter="${ESC}[1;36m  ${ESC}[0m"
     local _prompt_nav="${ESC}[1;33m⇆ ${ESC}[0m"
+    # Pointer icons — change these to customise
+    local _ptr_filter=''                              # pointer in filter mode
+    local _ptr_nav=''                                 # pointer in navigate mode
     # Section labels — ANSI color indicates which pane is currently active
     local _input_label_on="${ESC}[1;36m input ${ESC}[0m"
     local _input_label_off=" input "
@@ -155,10 +158,10 @@ if [ "\$mode" = 'filter' ]; then
   else
     lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
   fi
-  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label(%s)' "$h1" "\$lbl"
+  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer($_ptr_nav)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label(%s)' "$h1" "\$lbl"
 else
   echo filter > '$_modefile'
-  printf 'show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
+  printf 'show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
 fi
 TOGGLEEOF
 
@@ -188,9 +191,9 @@ fi
 PREVEOF
     local _bind_preview_focus="ctrl-p:transform($_previewscript)"
     # Source switches: reset to filter mode and clear navigation state atomically
-    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
-    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
-    local _bind_smart="ctrl-g:execute-silent(echo smart > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_smart_rel)+change-header(${_h1_smart}\n${_h2_filter})"
+    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
+    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
+    local _bind_smart="ctrl-g:execute-silent(echo smart > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_smart_rel)+change-header(${_h1_smart}\n${_h2_filter})"
 
     # Clipboard: wl-copy (Wayland-native) replaces xclip (X11-only)
     local _bind_copy="ctrl-y:execute-silent(echo -n {1} | wl-copy)"
@@ -244,10 +247,10 @@ RLSCEOF
     local _common_binds=(
         --delimiter=$'\t'
         --with-nth=2
-        --pointer=' '                                   # hidden in filter mode; changed to ▶ in navigate
+        --pointer="$_ptr_filter"                        # filter mode pointer; changed to $_ptr_nav in navigate
         --scheme=path                                   # path-aware fzf scoring
         --tiebreak=index                                # preserve emission order on equal fzf scores
-        --color='bg:-1,bg+:-1,fg+:15,hl+:bold:2,input-border:8,list-border:8,preview-border:6'  # transparent bg; border + focus colors
+        --color='bg:-1,bg+:-1,fg+:15,hl+:bold:2,input-border:8,list-border:8,preview-border:5,pointer:5'  # transparent bg; border + focus colors
         --list-border=rounded
         --input-border=rounded
         --list-label="$_list_label_off"
@@ -261,8 +264,6 @@ RLSCEOF
         --bind="$_bind_copy"
         --bind="$_bind_right"
         --bind="$_bind_left"
-        --bind="$_bind_up"
-        --bind="$_bind_down"
         --bind="$_bind_sort"
         --bind="$_bind_result_label"                    # live label update in navigate mode
         --bind="$_bind_preview_focus"                  # CTRL-P: toggle pane focus

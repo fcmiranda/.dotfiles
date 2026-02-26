@@ -83,8 +83,16 @@ RELEOF
     # rel-path variants: emit "fullpath\trelpath" for fzf display
     local _init_all_rel="( zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
     local _init_zo_rel="zoxide query -l | python3 '$_relscript'"
+    local _init_home_rel="{ fd -td -H -E.git -a . '$_cwd'; fd -tf -H -E.git -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
     local _init_reload_rel
     (( zoxide_only )) && _init_reload_rel=$_init_zo_rel || _init_reload_rel=$_init_all_rel
+    # When launched outside $HOME (and not zoxide-only), seed with the launched directory listing
+    local _init_source_rel
+    if [[ "$_cwd" != "$HOME" ]] && (( ! zoxide_only )); then
+        _init_source_rel=$_init_home_rel
+    else
+        _init_source_rel=$_init_reload_rel
+    fi
 
     # Browse command: reads _curdir + _sortfile; pipes through relscript
     local _browse="d=\$(cat '$_curdir'); s=\$(cat '$_sortfile'); \
@@ -226,7 +234,7 @@ LEFTEOF
             --preview-window=right:60% \
             "${_common_binds[@]}")
     else
-        dir=$(eval "$_init_all_rel" | fzf \
+        dir=$(eval "$_init_source_rel" | fzf \
             --ansi \
             --prompt="$_prompt_filter" \
             --header="$_h_all" \

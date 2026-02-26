@@ -125,21 +125,33 @@ else \
   { fd -td -H -E.git -a . \"\$d\"; fd -tf -H -E.git -a . \"\$d\"; } 2>/dev/null | python3 '$_relscript'; \
 fi"
 
-    # Header rows — ESC var expands into the heredoc (TOGGLEEOF unquoted)
+    # ── Theme ─────────────────────────────────────────────────────────────────
     local ESC=$'\033'
-    local _prompt_filter="${ESC}[1;36m  ${ESC}[0m"
-    local _prompt_nav="${ESC}[1;33m⇆ ${ESC}[0m"
-    # Pointer icons — change these to customise
-    local _ptr_filter=''                              # pointer in filter mode
-    local _ptr_nav=''                                 # pointer in navigate mode
-    # Section labels — ANSI color indicates which pane is currently active
-    local _input_label_on="${ESC}[1;36m input ${ESC}[0m"
+    # Terminal color numbers used by fzf --color (change here to retheme everything)
+    local input_color=6      # cyan   — input box border + filter-mode accents
+    local result_color=3     # yellow — results list border + navigate-mode accents
+    local preview_color=5    # magenta — preview border + help label
+    local pointer_color=5    # magenta — pointer glyph (matches preview border)
+    # Icons (single char recommended so fzf width stays correct)
+    local filter_icon=''    # prompt icon in filter mode
+    local nav_icon='⇆'       # prompt icon in navigate mode
+    local ptr_filter_icon='' # list pointer in filter mode
+    local ptr_nav_icon=''   # list pointer in navigate mode
+    # ──────────────────────────────────────────────────────────────────────────
+
+    # Derived ANSI sequences (built from the variables above — don't edit below)
+    local _prompt_filter="${ESC}[1;3${input_color}m${filter_icon} ${ESC}[0m"
+    local _prompt_nav="${ESC}[1;3${result_color}m${nav_icon} ${ESC}[0m"
+    local _ptr_filter="$ptr_filter_icon"
+    local _ptr_nav="$ptr_nav_icon"
+    # Section labels — active label uses the pane's accent color; inactive is plain/dim
+    local _input_label_on="${ESC}[1;3${input_color}m input ${ESC}[0m"
     local _input_label_off=" input "
-    local _list_label_on="${ESC}[1;33m results ${ESC}[0m"
-    local _list_label_off="${ESC}[1;36m results ${ESC}[0m"
-    local _list_label_nav_tmpl="${ESC}[1;33m{fzf:match-count} results for [{q}]${ESC}[0m"
-    local _preview_label_on="${ESC}[1;35m preview ${ESC}[0m"
-    local _preview_label_off="${ESC}[1;36m preview ${ESC}[0m"
+    local _list_label_on="${ESC}[1;3${result_color}m results ${ESC}[0m"
+    local _list_label_off="${ESC}[1;3${input_color}m results ${ESC}[0m"
+    local _list_label_nav_tmpl="${ESC}[1;3${result_color}m{fzf:match-count} results for [{q}]${ESC}[0m"
+    local _preview_label_on="${ESC}[1;3${preview_color}m preview ${ESC}[0m"
+    local _preview_label_off="${ESC}[1;3${input_color}m preview ${ESC}[0m"
     local _h1_all="All  │  CTRL-Z: zoxide  │  CTRL-G: smart  │  CTRL-Y: copy"
     local _h1_zo="Zoxide  │  CTRL-A: all  │  CTRL-G: smart  │  CTRL-Y: copy"
     local _h1_smart="Smart  │  CTRL-A: all  │  CTRL-Z: zoxide  │  CTRL-Y: copy"
@@ -295,7 +307,8 @@ HELPSCRIPTEOF
         --pointer="$_ptr_filter"                        # filter mode pointer; changed to $_ptr_nav in navigate
         --scheme=path                                   # path-aware fzf scoring
         --tiebreak=index                                # preserve emission order on equal fzf scores
-        --color='bg:-1,bg+:-1,fg+:15,hl+:bold:2,input-border:8,list-border:8,preview-border:5,pointer:5'  # transparent bg; border + focus colors
+        --color='bg:-1,bg+:-1,fg+:15,hl+:bold:2,input-border:6,list-border:3,preview-border:5,pointer:5'  # transparent bg; input=cyan, list=yellow, preview=magenta
+        --no-border
         --list-border=rounded
         --input-border=rounded
         --list-label="$_list_label_off"

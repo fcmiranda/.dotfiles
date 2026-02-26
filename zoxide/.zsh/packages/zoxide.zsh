@@ -37,7 +37,7 @@ zcd() {
     local _modefile="$_tmpdir/mode"
     local _sourcefile="$_tmpdir/source"
     local _togglescript="$_tmpdir/toggle.sh"
-    local _relscript="$_tmpdir/rel.py"
+    local _relscript="$_tmpdir/rel.awk"
     local _leftaction="$_tmpdir/leftaction"
     local _rightaction="$_tmpdir/rightaction"
     local _leftscript="$_tmpdir/left.sh"
@@ -52,27 +52,20 @@ zcd() {
     # create script files before chmod so they exist on disk
     touch "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewscript" "$_helpscript"
     chmod +x "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewscript" "$_helpscript"
-    # python script: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
+    # awk program: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
+    # Written to a temp file so it can be referenced with -f, avoiding quoting/newline
+    # issues when embedding into _browse and _init_* command strings.
     cat > "$_relscript" <<'RELEOF'
-import sys, os, signal
-signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-cwd = None  # set below
-RELEOF
-    # inject cwd after the heredoc opener so the shell expands it
-    echo "cwd = '$_cwd'" >> "$_relscript"
-    cat >> "$_relscript" <<'RELEOF'
-for line in sys.stdin:
-    p = line.rstrip('\n')
-    if not p:
-        continue
-    try:
-        rel = os.path.relpath(p, cwd)
-    except Exception:
-        rel = p
-    try:
-        print(p + '\t' + rel)
-    except BrokenPipeError:
-        break
+BEGIN { n = split(cwd, C, "/") }
+{
+    p = $0; m = split(p, P, "/")
+    i = 1; while (i <= n && i <= m && C[i] == P[i]) i++
+    rel = ""
+    for (j = i; j <= n; j++) rel = (rel == "" ? ".." : rel "/..") 
+    for (j = i; j <= m; j++) rel = (rel == "" ? P[j] : rel "/" P[j])
+    if (rel == "") rel = "."
+    print p "\t" rel
+}
 RELEOF
     echo "dirsfirst" > "$_sortfile"
     echo "filter"    > "$_modefile"
@@ -103,13 +96,13 @@ RELEOF
         .cargo .rustup .local .mozilla .thunderbird
     )
     local _fd_ex="${(j: :)${_ignore_dirs[@]/#/-E }}"
-    local _init_all_rel="( zoxide query -l; fd -td -H -E.git ${_fd_ex} --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
-    local _init_zo_rel="zoxide query -l | python3 '$_relscript'"
-    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd'; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
+    local _init_all_rel="( zoxide query -l; fd -td -H -E.git ${_fd_ex} --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | awk -v cwd='$_cwd' -f '$_relscript'"
+    local _init_zo_rel="zoxide query -l | awk -v cwd='$_cwd' -f '$_relscript'"
+    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd'; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd'; } 2>/dev/null | awk -v cwd='$_cwd' -f '$_relscript'"
     # smart: wave 1 = all zoxide dirs (frecency order, appear at top)
     #        wave 2 = contents of each zoxide dir clustered in frecency order
     #        wave 3 = rest of $HOME (entries already seen are skipped by awk)
-    local _init_smart_rel="{ zoxide query -l 2>/dev/null; zoxide query -l 2>/dev/null | while IFS= read -r _zd; do fd -H -E.git ${_fd_ex} -a --max-depth 3 . \"\$_zd\" 2>/dev/null; done; fd -H -E.git ${_fd_ex} -a . '$HOME' 2>/dev/null; } | awk '!seen[\$0]++' | python3 '$_relscript'"
+    local _init_smart_rel="{ zoxide query -l 2>/dev/null; zoxide query -l 2>/dev/null | while IFS= read -r _zd; do fd -H -E.git ${_fd_ex} -a --max-depth 3 . \"\$_zd\" 2>/dev/null; done; fd -H -E.git ${_fd_ex} -a . '$HOME' 2>/dev/null; } | awk '!seen[\$0]++' | awk -v cwd='$_cwd' -f '$_relscript'"
     # Determine initial source based on launch context
     local _init_source_rel
     if (( zoxide_only )); then
@@ -131,9 +124,9 @@ if [ -z \"\$d\" ]; then \\
     $_init_all_rel; \\
   fi; \\
 elif [ \"\$s\" = 'sorted' ]; then \
-  fd -H -E.git ${_fd_ex} -a . \"\$d\" 2>/dev/null | sort | python3 '$_relscript'; \
+  fd -H -E.git ${_fd_ex} -a . \"\$d\" 2>/dev/null | sort | awk -v cwd='$_cwd' -f '$_relscript'; \
 else \
-  { fd -td -H -E.git ${_fd_ex} -a . \"\$d\"; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | python3 '$_relscript'; \
+  { fd -td -H -E.git ${_fd_ex} -a . \"\$d\"; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | awk -v cwd='$_cwd' -f '$_relscript'; \
 fi"
 
     # ── Theme ─────────────────────────────────────────────────────────────────

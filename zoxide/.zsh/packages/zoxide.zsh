@@ -15,6 +15,7 @@ eval "$(zoxide init zsh --cmd j)"
 #   CTRL-P          toggle pane focus: results ⇄ preview
 #   CTRL-D/U        scroll preview down / up (half page)
 #   CTRL-/          show / hide preview window
+#   F1              show / hide all shortcuts
 zcd() {
     local zoxide_only=0
     while [[ $# -gt 0 ]]; do
@@ -44,7 +45,10 @@ zcd() {
     _downscript=$(mktemp)
     _previewfocusfile=$(mktemp)
     _previewscript=$(mktemp)
-    chmod +x "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewscript"
+    _helpstatefile=$(mktemp)
+    _helptextfile=$(mktemp)
+    _helpscript=$(mktemp)
+    chmod +x "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewscript" "$_helpscript"
     # python script: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
     cat > "$_relscript" <<'RELEOF'
 import sys, os, signal
@@ -123,8 +127,6 @@ fi"
 
     # Header rows — ESC var expands into the heredoc (TOGGLEEOF unquoted)
     local ESC=$'\033'
-    local _h2_filter="${ESC}[1;36m▌ FILTER${ESC}[0m  ${ESC}[2mTAB: nav  │  CTRL-/: preview  │  CTRL-P: pane focus  │  CTRL-D/U: scroll${ESC}[0m"
-    local _h2_nav="${ESC}[1;33m▌ NAVIGATE${ESC}[0m  ${ESC}[1;33m→${ESC}[0m: browse  │  ${ESC}[1;33m←${ESC}[0m: back  │  TAB: filter  │  CTRL-P: focus  │  CTRL-D/U: scroll"
     local _prompt_filter="${ESC}[1;36m  ${ESC}[0m"
     local _prompt_nav="${ESC}[1;33m⇆ ${ESC}[0m"
     # Pointer icons — change these to customise
@@ -141,9 +143,9 @@ fi"
     local _h1_all="All  │  CTRL-Z: zoxide  │  CTRL-G: smart  │  CTRL-Y: copy"
     local _h1_zo="Zoxide  │  CTRL-A: all  │  CTRL-G: smart  │  CTRL-Y: copy"
     local _h1_smart="Smart  │  CTRL-A: all  │  CTRL-Z: zoxide  │  CTRL-Y: copy"
-    local _h_all="${_h1_all}\n${_h2_filter}"
-    local _h_zo="${_h1_zo}\n${_h2_filter}"
-    local _h_smart="${_h1_smart}\n${_h2_filter}"
+    local _h_all="$_h1_all"
+    local _h_zo="$_h1_zo"
+    local _h_smart="$_h1_smart"
 
     # Write the tab-toggle script AFTER headers are defined so variables expand correctly
     cat > "$_togglescript" <<TOGGLEEOF
@@ -158,10 +160,10 @@ if [ "\$mode" = 'filter' ]; then
   else
     lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
   fi
-  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer($_ptr_nav)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label(%s)' "$h1" "\$lbl"
+  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer($_ptr_nav)+change-prompt($_prompt_nav)+change-header(%s)+change-input-label($_input_label_off)+change-list-label(%s)' "$h1" "\$lbl"
 else
   echo filter > '$_modefile'
-  printf 'show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
+  printf 'show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-header(%s)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
 fi
 TOGGLEEOF
 
@@ -191,9 +193,9 @@ fi
 PREVEOF
     local _bind_preview_focus="ctrl-p:transform($_previewscript)"
     # Source switches: reset to filter mode and clear navigation state atomically
-    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo}\n${_h2_filter})"
-    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all}\n${_h2_filter})"
-    local _bind_smart="ctrl-g:execute-silent(echo smart > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_smart_rel)+change-header(${_h1_smart}\n${_h2_filter})"
+    local _bind_zo="ctrl-z:execute-silent(echo zo > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_zo_rel)+change-header(${_h1_zo})"
+    local _bind_all="ctrl-a:execute-silent(echo all > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_all_rel)+change-header(${_h1_all})"
+    local _bind_smart="ctrl-g:execute-silent(echo smart > '$_sourcefile'; echo filter > '$_modefile'; echo list > '$_previewfocusfile'; : > '$_stack'; printf '' > '$_curdir'; echo dirsfirst > '$_sortfile')+show-input+enable-search+unbind($_input_keys_str)+change-pointer($_ptr_filter)+change-prompt($_prompt_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)+reload($_init_smart_rel)+change-header(${_h1_smart})"
 
     # Clipboard: wl-copy (Wayland-native) replaces xclip (X11-only)
     local _bind_copy="ctrl-y:execute-silent(echo -n {1} | wl-copy)"
@@ -244,6 +246,49 @@ RLSCEOF
     # Preview: tree for dirs, bat for files  ({1} = full path)
     local _preview='[[ -d {1} ]] && eza --tree --level=2 --icons --color=always {1} || bat --style=numbers --color=always --line-range=:300 {1}'
 
+    # Help overlay — written once; CTRL-? toggles it into the preview pane
+    local _preview_label_help="${ESC}[1;35m shortcuts ${ESC}[0m"
+    cat > "$_helptextfile" <<HELPEOF
+${ESC}[1;35m  ALL SHORTCUTS${ESC}[0m
+
+${ESC}[1m  Mode${ESC}[0m
+  TAB          toggle filter ↔ navigate
+
+${ESC}[1m  Sources${ESC}[0m
+  CTRL-Z       zoxide only
+  CTRL-A       all dirs + zoxide
+  CTRL-G       smart search (frecency)
+
+${ESC}[1m  Navigation${ESC}[0m  ${ESC}[2m(navigate mode only)${ESC}[0m
+  → / l        browse into dir
+  ← / h        go back
+  ↓ / j        move down
+  ↑ / k        move up
+
+${ESC}[1m  Preview${ESC}[0m
+  CTRL-/       show / hide preview
+  CTRL-P       toggle pane focus
+  CTRL-↓/↑     scroll preview
+
+${ESC}[1m  Other${ESC}[0m
+  CTRL-S       toggle sort
+  CTRL-Y       copy path
+  F1           toggle this help
+  ENTER        cd to selection
+  ESC          cancel
+HELPEOF
+    cat > "$_helpscript" <<HELPSCRIPTEOF
+#!/bin/sh
+if [ "\$(cat '$_helpstatefile')" = "on" ]; then
+  echo off > '$_helpstatefile'
+  printf 'change-preview($_preview)+change-preview-label($_preview_label_off)'
+else
+  echo on > '$_helpstatefile'
+  printf 'change-preview(cat $_helptextfile)+change-preview-label($_preview_label_help)'
+fi
+HELPSCRIPTEOF
+    local _bind_help="f1:transform($_helpscript)"
+
     local _common_binds=(
         --delimiter=$'\t'
         --with-nth=2
@@ -267,6 +312,7 @@ RLSCEOF
         --bind="$_bind_sort"
         --bind="$_bind_result_label"                    # live label update in navigate mode
         --bind="$_bind_preview_focus"                  # CTRL-P: toggle pane focus
+        --bind="$_bind_help"                            # CTRL-?: show/hide shortcuts
         --bind='ctrl-down:preview-half-page-down'         # scroll preview down
         --bind='ctrl-up:preview-half-page-up'           # scroll preview up
         --bind="$_input_binds"                          # block printable keys in navigate mode
@@ -294,7 +340,7 @@ RLSCEOF
         --preview-window=right:60% \
         "${_common_binds[@]}")
 
-    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewfocusfile" "$_previewscript" "$_result_label_script"
+    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewfocusfile" "$_previewscript" "$_result_label_script" "$_helpstatefile" "$_helptextfile" "$_helpscript"
 
     # fzf returns "fullpath\trelpath"; extract just the full path
     [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"

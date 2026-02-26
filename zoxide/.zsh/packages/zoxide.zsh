@@ -132,6 +132,7 @@ fi"
     local _input_label_off=" input "
     local _list_label_on="${ESC}[1;33m results ${ESC}[0m"
     local _list_label_off="${ESC}[1;36m results ${ESC}[0m"
+    local _list_label_nav_tmpl="${ESC}[1;33m{fzf:match-count} results for [{q}]${ESC}[0m"
     local _preview_label_on="${ESC}[1;35m preview ${ESC}[0m"
     local _preview_label_off="${ESC}[1;36m preview ${ESC}[0m"
     local _h1_all="All  │  CTRL-Z: zoxide  │  CTRL-G: smart  │  CTRL-Y: copy"
@@ -149,7 +150,8 @@ src=\$(cat '$_sourcefile')
 if [ "\$src" = 'zo' ]; then h1='$_h1_zo'; elif [ "\$src" = 'smart' ]; then h1='$_h1_smart'; else h1='$_h1_all'; fi
 if [ "\$mode" = 'filter' ]; then
   echo navigate > '$_modefile'
-  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label($_list_label_on)' "$h1"
+  lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
+  printf 'hide-input+disable-search+rebind($_input_keys_str)+change-pointer(▶)+change-prompt($_prompt_nav)+change-header(%s\n$_h2_nav)+change-input-label($_input_label_off)+change-list-label(%s)' "$h1" "\$lbl"
 else
   echo filter > '$_modefile'
   printf 'show-input+enable-search+unbind($_input_keys_str)+change-pointer( )+change-prompt($_prompt_filter)+change-header(%s\n$_h2_filter)+change-input-label($_input_label_on)+change-list-label($_list_label_off)' "$h1"
@@ -165,13 +167,14 @@ state=\$(cat '$_previewfocusfile')
 mode=\$(cat '$_modefile')
 if [ "\$state" = "list" ]; then
   echo "preview" > '$_previewfocusfile'
-  printf 'toggle-preview-focus+change-preview-label($_preview_label_on)+change-input-label($_input_label_off)+change-list-label($_list_label_off)'
+  printf 'toggle-preview-focus+change-preview-label($_preview_label_on)+change-input-label($_input_label_off)'
 else
   echo "list" > '$_previewfocusfile'
   if [ "\$mode" = "filter" ]; then
     printf 'toggle-preview-focus+change-preview-label($_preview_label_off)+change-input-label($_input_label_on)+change-list-label($_list_label_off)'
   else
-    printf 'toggle-preview-focus+change-preview-label($_preview_label_off)+change-input-label($_input_label_off)+change-list-label($_list_label_on)'
+    lbl=\$(printf '\033[1;33m%s results for [%s]\033[0m' "\$FZF_MATCH_COUNT" "\$FZF_QUERY")
+    printf 'toggle-preview-focus+change-preview-label($_preview_label_off)+change-input-label($_input_label_off)+change-list-label(%s)' "\$lbl"
   fi
 fi
 PREVEOF
@@ -210,6 +213,17 @@ LEFTEOF
     local _bind_down="down:transform($_downscript)"
 
     # Sort toggle
+    local _result_label_script=$(mktemp)
+    chmod +x "$_result_label_script"
+    cat > "$_result_label_script" <<RLSCEOF
+#!/bin/sh
+if [ "\$(cat '$_modefile')" = 'navigate' ]; then
+  printf 'change-list-label(\033[1;33m%s results for [%s]\033[0m)' "\$FZF_MATCH_COUNT" "\$FZF_QUERY"
+else
+  echo ignore
+fi
+RLSCEOF
+    local _bind_result_label="result:transform($_result_label_script)"
     local _bind_sort="ctrl-s:execute-silent(if [ \"\$(cat '$_sortfile')\" = 'dirsfirst' ]; then echo sorted > '$_sortfile'; else echo dirsfirst > '$_sortfile'; fi)+reload($_browse)"
 
     # Preview: tree for dirs, bat for files  ({1} = full path)
@@ -238,6 +252,7 @@ LEFTEOF
         --bind="$_bind_up"
         --bind="$_bind_down"
         --bind="$_bind_sort"
+        --bind="$_bind_result_label"                    # live label update in navigate mode
         --bind="$_bind_preview_focus"                  # CTRL-P: toggle pane focus
         --bind='ctrl-down:preview-half-page-down'         # scroll preview down
         --bind='ctrl-up:preview-half-page-up'           # scroll preview up
@@ -266,7 +281,7 @@ LEFTEOF
         --preview-window=right:60% \
         "${_common_binds[@]}")
 
-    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewfocusfile" "$_previewscript"
+    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewfocusfile" "$_previewscript" "$_result_label_script"
 
     # fzf returns "fullpath\trelpath"; extract just the full path
     [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"

@@ -91,7 +91,9 @@ RELEOF
     local _init_all_rel="( zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
     local _init_zo_rel="zoxide query -l | python3 '$_relscript'"
     local _init_cwd_rel="{ fd -td -H -E.git -a . '$_cwd'; fd -tf -H -E.git -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
-    # smart: 3-wave priority list — zoxide dirs → their contents (depth 3) → rest of $HOME
+    # smart: wave 1 = all zoxide dirs (frecency order, appear at top)
+    #        wave 2 = contents of each zoxide dir clustered in frecency order
+    #        wave 3 = rest of $HOME (entries already seen are skipped by awk)
     local _init_smart_rel="{ zoxide query -l 2>/dev/null; zoxide query -l 2>/dev/null | while IFS= read -r _zd; do fd -H -E.git -a --max-depth 3 . \"\$_zd\" 2>/dev/null; done; fd -H -E.git -a . '$HOME' 2>/dev/null; } | awk '!seen[\$0]++' | python3 '$_relscript'"
     # Determine initial source based on launch context
     local _init_source_rel
@@ -217,6 +219,8 @@ LEFTEOF
         --delimiter=$'\t'
         --with-nth=2
         --pointer=' '                                   # hidden in filter mode; changed to ▶ in navigate
+        --scheme=path                                   # path-aware fzf scoring
+        --tiebreak=index                                # preserve emission order on equal fzf scores
         --color='bg:-1,bg+:-1,fg+:15,hl+:bold:2,input-border:8,list-border:8,preview-border:6'  # transparent bg; border + focus colors
         --list-border=rounded
         --input-border=rounded

@@ -28,26 +28,29 @@ zcd() {
     # capture launch directory for relative-path display
     local _cwd="$PWD"
 
-    # temp files for state
-    local _stack _sortfile _curdir _modefile _sourcefile _togglescript _relscript _leftaction _rightaction _leftscript _rightscript
-    _stack=$(mktemp)
-    _sortfile=$(mktemp)
-    _curdir=$(mktemp)
-    _modefile=$(mktemp)
-    _sourcefile=$(mktemp)
-    _togglescript=$(mktemp)
-    _relscript=$(mktemp)
-    _leftaction=$(mktemp)
-    _rightaction=$(mktemp)
-    _leftscript=$(mktemp)
-    _rightscript=$(mktemp)
-    _upscript=$(mktemp)
-    _downscript=$(mktemp)
-    _previewfocusfile=$(mktemp)
-    _previewscript=$(mktemp)
-    _helpstatefile=$(mktemp)
-    _helptextfile=$(mktemp)
-    _helpscript=$(mktemp)
+    # temp dir for all state files — cleaned up automatically on exit
+    local _tmpdir; _tmpdir=$(mktemp -d)
+    trap "rm -rf '$_tmpdir'" EXIT INT
+    local _stack="$_tmpdir/stack"
+    local _sortfile="$_tmpdir/sort"
+    local _curdir="$_tmpdir/curdir"
+    local _modefile="$_tmpdir/mode"
+    local _sourcefile="$_tmpdir/source"
+    local _togglescript="$_tmpdir/toggle.sh"
+    local _relscript="$_tmpdir/rel.py"
+    local _leftaction="$_tmpdir/leftaction"
+    local _rightaction="$_tmpdir/rightaction"
+    local _leftscript="$_tmpdir/left.sh"
+    local _rightscript="$_tmpdir/right.sh"
+    local _upscript="$_tmpdir/up.sh"
+    local _downscript="$_tmpdir/down.sh"
+    local _previewfocusfile="$_tmpdir/previewfocus"
+    local _previewscript="$_tmpdir/preview.sh"
+    local _helpstatefile="$_tmpdir/helpstate"
+    local _helptextfile="$_tmpdir/helptext"
+    local _helpscript="$_tmpdir/help.sh"
+    # create script files before chmod so they exist on disk
+    touch "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewscript" "$_helpscript"
     chmod +x "$_togglescript" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewscript" "$_helpscript"
     # python script: stdin full-paths → stdout "fullpath\trelpath" (relative to _cwd)
     cat > "$_relscript" <<'RELEOF'
@@ -246,7 +249,8 @@ LEFTEOF
     local _bind_down="down:transform($_downscript)"
 
     # Sort toggle
-    local _result_label_script=$(mktemp)
+    local _result_label_script="$_tmpdir/result_label.sh"
+    touch "$_result_label_script"
     chmod +x "$_result_label_script"
     cat > "$_result_label_script" <<RLSCEOF
 #!/bin/sh
@@ -361,7 +365,7 @@ HELPSCRIPTEOF
         --preview-window=right:60% \
         "${_common_binds[@]}")
 
-    rm -f "$_stack" "$_sortfile" "$_curdir" "$_modefile" "$_sourcefile" "$_togglescript" "$_relscript" "$_leftaction" "$_rightaction" "$_leftscript" "$_rightscript" "$_upscript" "$_downscript" "$_previewfocusfile" "$_previewscript" "$_result_label_script" "$_helpstatefile" "$_helptextfile" "$_helpscript"
+    # trap handles cleanup; no explicit rm needed
 
     # fzf returns "fullpath\trelpath"; extract just the full path
     [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"

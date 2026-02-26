@@ -96,8 +96,6 @@ fi"
 
     # Header rows — ESC var expands into the heredoc (TOGGLEEOF unquoted)
     local ESC=$'\033'
-    local _h1_all="Zoxide + fd  │  CTRL-Z: zo only  │  CTRL-Y: copy"
-    local _h1_zo="Zoxide only  │  CTRL-A: all  │  CTRL-Y: copy"
     local _h2_filter="${ESC}[1;36m▌ FILTER${ESC}[0m  ${ESC}[2mTAB: nav  │  CTRL-/: preview  │  CTRL-P: pane focus  │  CTRL-D/U: scroll${ESC}[0m"
     local _h2_nav="${ESC}[1;33m▌ NAVIGATE${ESC}[0m  ${ESC}[1;33m→${ESC}[0m: browse  │  ${ESC}[1;33m←${ESC}[0m: back  │  TAB: filter  │  CTRL-P: focus  │  CTRL-D/U: scroll"
     local _prompt_filter="${ESC}[1;36m  ${ESC}[0m"
@@ -109,8 +107,8 @@ fi"
     local _list_label_off=" results "
     local _preview_label_on="${ESC}[1;35m preview ${ESC}[0m"
     local _preview_label_off=" preview "
-    local _h_all="${_h1_all}\n${_h2_filter}"
-    local _h_zo="${_h1_zo}\n${_h2_filter}"
+    local _h_all="${_h2_filter}"
+    local _h_zo="${_h2_filter}"
 
     # Write the tab-toggle script AFTER headers are defined so variables expand correctly
     cat > "$_togglescript" <<TOGGLEEOF
@@ -211,7 +209,7 @@ LEFTEOF
         --bind="$_input_binds"                          # block printable keys in navigate mode
         --bind="h:transform($_leftscript)"               # h = back (navigate mode) / type normally (filter)
         --bind="l:transform($_rightscript)"              # l = browse (navigate mode) / type normally (filter)
-        --bind="start:enable-search+unbind($_input_keys_str)+change-input-label($_input_label_on)+change-list-label($_list_label_off)+change-preview-label($_preview_label_off)"  # start in filter mode
+        --bind="start:execute-silent(echo navigate > '$_modefile')+transform($_togglescript)"  # enter filter mode via toggle script (same code path as TAB)
     )
 
     local dir

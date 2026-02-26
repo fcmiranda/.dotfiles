@@ -92,13 +92,21 @@ RELEOF
     local _input_binds="${(j:,:)${_input_keys[@]/%/:ignore}}"
 
     # rel-path variants: emit "fullpath\trelpath" for fzf display
-    local _init_all_rel="( zoxide query -l; fd -td -H -E.git --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
+    # Folders excluded from every fd scan — add names here to keep results clean
+    local _ignore_dirs=(
+        node_modules .cache target dist build __pycache__
+        .venv venv env vendor .gradle .npm .pnpm-store
+        .next out coverage .tox .mypy_cache .pytest_cache
+        .cargo .rustup .local .mozilla .thunderbird
+    )
+    local _fd_ex="${(j: :)${_ignore_dirs[@]/#/-E }}"
+    local _init_all_rel="( zoxide query -l; fd -td -H -E.git ${_fd_ex} --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | python3 '$_relscript'"
     local _init_zo_rel="zoxide query -l | python3 '$_relscript'"
-    local _init_cwd_rel="{ fd -td -H -E.git -a . '$_cwd'; fd -tf -H -E.git -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
+    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd'; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd'; } 2>/dev/null | python3 '$_relscript'"
     # smart: wave 1 = all zoxide dirs (frecency order, appear at top)
     #        wave 2 = contents of each zoxide dir clustered in frecency order
     #        wave 3 = rest of $HOME (entries already seen are skipped by awk)
-    local _init_smart_rel="{ zoxide query -l 2>/dev/null; zoxide query -l 2>/dev/null | while IFS= read -r _zd; do fd -H -E.git -a --max-depth 3 . \"\$_zd\" 2>/dev/null; done; fd -H -E.git -a . '$HOME' 2>/dev/null; } | awk '!seen[\$0]++' | python3 '$_relscript'"
+    local _init_smart_rel="{ zoxide query -l 2>/dev/null; zoxide query -l 2>/dev/null | while IFS= read -r _zd; do fd -H -E.git ${_fd_ex} -a --max-depth 3 . \"\$_zd\" 2>/dev/null; done; fd -H -E.git ${_fd_ex} -a . '$HOME' 2>/dev/null; } | awk '!seen[\$0]++' | python3 '$_relscript'"
     # Determine initial source based on launch context
     local _init_source_rel
     if (( zoxide_only )); then
@@ -120,9 +128,9 @@ if [ -z \"\$d\" ]; then \\
     $_init_all_rel; \\
   fi; \\
 elif [ \"\$s\" = 'sorted' ]; then \
-  fd -H -E.git -a . \"\$d\" 2>/dev/null | sort | python3 '$_relscript'; \
+  fd -H -E.git ${_fd_ex} -a . \"\$d\" 2>/dev/null | sort | python3 '$_relscript'; \
 else \
-  { fd -td -H -E.git -a . \"\$d\"; fd -tf -H -E.git -a . \"\$d\"; } 2>/dev/null | python3 '$_relscript'; \
+  { fd -td -H -E.git ${_fd_ex} -a . \"\$d\"; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | python3 '$_relscript'; \
 fi"
 
     # ── Theme ─────────────────────────────────────────────────────────────────

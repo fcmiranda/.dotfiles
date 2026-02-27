@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Reload tmux configuration so new theme colors apply immediately.
+# Called by omarchy-theme-set with the new theme name as $1.
+
+if tmux info &>/dev/null; then
+  tmux source-file ~/.config/tmux/tmux.conf
+fi

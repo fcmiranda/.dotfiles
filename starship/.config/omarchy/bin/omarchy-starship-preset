@@ -3,8 +3,7 @@
 # Interactive fzf picker to browse, preview, and apply starship.toml presets.
 #
 # Sources:
-#   [preset]  Built-in starship presets  (starship preset --list)
-#   [theme]   Omarchy themes rendered from colors.toml + starship.toml.tpl
+#   Custom presets from ~/.config/omarchy/starship-presets/
 #
 # Usage:
 #   omarchy-starship-preset                  # interactive fzf picker
@@ -15,9 +14,6 @@ set -euo pipefail
 # ─── paths ────────────────────────────────────────────────────────────────────
 
 LIVE_CONFIG="$HOME/.config/omarchy/current/theme/starship.toml"
-OMARCHY_THEMES="$HOME/.local/share/omarchy/themes"
-USER_THEMES="$HOME/.config/omarchy/themes"
-TEMPLATE=""
 CUSTOM_PRESETS="$HOME/.config/omarchy/starship-presets"
 export TMPDIR_PRESETS
 TMPDIR_PRESETS="$(mktemp -d /tmp/omarchy-starship-preset.XXXXXX)"
@@ -36,31 +32,11 @@ _bat_toml() {
   fi
 }
 
-# Build a sed substitution script from a colors.toml file (same logic as
-# omarchy-theme-set-templates so the rendered output is identical).
-build_sed_script() {
-  local colors_file="$1" out="$2"
-  hex_to_rgb() {
-    local hex="${1#\#}"
-    printf "%d,%d,%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
-  }
-  while IFS='=' read -r key value; do
-    key="${key//[\"\' ]/}"
-    [[ $key && $key != \#* ]] || continue
-    value="${value#*[\"\']}"
-    value="${value%%[\"\']*}"
-    printf 's|{{ %s }}|%s|g\n'       "$key" "$value"
-    printf 's|{{ %s_strip }}|%s|g\n' "$key" "${value#\#}"
-    if [[ $value =~ ^# ]]; then
-      printf 's|{{ %s_rgb }}|%s|g\n' "$key" "$(hex_to_rgb "$value")"
-    fi
-  done <"$colors_file" >"$out"
-}
 
 # Render a pretty preview for an fzf panel: simulated prompt + highlighted TOML.
 render_preview() {
   local label="$1" file="$2"
-  local name="${label##*]  }"
+  local name="$label"
 
   printf '\033[1;36m━━━ %s \033[0m\n\n' "$label"
 
@@ -87,13 +63,15 @@ fi
 if [[ "${1:-}" == "--preview-only" ]]; then
   [[ -z "${2:-}" ]] && { echo "Usage: omarchy-starship-preset --preview-only <name>" >&2; exit 1; }
   name="$2"
-  outfile="$TMPDIR_PRESETS/preview.toml"
-  if starship preset "$name" -o "$outfile" 2>/dev/null; then
-    cat "$outfile"
+  preset_file="$CUSTOM_PRESETS/$name.toml"
+  if [[ -f "$preset_file" ]]; then
+    cat "$preset_file"
     exit 0
   fi
-  printf 'Preset "%s" not found.\nAvailable presets:\n' "$name" >&2
-  starship preset --list >&2
+  printf 'Custom preset "%s" not found.\nAvailable custom presets:\n' "$name" >&2
+  for f in "$CUSTOM_PRESETS"/*.toml; do
+    [[ -f "$f" ]] && basename "$f" .toml
+  done >&2
   exit 1
 fi
 
@@ -102,50 +80,14 @@ fi
 
 entries=()
 
-# Source A ── built-in starship presets
-while IFS= read -r preset; do
-  [[ -z "$preset" ]] && continue
-  outfile="$TMPDIR_PRESETS/preset-${preset}.toml"
-  if starship preset "$preset" -o "$outfile" 2>/dev/null; then
-    entries+=("[preset]  ${preset}"$'\t'"${outfile}")
-  fi
-done < <(starship preset --list 2>/dev/null)
-
-# Source B ── omarchy themes rendered from colors.toml + template
-if [[ -f "$TEMPLATE" ]]; then
-  # Collect unique theme dirs (user themes override stock)
-  declare -A seen_themes=()
-  for theme_dir in "$USER_THEMES"/*/ "$OMARCHY_THEMES"/*/; do
-    [[ -d "$theme_dir" ]] || continue
-    theme_name="$(basename "$theme_dir")"
-    [[ -n "${seen_themes[$theme_name]:-}" ]] && continue
-    seen_themes[$theme_name]=1
-
-    outfile="$TMPDIR_PRESETS/theme-${theme_name}.toml"
-
-    if [[ -f "${theme_dir}starship.toml" ]]; then
-      # Theme ships its own starship.toml — use it directly
-      cp "${theme_dir}starship.toml" "$outfile"
-      entries+=("[theme]   ${theme_name}"$'\t'"${outfile}")
-    elif [[ -f "${theme_dir}colors.toml" ]]; then
-      # Render from template + colors palette (same as omarchy-theme-set-templates)
-      sed_script="$(mktemp)"
-      build_sed_script "${theme_dir}colors.toml" "$sed_script"
-      sed -f "$sed_script" "$TEMPLATE" >"$outfile"
-      rm "$sed_script"
-      entries+=("[theme]   ${theme_name}"$'\t'"${outfile}")
-    fi
-  done
-fi
-
-# Source C ── hand-crafted presets from ~/.config/omarchy/starship-presets/
+# Source ── custom presets from ~/.config/omarchy/starship-presets/
 if [[ -d "$CUSTOM_PRESETS" ]]; then
   for preset_file in "$CUSTOM_PRESETS"/*.toml; do
     [[ -f "$preset_file" ]] || continue
     preset_name="$(basename "$preset_file" .toml)"
     outfile="$TMPDIR_PRESETS/custom-${preset_name}.toml"
     cp "$preset_file" "$outfile"
-    entries+=("[custom]   ${preset_name}"$'\t'"${outfile}")
+    entries+=("${preset_name}"$'\t'"${outfile}")
   done
 fi
 

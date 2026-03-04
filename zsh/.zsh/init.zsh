@@ -31,6 +31,8 @@ source_packages \
 
 source_if_exists packages fed
 
+
+#   zsh-vi-mode \
 source_plugins \
   zsh-vi-mode \
 	zsh-autosuggestions \

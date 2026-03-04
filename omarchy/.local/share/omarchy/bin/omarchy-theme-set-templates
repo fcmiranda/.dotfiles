@@ -15,7 +15,7 @@ hex_to_rgb() {
 append_colors_to_sed() {
   local colors_file="$1"
   local sed_file="$2"
-  while IFS='=' read -r key value; do
+  while IFS='=' read -r key value || [[ -n $key ]]; do
     key="${key//[\"\' ]/}"                # strip quotes and spaces from key
     [[ $key && $key != \#* ]] || continue # skip empty lines and comments
     value="${value#*[\"\']}"

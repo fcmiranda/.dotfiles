@@ -1,0 +1,97 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEGO — lego brick separators (\ue0d1), chunky solid primary colors
+# Every segment snaps together like bricks:  OS  dir  git  lang 
+# ───────────────────────────────────────────────────────────────────────────────
+
+format = """
+$os\
+[\ue0d1](fg:red bg:yellow)\
+$directory\
+[\ue0d1](fg:yellow bg:blue)\
+$git_branch\
+$git_status\
+[\ue0d1](fg:blue bg:green)\
+$nodejs$python$rust$golang$java$kotlin\
+[\ue0d1](fg:green)\
+$line_break\
+$character"""
+
+palette = 'lego'
+
+[palettes.lego]
+red    = '#e3000b'
+yellow = '#ffcb00'
+blue   = '#006db6'
+green  = '#00a850'
+dark   = '#1a1a1a'
+light  = '#ffffff'
+
+[os]
+disabled = false
+style = "bg:red fg:light"
+format = '[ $symbol ]($style)'
+
+[os.symbols]
+Arch   = "󰣇"
+Linux  = "󰌽"
+Macos  = "󰀵"
+Ubuntu = "󰕈"
+
+[directory]
+style = "bg:yellow fg:dark"
+format = "[ 󰉋 $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = " "
+style = "bg:blue fg:light"
+format = '[ $symbol$branch ]($style)'
+
+[git_status]
+style = "bg:blue fg:light"
+format = '[$all_status$ahead_behind]($style)'
+conflicted = "⚡"
+ahead      = "↑${count}"
+behind     = "↓${count}"
+diverged   = "⇕"
+untracked  = "?"
+modified   = "*"
+staged     = "+"
+deleted    = "-"
+
+[nodejs]
+symbol = " "
+style = "bg:green fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[python]
+symbol = " "
+style = "bg:green fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[rust]
+symbol = " "
+style = "bg:green fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[golang]
+symbol = " "
+style = "bg:green fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[java]
+symbol = " "
+style = "bg:green fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[kotlin]
+symbol = " "
+style = "bg:green fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[character]
+success_symbol = '[❯](bold #00a850)'
+error_symbol   = '[❯](bold #e3000b)'

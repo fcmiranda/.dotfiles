@@ -1,0 +1,99 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# MATRIX — pixelated square separators on pure black, green-on-black hackerman
+# Big pixel blocks (\ue0c6) create a chunky retro-digital border
+# ───────────────────────────────────────────────────────────────────────────────
+
+format = """
+[\ue0c6](fg:green1 bg:black)\
+$os\
+[\ue0c6](fg:green1 bg:green2)\
+$directory\
+[\ue0c4](fg:green2 bg:green3)\
+$git_branch\
+$git_status\
+[\ue0c6](fg:green3 bg:green4)\
+$nodejs$python$rust$golang$java$kotlin\
+[\ue0c4](fg:green4 bg:black)\
+$line_break\
+$character"""
+
+palette = 'matrix'
+
+[palettes.matrix]
+black   = '#000000'
+green1  = '#00ff41'
+green2  = '#00cc34'
+green3  = '#008f11'
+green4  = '#005c0b'
+bright  = '#00ff41'
+dim     = '#000000'
+
+[os]
+disabled = false
+style = "bg:green1 fg:dim"
+format = '[ $symbol ]($style)'
+
+[os.symbols]
+Arch   = "󰣇"
+Linux  = "󰌽"
+Macos  = "󰀵"
+Ubuntu = "󰕈"
+
+[directory]
+style = "bg:green2 fg:dim"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = " "
+style = "bg:green3 fg:bright"
+format = '[ $symbol$branch ]($style)'
+
+[git_status]
+style = "bg:green3 fg:bright"
+format = '[$all_status$ahead_behind]($style)'
+conflicted = "! "
+ahead      = "+${count} "
+behind     = "-${count} "
+diverged   = "± "
+untracked  = "? "
+modified   = "~ "
+staged     = "+ "
+deleted    = "x "
+
+[nodejs]
+symbol = " "
+style = "bg:green4 fg:bright"
+format = '[ $symbol$version ]($style)'
+
+[python]
+symbol = " "
+style = "bg:green4 fg:bright"
+format = '[ $symbol$version ]($style)'
+
+[rust]
+symbol = " "
+style = "bg:green4 fg:bright"
+format = '[ $symbol$version ]($style)'
+
+[golang]
+symbol = " "
+style = "bg:green4 fg:bright"
+format = '[ $symbol$version ]($style)'
+
+[java]
+symbol = " "
+style = "bg:green4 fg:bright"
+format = '[ $symbol$version ]($style)'
+
+[kotlin]
+symbol = " "
+style = "bg:green4 fg:bright"
+format = '[ $symbol$version ]($style)'
+
+[character]
+success_symbol = '[>](bold #00ff41)'
+error_symbol   = '[!](bold #ff0000)'

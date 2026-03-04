@@ -1,0 +1,102 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# WAVES — ice waveform (\ue0c8) + trapezoid (\ue0d2) alternating separators
+# Undulating ocean gradient: deep navy → teal → cyan → aurora
+# Mix of waveform opening and trapezoid closing for an asymmetric rhythm
+# ───────────────────────────────────────────────────────────────────────────────
+
+format = """
+[\ue0c8](fg:navy)\
+$os\
+[\ue0d2](fg:navy bg:teal)\
+[\ue0c8](fg:teal bg:teal)\
+$directory\
+[\ue0d2](fg:teal bg:cyan)\
+[\ue0c8](fg:cyan bg:cyan)\
+$git_branch\
+$git_status\
+[\ue0d2](fg:cyan bg:aurora)\
+[\ue0c8](fg:aurora bg:aurora)\
+$nodejs$python$rust$golang$java$kotlin\
+[\ue0d2](fg:aurora)\
+$line_break\
+$character"""
+
+palette = 'waves'
+
+[palettes.waves]
+navy   = '#023e8a'
+teal   = '#0096c7'
+cyan   = '#00b4d8'
+aurora = '#80ffdb'
+dark   = '#03045e'
+bright = '#caf0f8'
+
+[os]
+disabled = false
+style = "bg:navy fg:bright"
+format = '[ $symbol ]($style)'
+
+[os.symbols]
+Arch   = "󰣇"
+Linux  = "󰌽"
+Macos  = "󰀵"
+Ubuntu = "󰕈"
+
+[directory]
+style = "bg:teal fg:dark"
+format = "[ 󰉋 $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = " "
+style = "bg:cyan fg:dark"
+format = '[ $symbol$branch ]($style)'
+
+[git_status]
+style = "bg:cyan fg:dark"
+format = '[$all_status$ahead_behind]($style)'
+conflicted = "⚡"
+ahead      = "↑${count}"
+behind     = "↓${count}"
+diverged   = "⇕"
+untracked  = "?"
+modified   = "~"
+staged     = "+"
+deleted    = "-"
+
+[nodejs]
+symbol = " "
+style = "bg:aurora fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[python]
+symbol = " "
+style = "bg:aurora fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[rust]
+symbol = " "
+style = "bg:aurora fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[golang]
+symbol = " "
+style = "bg:aurora fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[java]
+symbol = " "
+style = "bg:aurora fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[kotlin]
+symbol = " "
+style = "bg:aurora fg:dark"
+format = '[ $symbol$version ]($style)'
+
+[character]
+success_symbol = '[❯](bold #80ffdb)'
+error_symbol   = '[❯](bold #ef233c)'

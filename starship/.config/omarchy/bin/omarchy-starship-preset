@@ -17,7 +17,8 @@ set -euo pipefail
 LIVE_CONFIG="$HOME/.config/omarchy/current/theme/starship.toml"
 OMARCHY_THEMES="$HOME/.local/share/omarchy/themes"
 USER_THEMES="$HOME/.config/omarchy/themes"
-TEMPLATE="$HOME/.local/share/omarchy/default/themed/starship.toml.tpl"
+TEMPLATE=""
+CUSTOM_PRESETS="$HOME/.config/omarchy/starship-presets"
 export TMPDIR_PRESETS
 TMPDIR_PRESETS="$(mktemp -d /tmp/omarchy-starship-preset.XXXXXX)"
 trap 'rm -rf "$TMPDIR_PRESETS"' EXIT
@@ -134,6 +135,17 @@ if [[ -f "$TEMPLATE" ]]; then
       rm "$sed_script"
       entries+=("[theme]   ${theme_name}"$'\t'"${outfile}")
     fi
+  done
+fi
+
+# Source C ── hand-crafted presets from ~/.config/omarchy/starship-presets/
+if [[ -d "$CUSTOM_PRESETS" ]]; then
+  for preset_file in "$CUSTOM_PRESETS"/*.toml; do
+    [[ -f "$preset_file" ]] || continue
+    preset_name="$(basename "$preset_file" .toml)"
+    outfile="$TMPDIR_PRESETS/custom-${preset_name}.toml"
+    cp "$preset_file" "$outfile"
+    entries+=("[custom]   ${preset_name}"$'\t'"${outfile}")
   done
 fi
 

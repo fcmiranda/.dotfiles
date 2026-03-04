@@ -11,10 +11,10 @@ hex_to_rgb() {
   printf "%d,%d,%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
 }
 
-# Only generate dynamic templates for themes with a colors.toml definition
-if [[ -f $COLORS_FILE ]]; then
-  sed_script=$(mktemp)
-
+# Append sed substitution rules from a toml colors file into a sed script file
+append_colors_to_sed() {
+  local colors_file="$1"
+  local sed_file="$2"
   while IFS='=' read -r key value; do
     key="${key//[\"\' ]/}"                # strip quotes and spaces from key
     [[ $key && $key != \#* ]] || continue # skip empty lines and comments
@@ -27,7 +27,25 @@ if [[ -f $COLORS_FILE ]]; then
       rgb=$(hex_to_rgb "$value")
       echo "s|{{ ${key}_rgb }}|${rgb}|g"
     fi
-  done <"$COLORS_FILE" >"$sed_script"
+  done <"$colors_file" >>"$sed_file"
+}
+
+# Resolve the optional per-template companion colors file for a given output filename.
+# starship.toml      -> starship-colors.toml  (strip last ext, append -colors.toml)
+# tmux-colors.conf   -> tmux-colors.toml      (already contains -colors., just swap ext)
+resolve_companion_colors() {
+  local filename="$1"
+  if [[ $filename == *-colors.* ]]; then
+    echo "${filename%-colors.*}-colors.toml"
+  else
+    echo "${filename%.*}-colors.toml"
+  fi
+}
+
+# Only generate dynamic templates for themes with a colors.toml definition
+if [[ -f $COLORS_FILE ]]; then
+  sed_script=$(mktemp)
+  append_colors_to_sed "$COLORS_FILE" "$sed_script"
 
   shopt -s nullglob
 
@@ -38,7 +56,20 @@ if [[ -f $COLORS_FILE ]]; then
 
     # Don't overwrite configs already exists in the output directory (copied from theme specific folder)
     if [[ ! -f $output_path ]]; then
-      sed -f "$sed_script" "$tpl" >"$output_path"
+      # Check for a per-template companion colors file (e.g. starship-colors.toml, tmux-colors.toml)
+      companion=$(resolve_companion_colors "$filename")
+      companion_file="$NEXT_THEME_DIR/$companion"
+
+      if [[ -f $companion_file ]]; then
+        # Merge base colors + companion overrides into a temp script, companion wins
+        combined_script=$(mktemp)
+        cat "$sed_script" >"$combined_script"
+        append_colors_to_sed "$companion_file" "$combined_script"
+        sed -f "$combined_script" "$tpl" >"$output_path"
+        rm "$combined_script"
+      else
+        sed -f "$sed_script" "$tpl" >"$output_path"
+      fi
     fi
   done
 

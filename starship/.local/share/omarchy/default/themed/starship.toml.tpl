@@ -28,14 +28,14 @@ palette = 'omarchy_theme'
 [palettes.omarchy_theme]
 color_bg = '{{ background }}'
 color_foreground = '{{ foreground }}'
-color_comment = '{{ color8 }}'
-color_os = '{{ color0 }}'
-color_dir = '{{ color11 }}'
-color_git = '{{ color10 }}'
-color_lang = '{{ color4 }}'
-color_vim_insert = '{{ color13 }}'
-color_vim_normal = '{{ color4 }}'
-color_vim_visual = '{{ color3 }}'
+color_comment = '{{ color_comment }}'
+color_os = '{{ color_os }}'
+color_dir = '{{ color_dir }}'
+color_git = '{{ color_git }}'
+color_lang = '{{ color_lang }}'
+color_vim_insert = '{{ color_vim_insert }}'
+color_vim_normal = '{{ color_vim_normal }}'
+color_vim_visual = '{{ color_vim_visual }}'
 
 [os]
 disabled = false

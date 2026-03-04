@@ -21,3 +21,13 @@ color12 = "#1e66f5"
 color13 = "#ea76cb"
 color14 = "#179299"
 color15 = "#6c6f85"
+
+# Semantic starship roles
+color_os = "#bcc0cc"
+color_dir = "#df8e1d"
+color_git = "#40a02b"
+color_lang = "#1e66f5"
+color_vim_insert = "#ea76cb"
+color_vim_normal = "#1e66f5"
+color_vim_visual = "#df8e1d"
+color_comment = "#acb0be"

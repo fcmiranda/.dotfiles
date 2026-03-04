@@ -29,17 +29,17 @@ palette = 'omarchy_theme'
 color_bg = '{{ background }}'
 color_foreground = '{{ foreground }}'
 color_comment = '{{ color8 }}'
-color_os = '{{ color1 }}'
-color_dir = '{{ color6 }}'
-color_git = '{{ color4 }}'
-color_lang = '{{ color5 }}'
-color_vim_insert = '{{ color2 }}'
+color_os = '{{ color0 }}'
+color_dir = '{{ color11 }}'
+color_git = '{{ color10 }}'
+color_lang = '{{ color4 }}'
+color_vim_insert = '{{ color13 }}'
 color_vim_normal = '{{ color4 }}'
 color_vim_visual = '{{ color3 }}'
 
 [os]
 disabled = false
-style = "bg:color_os fg:color_bg"
+style = "bg:color_os fg:color_foreground"
 format = '[󱐌 ]($style)'
 
 [os.symbols]

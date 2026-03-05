@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Called by omarchy-hook theme-set with the new theme name as $1.
+
+THEME_NAME="$1"
+OMARCHY_PATH="${OMARCHY_PATH:-$HOME/.local/share/omarchy}"
+CURRENT_THEME_DIR="$HOME/.config/omarchy/current/theme"
+HOOKED_COLORS="$HOME/.config/omarchy/hooked-themes/$THEME_NAME/colors.toml"
+TEMPLATES_DIR="$OMARCHY_PATH/default/themed"
+USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed"
+
+# Reload tmux configuration so new theme colors apply immediately
+if tmux info &>/dev/null; then
+  tmux source-file ~/.config/tmux/tmux.conf
+fi
+
+# Re-render templates with hooked-theme color overrides if they exist
+[[ -f $HOOKED_COLORS ]] || exit 0
+
+hex_to_rgb() {
+  local hex="${1#\#}"
+  printf "%d,%d,%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+}
+
+append_colors_to_sed() {
+  local colors_file="$1"
+  local sed_file="$2"
+  while IFS='=' read -r key value || [[ -n $key ]]; do
+    key="${key//[\"\' ]/}"                # strip quotes and spaces from key
+    [[ $key && $key != \#* ]] || continue # skip empty lines and comments
+    value="${value#*[\"\']}"
+    value="${value%%[\"\']*}" # extract value between quotes (ignores inline comments)
+
+    printf 's|{{ %s }}|%s|g\n' "$key" "$value"            # {{ key }} -> value
+    printf 's|{{ %s_strip }}|%s|g\n' "$key" "${value#\#}" # {{ key_strip }} -> value without leading #
+    if [[ $value =~ ^# ]]; then
+      rgb=$(hex_to_rgb "$value")
+      echo "s|{{ ${key}_rgb }}|${rgb}|g"
+    fi
+  done <"$colors_file" >>"$sed_file"
+}
+
+sed_script=$(mktemp)
+
+# Hooked colors first so they override base theme colors (first-match wins in sed)
+append_colors_to_sed "$HOOKED_COLORS" "$sed_script"
+append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
+
+shopt -s nullglob
+
+# Re-render all templates into the active theme dir
+for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
+  filename=$(basename "$tpl" .tpl)
+  sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"
+done
+
+rm "$sed_script"
+
+# Copy the hooked colors.toml into the active theme so subsequent tools see it
+cp "$HOOKED_COLORS" "$CURRENT_THEME_DIR/colors.toml"
+
+# Restart services to apply re-rendered configs
+omarchy-restart-terminal
+if pgrep -x waybar >/dev/null; then
+  omarchy-restart-waybar
+fi
+omarchy-restart-mako

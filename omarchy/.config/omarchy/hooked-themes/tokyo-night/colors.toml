@@ -1,0 +1,9 @@
+# Semantic starship roles
+color_os = "#2d0848"
+color_dir = "#d42b6a"
+color_git = "#8b2070"
+color_lang = "#ff8fb0"
+color_vim_insert = "#ff4d8f"
+color_vim_normal = "#9b3080"
+color_vim_visual = "#ffb3c8"
+color_comment = "#6b2060"

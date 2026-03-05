@@ -1,9 +1,0 @@
-
-color_os = "#100F0F"
-color_dir = "#D0A215"
-color_git = "#879A39"
-color_lang = "#205EA6"
-color_vim_insert = "#CE5D97"
-color_vim_normal = "#205EA6"
-color_vim_visual = "#D0A215"
-color_comment = "#100F0F"

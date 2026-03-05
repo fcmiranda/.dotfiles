@@ -5,18 +5,16 @@
 THEME_NAME="$1"
 OMARCHY_PATH="${OMARCHY_PATH:-$HOME/.local/share/omarchy}"
 CURRENT_THEME_DIR="$HOME/.config/omarchy/current/theme"
-HOOKED_COLORS="$HOME/.config/omarchy/hooked-themes/$THEME_NAME/colors.toml"
+THEME_OVERRIDES_COLORS="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/colors.toml"
 TEMPLATES_DIR="$OMARCHY_PATH/default/themed"
-USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed"
+USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed-overrides"
 
 # Reload tmux configuration so new theme colors apply immediately
 if tmux info &>/dev/null; then
   tmux source-file ~/.config/tmux/tmux.conf
 fi
 
-# Re-render templates with hooked-theme color overrides if they exist
-[[ -f $HOOKED_COLORS ]] || exit 0
-
+# Re-render user templates with hooked-theme color overrides (or base colors if no hooked theme)
 hex_to_rgb() {
   local hex="${1#\#}"
   printf "%d,%d,%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
@@ -42,24 +40,29 @@ append_colors_to_sed() {
 
 sed_script=$(mktemp)
 
-# Hooked colors first so they override base theme colors (first-match wins in sed)
-append_colors_to_sed "$HOOKED_COLORS" "$sed_script"
+# Theme overrides first so they take precedence over base theme colors (first-match wins in sed)
+[[ -f $THEME_OVERRIDES_COLORS ]] && append_colors_to_sed "$THEME_OVERRIDES_COLORS" "$sed_script"
 append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
 
 shopt -s nullglob
 
 # Re-render all templates into the active theme dir
+# User templates take precedence over built-in templates with the same filename
+declare -A rendered_templates
 for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
   filename=$(basename "$tpl" .tpl)
+  [[ ${rendered_templates[$filename]+_} ]] && continue
+  rendered_templates[$filename]=1
   sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"
 done
 
 rm "$sed_script"
 
-# Copy the hooked colors.toml into the active theme so subsequent tools see it
-cp "$HOOKED_COLORS" "$CURRENT_THEME_DIR/colors.toml"
+# Merge theme override colors into the active theme so subsequent tools see them
+[[ -f $THEME_OVERRIDES_COLORS ]] && cp "$THEME_OVERRIDES_COLORS" "$CURRENT_THEME_DIR/colors.toml"
 
 # Restart services to apply re-rendered configs
+omarchy-restart-hyprctl
 omarchy-restart-terminal
 if pgrep -x waybar >/dev/null; then
   omarchy-restart-waybar

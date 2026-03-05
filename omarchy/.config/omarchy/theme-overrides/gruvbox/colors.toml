@@ -1,0 +1,12 @@
+
+color_os = "#3c3836"
+color_dir = "#d8a657"
+color_git = "#a9b665"
+color_lang = "#7daea3"
+color_vim_insert = "#d3869b"
+color_vim_normal = "#7daea3"
+color_vim_visual = "#d8a657"
+color_comment = "#3c3836"
+
+hypr_border_color_1 = "7daea3ee"
+hypr_border_color_2 = "d3869bee"

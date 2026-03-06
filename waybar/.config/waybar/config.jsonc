@@ -10,9 +10,11 @@
   "modules-center": [
     "clock",
     "custom/update",
+    "custom/spotify",
     "custom/screenrecording-indicator"
   ],
   "modules-right": [
+    "custom/cava",
     "group/tray-expander",
     "bluetooth",
     "network",
@@ -45,7 +47,7 @@
       "class<thunderbird>": " ",
       "class<vesktop>": " ",
       "class<discord>": " ",
-      "class<code>": " ",
+      "class<code>": " ",
       "class<com.mitchellh.ghostty>": " ",
       "class<org.kde.dolphin>": " ",
       "class<steam>": " ",
@@ -198,6 +200,18 @@
   "custom/expand-icon": {
     "format": "",
     "tooltip": false
+  },
+  "custom/cava": {
+    "exec": "/home/fecavmi/.config/waybar/modules/cava.sh",
+    "format": "{}",
+    "tooltip": false
+  },
+  "custom/spotify": {
+    "exec": "sh -lc \"status=$(playerctl -p spotify status 2>/dev/null); [ -z \\\"$status\\\" ] && exit; icon=$([ \\\"$status\\\" = Playing ] && echo '󰓃' || echo ''); echo \\\"$icon $(playerctl -p spotify metadata --format '{{ artist }} - {{ title }}')\\\"\"",
+    "format": "{}",
+    "return-type": "text",
+    "interval": 1,
+    "on-click": "playerctl play-pause --player=spotify"
   },
   "custom/screenrecording-indicator": {
     "on-click": "omarchy-cmd-screenrecord",

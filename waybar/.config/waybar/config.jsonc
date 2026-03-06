@@ -30,7 +30,29 @@
   "hyprland/workspaces": {
     "sort-by": "number",
     "on-click": "activate",
-    "format": "{icon} {windows}",
+    "format": "{icon}{windows}",
+    "format-window-separator": " ",
+    "window-rewrite-default": "",
+    "window-rewrite": {
+      "class<kitty>": " ",
+      "class<foot>": " ",
+      "class<alacritty>": " ",
+      "class<google-chrome>": " ",
+      "class<firefox>": " ",
+      "class<chromium>": " ",
+      "class<brave>": " ",
+      "class<librewolf>": " ",
+      "class<thunderbird>": " ",
+      "class<vesktop>": " ",
+      "class<discord>": " ",
+      "class<code>": " ",
+      "class<com.mitchellh.ghostty>": " ",
+      "class<org.kde.dolphin>": " ",
+      "class<steam>": " ",
+      "class<spotify>": " ",
+      "class<com.spotify.Client>": " ",
+      "class<libreoffice-writer>": " 󰈙"
+    },
     "format-icons": {
       "0": "0",
       "1": "1",
@@ -38,8 +60,7 @@
       "3": "3",
       "4": "4",
       "5": "5",
-      "default": "",
-      "active": "󱓻"
+      "default": ""
     },
     "persistent-workspaces": {
       "*": [
@@ -50,27 +71,6 @@
         "4",
         "5"
       ]
-    },
-    "format-window-separator": " ",
-    "window-rewrite-default": "",
-    "window-rewrite": {
-      "class<kitty>": "",
-      "class<foot>": "",
-      "class<alacritty>": "",
-      "class<firefox>": "",
-      "class<chromium>": "",
-      "class<brave>": "",
-      "class<librewolf>": "",
-      "class<thunderbird>": "",
-      "class<vesktop>": "",
-      "class<discord>": "",
-      "class<code>": "",
-      "class<com.mitchellh.ghostty>": "",
-      "class<org.kde.dolphin>": "",
-      "class<steam>": "",
-      "class<spotify>": "",
-      "class<com.spotify.Client>": "",
-      "class<libreoffice-writer>": "󰈙"
     }
   },
   "custom/omarchy": {

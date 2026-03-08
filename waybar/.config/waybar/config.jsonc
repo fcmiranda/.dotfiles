@@ -53,7 +53,14 @@
       "class<steam>": " ",
       "class<spotify>": " ",
       "class<com.spotify.Client>": " ",
-      "class<libreoffice-writer>": " 󰈙"
+      "class<libreoffice-writer>": " 󰈙",
+      "class<org.omarchy.impala>": " 󰤨",
+      "class<org.omarchy.bluetui>": " 󰂰",
+      "class<org.omarchy.wiremix>": " 󰕾",
+      "class<org.omarchy.btop>": " 󰍛",
+      "title<YouTube>": " 󰗃",
+      "title<Google Photos>": " 󰋩",
+      "title<GitHub>": " 󰊤"
     },
     "format-icons": {
       "0": "0",

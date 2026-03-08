@@ -33,6 +33,7 @@ readonly LOCK_FILE="$DOTFILES_DIR/stow-lock.json"
 readonly IGNORE_DIRS=(
     ".git"
     ".github"
+    ".shell"
     "scripts"
 )
 

@@ -283,6 +283,10 @@ function zvm_after_init() {
     # Bind ctrl-r to atuin-search in insert mode
     bindkey -M viins '^R' atuin-search
 
+    # Tab bindings: single Tab = smart tab (j<Tab> → zcd, else complete)
+    #               double Tab = accept autosuggestion
+    bindkey -M viins '^I' _smart_tab
+
     # ==========================================================================
     # Register combined surround widgets and keybindings
     # ==========================================================================

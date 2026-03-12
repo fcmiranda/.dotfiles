@@ -35,7 +35,7 @@ alias gcd='git checkout develop'
 # Staging & Committing
 # ─────────────────────────────────────────────────────────────────────────────
 
-alias ga='git add'
+alias gadd='git add'
 alias gaa='git add --all'
 alias gap='git add --patch'
 alias gai='git add --interactive'

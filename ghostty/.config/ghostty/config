@@ -18,8 +18,8 @@ resize-overlay = never
 gtk-toolbar-style = flat
 
 # Cursor styling
-cursor-style = "block"
-cursor-style-blink = false
+cursor-style = "bar"
+cursor-style-blink = true
 shell-integration-features = no-cursor
 
 # Keyboard bindings

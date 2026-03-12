@@ -68,7 +68,7 @@ alias glra='git pull --rebase --autostash'
 # Diff & Comparison
 # ─────────────────────────────────────────────────────────────────────────────
 
-alias gd='git diff'
+alias gdiff='git diff'
 alias gds='git diff --staged'
 alias gdw='git diff --word-diff'
 alias gdc='git diff --cached'

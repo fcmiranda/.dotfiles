@@ -34,7 +34,6 @@ install_packages \
     crush-bin \
     hugo \
     cava \
-    hyprland-video-wallpapers \
 
 install_plugins \
     zsh-plugins \

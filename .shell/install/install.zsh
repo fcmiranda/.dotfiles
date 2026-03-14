@@ -34,6 +34,7 @@ install_packages \
     crush-bin \
     hugo \
     cava \
+    mpv-wallpaper \
 
 install_plugins \
     zsh-plugins \

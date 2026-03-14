@@ -1,3 +1,4 @@
+alias video-wallpapers='python ~/.local/share/hyprland-video-wallpapers/app.py'
 alias waybar-restart='killall waybar && hyprctl dispatch exec waybar'
 alias walker-restart='pkill -f walker && walker &'
 alias reload="source ~/.zshrc"

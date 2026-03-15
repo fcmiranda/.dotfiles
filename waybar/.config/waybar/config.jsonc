@@ -60,7 +60,8 @@
       "class<org.omarchy.btop>": " 󰍛",
       "title<YouTube>": " 󰗃",
       "title<Google Photos>": " 󰋩",
-      "title<GitHub>": " 󰊤"
+      "title<GitHub>": " 󰊤",
+      "title<.* is sharing your screen.*>": " <span color=\"red\">󰹑</span>"
     },
     "format-icons": {
       "0": "0",

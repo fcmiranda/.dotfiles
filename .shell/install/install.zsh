@@ -35,6 +35,7 @@ install_packages \
     hugo \
     cava \
     mpv-wallpaper \
+    bibata-cursor-theme-bin \
 
 install_plugins \
     zsh-plugins \

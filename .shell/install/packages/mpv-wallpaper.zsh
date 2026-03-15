@@ -9,9 +9,14 @@ if ! command -v pacman >/dev/null 2>&1; then
   return 1
 fi
 
-# 2) Install required packages from official repos
-echo "Installing required packages: mpv jq zenity meson ninja gcc pkg-config"
-sudo pacman -S --needed mpv jq zenity meson ninja gcc pkg-config
+# 2) Check if mpv is already installed
+if command -v mpv >/dev/null 2>&1; then
+  echo "mpv is already installed. Skipping core package installation."
+else
+  # 2) Install required packages from official repos
+  echo "Installing required packages: mpv jq zenity meson ninja gcc pkg-config"
+  sudo pacman -S --needed mpv jq zenity meson ninja gcc pkg-config
+fi
 
 # 3) Build and install mpvpaper from source
 echo

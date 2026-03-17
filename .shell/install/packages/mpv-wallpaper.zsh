@@ -9,18 +9,30 @@ if ! command -v pacman >/dev/null 2>&1; then
   return 1
 fi
 
-# 2) Check if mpv is already installed
-if command -v mpv >/dev/null 2>&1; then
-  echo "mpv is already installed. Skipping core package installation."
+# 2) Check if dependencies are installed
+DEPENDENCIES=(mpv jq zenity meson ninja gcc pkg-config)
+MISSING_DEPS=()
+
+for dep in "${DEPENDENCIES[@]}"; do
+  if ! command -v "$dep" >/dev/null 2>&1; then
+    MISSING_DEPS+=("$dep")
+  fi
+done
+
+if [ ${#MISSING_DEPS[@]} -eq 0 ]; then
+  echo "All dependencies (mpv, jq, zenity, meson, ninja, gcc, pkg-config) are already installed."
 else
-  # 2) Install required packages from official repos
-  echo "Installing required packages: mpv jq zenity meson ninja gcc pkg-config"
-  sudo pacman -S --needed mpv jq zenity meson ninja gcc pkg-config
+  # Install required packages from official repos
+  echo "Installing missing packages: ${MISSING_DEPS[*]}"
+  sudo pacman -S --needed "${MISSING_DEPS[@]}"
 fi
 
 # 3) Build and install mpvpaper from source
 echo
 echo "Building and installing mpvpaper from source..."
+
+# Remove existing directory if it exists to avoid git clone errors
+rm -rf mpvpaper
 
 # Clone the repository
 git clone https://github.com/GhostNaN/mpvpaper

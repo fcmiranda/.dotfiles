@@ -82,3 +82,46 @@ dotadd() {
         (cd "$dotfiles_dir" && ./stow.sh -a "$package")
     fi
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# opencode — tmux-aware wrapper with question tool notifications
+# ─────────────────────────────────────────────────────────────────────────────
+# When running inside tmux, spawns `opencode-notify` in the background.
+# The notifier watches for opencode's `question` tool and fires a tmux
+# bell + status-bar popup whenever the AI asks a question in an inactive
+# window — so you don't miss it while working in a different window.
+#
+# Usage:  opencode [any opencode args]
+# ─────────────────────────────────────────────────────────────────────────────
+opencode() {
+  # Outside tmux — just run opencode normally
+  if [[ -z "${TMUX:-}" ]]; then
+    command opencode "$@"
+    return $?
+  fi
+
+  # Capture current tmux context
+  local _pane _window _session _oc_pid _notify_pid
+  _pane=$(tmux display-message -p "#{pane_id}")
+  _window=$(tmux display-message -p "#{window_index}")
+  _session=$(tmux display-message -p "#{session_name}")
+
+  # Enable tmux activity monitoring on this window so the bell indicator works
+  tmux set-window-option -t "${_session}:${_window}" monitor-activity on  2>/dev/null || true
+  tmux set-window-option -t "${_session}:${_window}" monitor-bell on       2>/dev/null || true
+
+  # Start the background notifier (it will discover the opencode PID itself)
+  opencode-notify "$_pane" "$_session" "$_window" &
+  _notify_pid=$!
+
+  # Run opencode in the foreground
+  command opencode "$@"
+  local _ret=$?
+
+  # Teardown: stop the notifier, restore window options
+  kill "$_notify_pid" 2>/dev/null || true
+  wait "$_notify_pid" 2>/dev/null || true
+  tmux set-window-option -t "${_session}:${_window}" monitor-activity off 2>/dev/null || true
+
+  return $_ret
+}

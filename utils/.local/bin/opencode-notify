@@ -1,0 +1,337 @@
+#!/usr/bin/env bash
+# =============================================================================
+# opencode-notify — Tmux notification daemon for opencode's question tool
+# =============================================================================
+# Monitors an opencode session running in a specific tmux pane/window.
+# When the AI calls the `question` tool and the window is NOT currently
+# focused, it fires notifications via:
+#   1. tmux BEL on the pane       → highlights the window in the status bar
+#   2. tmux display-message       → popup text in the status bar
+#   3. notify-send (optional)     → desktop notification via mako/dunst
+#
+# Three complementary detection methods are used in parallel:
+#   A) ACP server SSE stream     — real-time events from opencode's HTTP API
+#   B) Log file tail              — watches opencode's structured log output
+#   C) Pane content capture       — periodic visual scan of the tmux pane
+#
+# Usage: opencode-notify <pane-id> <session-name> <window-index> [opencode-pid]
+#
+# Spawned automatically by the `opencode` shell wrapper function.
+# =============================================================================
+
+set -uo pipefail
+
+# ─── Args & Config ───────────────────────────────────────────────────────────
+PANE_ID="${1:?Usage: opencode-notify <pane-id> <session-name> <window-index> [pid]}"
+SESSION_NAME="${2:?Missing session-name}"
+WINDOW_INDEX="${3:?Missing window-index}"
+OC_PID="${4:-}"
+
+readonly POLL_INTERVAL=1          # seconds between pane scans
+readonly NOTIFY_COOLDOWN=8        # minimum seconds between repeat notifications
+readonly ACP_RETRY_MAX=15         # how many times to retry ACP port discovery
+readonly ACP_RETRY_DELAY=2        # seconds between retries
+readonly LOG_DIR="${HOME}/.local/share/opencode/log"
+readonly STATE_FILE="/tmp/oc-notify-${PANE_ID//[^a-zA-Z0-9]/_}"
+
+# Child PIDs for cleanup
+declare -a _child_pids=()
+
+# ─── Cleanup ─────────────────────────────────────────────────────────────────
+cleanup() {
+  for pid in "${_child_pids[@]:-}"; do
+    kill "$pid" 2>/dev/null || true
+  done
+  rm -f "${STATE_FILE}.time" "${STATE_FILE}.lock" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+# ─── Logging ─────────────────────────────────────────────────────────────────
+# Writes a timestamped line to stderr so it shows up in the calling terminal
+# without interfering with function return values.
+log() {
+  printf '[oc-notify %s] %s\n' "$(date +%H:%M:%S)" "$*" >&2
+}
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+# Returns 0 if the target window is currently NOT active (user is elsewhere)
+window_is_inactive() {
+  local active
+  active=$(tmux display-message -p "#{window_index}" 2>/dev/null || echo "-1")
+  [[ "$active" != "$WINDOW_INDEX" ]]
+}
+
+# Returns 0 if the target pane/window still exists in tmux
+pane_exists() {
+  tmux list-panes -t "${SESSION_NAME}:${WINDOW_INDEX}" &>/dev/null
+}
+
+# ─── Notification ─────────────────────────────────────────────────────────────
+notify_user() {
+  local question="${1:-Question awaiting your answer}"
+
+  # Enforce cooldown to prevent notification spam
+  local now; now=$(date +%s)
+  local last=0
+  [[ -f "${STATE_FILE}.time" ]] && last=$(cat "${STATE_FILE}.time" 2>/dev/null || echo 0)
+  (( now - last < NOTIFY_COOLDOWN )) && return 0
+
+  # Only notify when window is inactive
+  window_is_inactive || return 0
+
+  log "Notifying: '${question:0:80}'"
+
+  # Acquire a simple lock to prevent concurrent notifications
+  if ! (set -o noclobber; echo $$ > "${STATE_FILE}.lock") 2>/dev/null; then
+    return 0
+  fi
+  echo "$now" > "${STATE_FILE}.time"
+  rm -f "${STATE_FILE}.lock"
+
+  # 1. Ring the terminal bell in the source pane
+  #    tmux picks this up as window activity and highlights the tab
+  local pane_tty
+  pane_tty=$(tmux display-message -pt "${PANE_ID}" "#{pane_tty}" 2>/dev/null || echo "")
+  if [[ -n "$pane_tty" && -w "$pane_tty" ]]; then
+    printf '\a' >> "$pane_tty" 2>/dev/null || true
+  fi
+
+  # 2. Popup in tmux status bar (visible on all tmux clients, 8 seconds)
+  local short="${question:0:72}"
+  [[ "${#question}" -gt 72 ]] && short="${short}…"
+  tmux display-message -d 8000 " 󰘦  opencode [win:${WINDOW_INDEX}] ⌨  ${short}" 2>/dev/null || true
+
+  # 3. Desktop notification (optional, via mako / dunst / notify-send)
+  if command -v notify-send &>/dev/null; then
+    notify-send \
+      --urgency=normal \
+      --expire-time=8000 \
+      --app-name="opencode" \
+      "󰘦 opencode — question" \
+      "${question}" 2>/dev/null || true
+  fi
+}
+
+# ─── Method A: ACP Server SSE Stream ─────────────────────────────────────────
+# opencode runs an embedded HTTP server (ACP).  We find its port by inspecting
+# the process's listening sockets, then subscribe to the /api/event SSE stream.
+
+find_oc_port() {
+  local pid="${1:-$OC_PID}"
+
+  # If no PID hint, try to find the most recent opencode process
+  if [[ -z "$pid" ]]; then
+    pid=$(pgrep -n -u "$USER" -f "^opencode" 2>/dev/null \
+          || pgrep -n -u "$USER" opencode 2>/dev/null \
+          || echo "")
+  fi
+  [[ -z "$pid" ]] && return 1
+
+  # Extract the first local TCP port this PID is listening on
+  local port
+  port=$(ss -tlnp 2>/dev/null \
+    | grep -E "pid=${pid}[,)]" \
+    | grep -oE ':[0-9]{4,5}\s' \
+    | head -1 \
+    | tr -d ': ')
+  [[ -z "$port" ]] && return 1
+  echo "$port"
+}
+
+parse_acp_event() {
+  local data="$1"
+  [[ -z "$data" || "$data" == ":" ]] && return 1
+
+  # Match question tool invocation events.
+  # opencode emits SSE events when tool parts are updated.
+  # We look for the `question` tool being called (state = call / partial-call).
+  local is_question=0
+
+  # Format variant 1: {"type":"...","part":{"toolName":"question","state":"call",...}}
+  if echo "$data" | grep -qiEo '"toolName"\s*:\s*"question"' 2>/dev/null; then
+    if echo "$data" | grep -qiE '"state"\s*:\s*"(call|partial-call)"' 2>/dev/null; then
+      is_question=1
+    fi
+  fi
+
+  # Format variant 2: {"type":"question","..."}  (older ACP format)
+  if (( ! is_question )); then
+    if echo "$data" | grep -qiE '"type"\s*:\s*"question"' 2>/dev/null; then
+      is_question=1
+    fi
+  fi
+
+  (( is_question )) || return 1
+
+  # Extract question text from the event payload
+  local qtext
+  qtext=$(echo "$data" \
+    | grep -oP '"question"\s*:\s*"\K[^"]+' 2>/dev/null \
+    | head -1 \
+    || echo "Question awaiting your answer")
+
+  echo "$qtext"
+}
+
+watch_acp() {
+  local port="$1"
+  local url="http://127.0.0.1:${port}"
+
+  # Verify the server is reachable before streaming
+  if ! curl -sfI --max-time 2 "${url}/api/event" &>/dev/null; then
+    return 1
+  fi
+
+  # Subscribe to the SSE event stream
+  curl -sSfN --no-buffer \
+    -H "Accept: text/event-stream" \
+    -H "Cache-Control: no-cache" \
+    -H "Connection: keep-alive" \
+    --max-time 0 \
+    "${url}/api/event" 2>/dev/null \
+  | while IFS= read -r line; do
+      [[ "$line" == data:* ]] || continue
+      local data="${line#data: }"
+      local qtext
+      if qtext=$(parse_acp_event "$data"); then
+        notify_user "$qtext"
+      fi
+    done
+}
+
+start_acp_watcher() {
+  # Retry loop: opencode may not have started its server yet
+  (
+    log "[A] ACP watcher started (max ${ACP_RETRY_MAX} retries, ${ACP_RETRY_DELAY}s apart)"
+    for (( i=0; i < ACP_RETRY_MAX; i++ )); do
+      local port=""
+      if port=$(find_oc_port "" 2>/dev/null); then
+        log "[A] ACP server found on port ${port} — subscribing to SSE stream"
+        # watch_acp blocks on the SSE stream until the connection drops
+        watch_acp "$port"
+        log "[A] ACP SSE stream ended — retrying port discovery (attempt $((i+1))/${ACP_RETRY_MAX})"
+      else
+        log "[A] ACP port not found yet — waiting ${ACP_RETRY_DELAY}s (attempt $((i+1))/${ACP_RETRY_MAX})"
+      fi
+      sleep "$ACP_RETRY_DELAY"
+    done
+    log "[A] ACP watcher exhausted retries — giving up"
+  ) &
+  _child_pids+=("$!")
+}
+
+# ─── Method B: Log File Tail ──────────────────────────────────────────────────
+# opencode writes structured logs to ~/.local/share/opencode/log/TIMESTAMP.log.
+# We tail the newest log file and scan for question tool invocations.
+
+watch_log() {
+  local start_epoch="$1"
+
+  (
+    log "[B] Log watcher started (scanning ${LOG_DIR} for files newer than epoch ${start_epoch})"
+    while true; do
+      # Find the log file that was created AFTER opencode started
+      local log_file=""
+      for f in $(ls -t "${LOG_DIR}/"*.log 2>/dev/null); do
+        local mtime; mtime=$(stat -c %Y "$f" 2>/dev/null || echo 0)
+        if (( mtime >= start_epoch - 5 )); then
+          log_file="$f"
+          break
+        fi
+      done
+
+      if [[ -n "$log_file" ]]; then
+        log "[B] Tailing log file: ${log_file}"
+        # Tail new lines only, looking for question tool patterns
+        tail -F -n 0 "$log_file" 2>/dev/null \
+        | while IFS= read -r line; do
+            # Match patterns opencode might log for question tool calls
+            if echo "$line" | grep -qiE \
+              'tool.*[="]question|question.*tool|toolName.*question|"question".*state|calling.*question' \
+              2>/dev/null
+            then
+              local qtext
+              qtext=$(echo "$line" \
+                | grep -oE '"[^"]{5,120}"' \
+                | tail -1 \
+                | tr -d '"' \
+                || echo "Question tool called")
+              log "[B] Question tool detected in log → '${qtext}'"
+              notify_user "$qtext"
+            fi
+          done &
+        local tail_pid=$!
+
+        # Re-evaluate the log file every 30s (in case a new one appears)
+        sleep 30
+        kill "$tail_pid" 2>/dev/null || true
+        log "[B] Re-scanning for newest log file"
+      else
+        log "[B] No matching log file found — retrying in 5s"
+        sleep 5
+      fi
+    done
+  ) &
+  _child_pids+=("$!")
+}
+
+# ─── Method C: Pane Content Capture ──────────────────────────────────────────
+# Periodically reads the terminal content of the opencode pane.
+# Looks for the visual signature of the question prompt:
+#   - A line beginning with "? <text>"  (the P.question marker rendered by opencode)
+#   - Optionally followed by a ">" input indicator
+
+watch_pane() {
+  local prev_content=""
+  log "[C] Pane watcher started (polling pane ${PANE_ID} every ${POLL_INTERVAL}s)"
+
+  while pane_exists; do
+    sleep "$POLL_INTERVAL"
+
+    # Only scan when window is inactive (no point if user is looking at it)
+    window_is_inactive || continue
+
+    # Capture the bottom 20 lines of the pane (where prompts appear)
+    local content
+    content=$(tmux capture-pane -pt "${PANE_ID}" 2>/dev/null | tail -20 || echo "")
+    [[ -z "$content" ]] && continue
+
+    # Skip if content hasn't changed since last check
+    [[ "$content" == "$prev_content" ]] && continue
+    prev_content="$content"
+
+    # Pattern: line beginning with "? " (opencode question marker)
+    if echo "$content" | grep -qE '^\s*\? .{3,}'; then
+      local qtext
+      qtext=$(echo "$content" \
+        | grep -oE '^\s*\? .+' \
+        | head -1 \
+        | sed 's/^\s*\? //' \
+        | head -c 120 \
+        || echo "Question detected in terminal")
+      log "[C] Question prompt detected in pane → '${qtext}'"
+      notify_user "$qtext"
+    fi
+  done
+  log "[C] Pane ${PANE_ID} no longer exists — pane watcher exiting"
+}
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+main() {
+  local start_epoch; start_epoch=$(date +%s)
+  rm -f "${STATE_FILE}.time" 2>/dev/null || true
+
+  log "opencode-notify started (pane=${PANE_ID} session=${SESSION_NAME} window=${WINDOW_INDEX})"
+
+  # Start all detectors in parallel
+  start_acp_watcher
+  watch_log "$start_epoch"
+
+  # Pane content watcher is the main (blocking) loop.
+  # When the pane disappears (opencode exits), this exits and triggers cleanup.
+  watch_pane
+
+  log "opencode-notify exiting"
+}
+
+main "$@"

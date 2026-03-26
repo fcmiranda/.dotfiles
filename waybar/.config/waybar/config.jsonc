@@ -207,7 +207,9 @@
     ]
   },
   "custom/expand-icon": {
-    "format": "  ",
+    "exec": "echo",
+    "interval": "once",
+    "format": "",
     "tooltip": false
   },
   "custom/cava": {

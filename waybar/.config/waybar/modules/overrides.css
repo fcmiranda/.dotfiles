@@ -3,7 +3,13 @@
  */
 
 .modules-left {
-    margin-left: 8px;
+    margin-left: 0px;
+}
+
+window#waybar.top .modules-left,
+window#waybar.bottom .modules-left {
+    margin-left: 0;
+    padding-left: 0;
 }
 
 .modules-right {

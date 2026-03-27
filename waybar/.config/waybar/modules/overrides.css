@@ -23,6 +23,9 @@ window#waybar.bottom .modules-left {
 
 #workspaces button.empty {
     opacity: 0.5;
+    background-image: radial-gradient(circle, currentColor 2px, transparent 2px);
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 #cpu,

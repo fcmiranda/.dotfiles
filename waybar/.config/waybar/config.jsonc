@@ -64,15 +64,8 @@
       "title<GitHub>": "󰊤",
       "title<.* is sharing your screen.*>": "<span color=\"red\">󰹑</span>"
     },
-    "format-icons": {
-      "0": "0",
-      "1": "1",
-      "2": "2",
-      "3": "3",
-      "4": "4",
-      "5": "5",
-      "default": ""
-    },
+    "format-icons": {},
+
     "persistent-workspaces": {
       "*": [
         "0",

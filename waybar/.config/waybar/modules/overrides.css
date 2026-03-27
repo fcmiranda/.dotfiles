@@ -21,6 +21,10 @@ window#waybar.bottom .modules-left {
     padding: 0 6px;
 }
 
+#custom-cava {
+    margin-right: 16px;
+}
+
 #workspaces button.empty {
     opacity: 0.5;
     background-image: radial-gradient(circle, currentColor 2px, transparent 2px);

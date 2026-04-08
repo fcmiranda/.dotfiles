@@ -5,8 +5,6 @@ import type { Plugin } from "@opencode-ai/plugin"
  */
 export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Using console.log to ensure it's captured in the main opencode log file as INFO
-  console.log("NotifyIdlePlugin: loading...")
-  // await $`notify-send "OpenCode" "Task completed - Session is idle" -u critical`
 
   return {
     "event": async ({ event }) => {
@@ -23,9 +21,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
       // SessionStatus.type values: "idle" | "busy" | "retry"
       const statusMessages: Record<string, { title: string; body: string; urgency: string }> = {
-        idle:  { title: "OpenCode Finished",  body: "The AI has finished processing your prompt", urgency: "normal" },
-        busy:  { title: "OpenCode Thinking",  body: "The AI is processing your request...",       urgency: "low" },
-        retry: { title: "OpenCode Retrying",  body: "The AI is retrying...",                      urgency: "low" },
+        idle:  { title: "OpenCode Finished",  body: "The AI has finished processing your prompt", urgency: "normal" }
       }
 
       const msg = statusMessages[statusType]

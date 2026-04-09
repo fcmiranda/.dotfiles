@@ -15,9 +15,15 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     permission: "#[fg=red] #[fg=default]",
   }
 
+  // $TMUX_PANE is inherited from the shell that launched opencode (e.g. "%3").
+  // set-option -w scopes the value to that specific window, so multiple windows
+  // each track their own opencode instance independently.
+  const tmuxPane = process.env.TMUX_PANE ?? ""
+
   const setTmuxState = async (state: string) => {
+    if (!tmuxPane) return
     try {
-      await $`tmux set -g @opencode_state ${state}`
+      await $`tmux set-option -w -t ${tmuxPane} @opencode_state ${state}`
     } catch {}
   }
 

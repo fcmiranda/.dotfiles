@@ -20,12 +20,30 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // each track their own opencode instance independently.
   const tmuxPane = process.env.TMUX_PANE ?? ""
 
+  // Wipe out any stale global @opencode_state left by old plugin versions
+  // (old code used `set -g` which all windows inherit). Doing this on startup
+  // ensures new windows always get an empty fallback without needing a tmux reload.
+  try { await $`tmux set -g @opencode_state ""` } catch {}
+
   const setTmuxState = async (state: string) => {
     if (!tmuxPane) return
     try {
       await $`tmux set-option -w -t ${tmuxPane} @opencode_state ${state}`
     } catch {}
   }
+
+  // Clear the window option when this opencode process exits so windows that
+  // are no longer running opencode show an empty state in the tab label.
+  const clearTmuxState = () => {
+    if (!tmuxPane) return
+    try {
+      const { execSync } = require("child_process")
+      execSync(`tmux set-option -w -t ${tmuxPane} -u @opencode_state`)
+    } catch {}
+  }
+  process.on("exit", clearTmuxState)
+  process.on("SIGINT",  () => { clearTmuxState(); process.exit(0) })
+  process.on("SIGTERM", () => { clearTmuxState(); process.exit(0) })
 
   return {
     "event": async ({ event }) => {

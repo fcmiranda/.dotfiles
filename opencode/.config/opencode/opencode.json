@@ -2,6 +2,6 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
   "plugin": [
-    "./plugins/test-notify.ts"
+    "./plugins/hooker.ts"
   ]
 }

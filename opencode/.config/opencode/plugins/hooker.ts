@@ -82,9 +82,10 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     tmux("set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state",
          ";", "refresh-client", "-S")
   }
-  process.on("exit", clearTmuxState)
+  process.on("exit",   clearTmuxState)
   process.on("SIGINT",  () => { clearTmuxState(); process.exit(0) })
   process.on("SIGTERM", () => { clearTmuxState(); process.exit(0) })
+  process.on("SIGHUP",  () => { clearTmuxState(); process.exit(0) })
 
   return {
     "event": async ({ event }) => {

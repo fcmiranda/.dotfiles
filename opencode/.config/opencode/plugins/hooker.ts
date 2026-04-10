@@ -63,7 +63,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Or in config file:      ~/.config/opencode/hooker-config.json
   //   { "spinner": "moon" }
   //   { "spinner": "minidot", "interval": 80 }
-  const DEFAULT_SPINNER = "nerd"
+  const DEFAULT_SPINNER = "pulse"
   let spinnerName = process.env.OPENCODE_SPINNER ?? DEFAULT_SPINNER
   let intervalOverride: number | null = null
 

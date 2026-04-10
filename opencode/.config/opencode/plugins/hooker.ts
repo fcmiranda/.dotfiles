@@ -115,12 +115,21 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     }
   }
 
+  // Resolve session and window name for this pane once at startup
+  const tmuxSession = tmuxPane
+    ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#S"], { encoding: "utf8" }).stdout ?? "").trim()
+    : ""
+  const tmuxWindow = tmuxPane
+    ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#W"], { encoding: "utf8" }).stdout ?? "").trim()
+    : ""
+
   // Shows a tmux interactive menu — Enter/click to jump to the opencode window, Escape to dismiss
-  const bell = (msg: string) => {
+  const bell = (action: string) => {
     if (!tmuxPane) return
+    const title = `[${tmuxSession}] ${tmuxWindow} › ${action}`
     tmux("display-menu",
       "-x", "P", "-y", "P",
-      "-T", msg,
+      "-T", title,
       "Go to window", "Enter", `switch-client -t '${tmuxPane}'`,
       "Dismiss",      "q",    ""
     )
@@ -153,7 +162,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       // Reflect state in tmux status bar
       setAppState(statusType)
 
-      if (statusType === "idle") bell(" OpenCode finished")
+      if (statusType === "idle") bell(" finished")
 
       // Desktop notifications
       // SessionStatus.type values: "idle" | "busy" | "retry"
@@ -180,7 +189,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       if (toolName === "question") {
         // Switch to the question icon so the tab signals it needs attention
         setAppState("question")
-        bell("󱜻 OpenCode has a question for you")
+        bell("󱜻 question")
         try {
           await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
@@ -195,7 +204,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       const tool = (input as Record<string, any>)?.tool ?? "unknown tool"
       // Use the permission style (red alert) so it's visible in the status bar
       setAppState("permission")
-      bell("󱅭 OpenCode needs permission")
+      bell("󱅭 permission")
       try {
         await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
       } catch (err) {

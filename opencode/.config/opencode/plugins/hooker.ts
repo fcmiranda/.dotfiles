@@ -17,6 +17,20 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Wipe stale global @opencode_state from old plugin versions once at startup
   if (tmuxPane) tmux("set", "-g", "@opencode_state", "")
 
+  // ── Watchdog process ──────────────────────────────────────────────────────
+  // Spawns a detached shell that polls until this plugin PID dies, then clears
+  // the tmux state. Catches all exit types including SIGKILL (which Node.js
+  // process.on() handlers cannot intercept).
+  if (tmuxPane) {
+    const { spawn } = require("node:child_process")
+    const watchdog = spawn("sh", [
+      "-c",
+      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux refresh-client -S 2>/dev/null`,
+    ], { detached: true, stdio: "ignore" })
+    watchdog.unref()
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const setWindowState = (value: string) => {
     if (!tmuxPane) return
     // set-option + refresh-client in a single tmux process via ";" separator

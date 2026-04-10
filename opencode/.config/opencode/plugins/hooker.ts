@@ -1,3 +1,4 @@
+
 import type { Plugin } from "@opencode-ai/plugin"
 
 /**
@@ -114,11 +115,15 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     }
   }
 
-  // Shows a tmux popup notification near the status bar
+  // Shows a tmux interactive menu — Enter/click to jump to the opencode window, Escape to dismiss
   const bell = (msg: string) => {
     if (!tmuxPane) return
-    tmux("display-popup", "-x", "P", "-y", "P", "-w", "40", "-h", "3", "-t", tmuxPane,
-         `echo -n '${msg}'`)
+    tmux("display-menu",
+      "-x", "P", "-y", "P",
+      "-T", msg,
+      "Go to window", "Enter", `switch-client -t '${tmuxPane}'`,
+      "Dismiss",      "q",    ""
+    )
   }
 
   const clearTmuxState = () => {

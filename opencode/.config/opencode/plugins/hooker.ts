@@ -162,7 +162,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       // Reflect state in tmux status bar
       setAppState(statusType)
 
-      if (statusType === "idle") bell(" finished")
+      if (statusType === "idle") bell("󱥂 finished")
 
       // Desktop notifications
       // SessionStatus.type values: "idle" | "busy" | "retry"

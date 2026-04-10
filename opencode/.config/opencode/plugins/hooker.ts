@@ -24,26 +24,46 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
          ";", "refresh-client", "-S")
   }
 
-  // ── Spinner sets (uncomment one) ──────────────────────────────────────────
-  // Braille dots  — 10 frames, classic feel
-  // const SPINNER = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
+  // ── Spinner sets — uncomment one (from charmbracelet/bubbles) ───────────
+  // MiniDot — braille, 10 frames, 12fps
+  // const SPINNER = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]; const SPINNER_INTERVAL = 83
 
-  // Arc sweep     — 6 frames, smooth
-  // const SPINNER = ["◜","◠","◝","◞","◡","◟"] 
-  const SPINNER = ["","","","","",""]
-  
+  // Dot — heavy braille, 8 frames, 10fps
+  // const SPINNER = ["⣾ ","⣽ ","⣻ ","⢿ ","⡿ ","⣟ ","⣯ ","⣷ "]; const SPINNER_INTERVAL = 100
 
-  // Quarter fills — 4 frames, bold, good at any speed
-  // const SPINNER = ["◐","◓","◑","◒"]
+  // Line — classic ASCII, 4 frames, 10fps
+  // const SPINNER = ["|","/","-","\\"]; const SPINNER_INTERVAL = 100
 
-  // Box corners   — 4 frames, minimal
-  // const SPINNER = ["▖","▘","▝","▗"]
+  // Jump — diagonal braille, 7 frames, 10fps
+  // const SPINNER = ["⢄","⢂","⢁","⡁","⡈","⡐","⡠"]; const SPINNER_INTERVAL = 100
 
-  // Vertical bars — 8 frames
-  // const SPINNER = ["▁","▂","▃","▄","▅","▆","▇","█"]
+  // Pulse — block fill, 4 frames, 8fps
+  const SPINNER = ["█","▓","▒","░"]; const SPINNER_INTERVAL = 125
+
+  // Points — travelling dot, 4 frames, 7fps
+  // const SPINNER = ["∙∙∙","●∙∙","∙●∙","∙∙●"]; const SPINNER_INTERVAL = 143
+
+  // Meter — bar fill, 7 frames, 7fps
+  // const SPINNER = ["▱▱▱","▰▱▱","▰▰▱","▰▰▰","▰▰▱","▰▱▱","▱▱▱"]; const SPINNER_INTERVAL = 143
+
+  // Hamburger — trigrams, 4 frames, 3fps
+  // const SPINNER = ["☱","☲","☴","☲"]; const SPINNER_INTERVAL = 333
+
+  // Ellipsis — growing dots, 4 frames, 3fps
+  // const SPINNER = ["",".","..",""]; const SPINNER_INTERVAL = 333
+
+  // Globe — world rotation, 3 frames, 4fps
+  // const SPINNER = ["🌍","🌎","🌏"]; const SPINNER_INTERVAL = 250
+
+  // Moon — lunar cycle, 8 frames, 8fps
+  // const SPINNER = ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"]; const SPINNER_INTERVAL = 125
+
+  // Monkey — 3 frames, 3fps
+  // const SPINNER = ["🙈","🙉","🙊"]; const SPINNER_INTERVAL = 333
+
+  // Arc sweep — 6 frames (custom)
+  // const SPINNER = ["◜","◠","◝","◞","◡","◟"]; const SPINNER_INTERVAL = 150
   // ─────────────────────────────────────────────────────────────────────────
-
-  const SPINNER_INTERVAL = 150  // ms — adjust if too fast/slow
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null
 

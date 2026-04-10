@@ -24,49 +24,46 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
          ";", "refresh-client", "-S")
   }
 
-  // ── Spinner sets — uncomment one (from charmbracelet/bubbles) ───────────
-  // MiniDot — braille, 10 frames, 12fps
-  // const SPINNER = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]; const SPINNER_INTERVAL = 83
+  // ── Spinner catalogue ────────────────────────────────────────────────────
+  const SPINNERS: Record<string, { frames: string[]; interval: number }> = {
+    minidot:   { frames: ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"], interval: 83  },
+    dot:       { frames: ["⣾ ","⣽ ","⣻ ","⢿ ","⡿ ","⣟ ","⣯ ","⣷ "],  interval: 100 },
+    line:      { frames: ["|","/","-","\\"],                            interval: 100 },
+    jump:      { frames: ["⢄","⢂","⢁","⡁","⡈","⡐","⡠"],              interval: 100 },
+    pulse:     { frames: ["█","▓","▒","░"],                              interval: 125 },
+    points:    { frames: ["∙∙∙","●∙∙","∙●∙","∙∙●"],                    interval: 143 },
+    meter:     { frames: ["▱▱▱","▰▱▱","▰▰▱","▰▰▰","▰▰▱","▰▱▱","▱▱▱"], interval: 143 },
+    hamburger: { frames: ["☱","☲","☴","☲"],                             interval: 333 },
+    ellipsis:  { frames: ["",".","..","."],                              interval: 333 },
+    globe:     { frames: ["🌍","🌎","🌏"],                               interval: 250 },
+    moon:      { frames: ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"],     interval: 125 },
+    monkey:    { frames: ["🙈","🙉","🙊"],                               interval: 333 },
+    arc:       { frames: ["◜","◠","◝","◞","◡","◟"],                     interval: 150 },
+    nerd:      { frames: ["󰤆","󰤇","󰤈","󰤉","󰤊","󰤋"],                  interval: 100 },
+  }
 
-  // Dot — heavy braille, 8 frames, 10fps
-  // const SPINNER = ["⣾ ","⣽ ","⣻ ","⢿ ","⡿ ","⣟ ","⣯ ","⣷ "]; const SPINNER_INTERVAL = 100
+  // ── Spinner resolution: env var > config file > default ─────────────────
+  // Set at launch:          OPENCODE_SPINNER=moon opencode
+  // Or in config file:      ~/.config/opencode/hooker-config.json
+  //   { "spinner": "moon" }
+  //   { "spinner": "minidot", "interval": 80 }
+  const DEFAULT_SPINNER = "nerd"
+  let spinnerName = process.env.OPENCODE_SPINNER ?? DEFAULT_SPINNER
+  let intervalOverride: number | null = null
 
-  // Line — classic ASCII, 4 frames, 10fps
-  // const SPINNER = ["|","/","-","\\"]; const SPINNER_INTERVAL = 100
+  try {
+    const fs = require("node:fs")
+    const configPath = `${process.env.HOME}/.config/opencode/hooker-config.json`
+    if (fs.existsSync(configPath)) {
+      const cfg = JSON.parse(fs.readFileSync(configPath, "utf8"))
+      if (!process.env.OPENCODE_SPINNER && cfg.spinner) spinnerName = cfg.spinner
+      if (typeof cfg.interval === "number") intervalOverride = cfg.interval
+    }
+  } catch {}
 
-  // Jump — diagonal braille, 7 frames, 10fps
-  // const SPINNER = ["⢄","⢂","⢁","⡁","⡈","⡐","⡠"]; const SPINNER_INTERVAL = 100
-
-  // Pulse — block fill, 4 frames, 8fps
-  //const SPINNER = ["█","▓","▒","░"]; const SPINNER_INTERVAL = 125
-
-  // Points — travelling dot, 4 frames, 7fps
-  // const SPINNER = ["∙∙∙","●∙∙","∙●∙","∙∙●"]; const SPINNER_INTERVAL = 143
-
-  // Meter — bar fill, 7 frames, 7fps
-  // const SPINNER = ["▱▱▱","▰▱▱","▰▰▱","▰▰▰","▰▰▱","▰▱▱","▱▱▱"]; const SPINNER_INTERVAL = 143
-
-  // Hamburger — trigrams, 4 frames, 3fps
-  // const SPINNER = ["☱","☲","☴","☲"]; const SPINNER_INTERVAL = 333
-
-  // Ellipsis — growing dots, 4 frames, 3fps
-  // const SPINNER = ["",".","..",""]; const SPINNER_INTERVAL = 333
-
-  // Globe — world rotation, 3 frames, 4fps
-  // const SP2INNER = ["🌍","🌎","🌏"]; const SPINNER_INTERVAL = 250
-
-  // Moon — lunar cycle, 8 frames, 8fps
-  // const SPINNER = ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"]; const SPINNER_INTERVAL = 125
-
-  // Monkey — 3 frames, 3fps
-  // const SPINNER = ["🙈","🙉","🙊"]; const SPINNER_INTERVAL = 333
-
-  // Arc sweep — 6 frames (custom)
-  // const SPINNER = ["◜","◠","◝","◞","◡","◟"]; const SPINNER_INTERVAL = 150
-
-  // nerd-icons spinner — 6 frames, 10fps
-  const SPINNER = ["","","","","",""]; const SPINNER_INTERVAL = 100
-
+  const chosen = SPINNERS[spinnerName] ?? SPINNERS[DEFAULT_SPINNER]
+  const SPINNER = chosen.frames
+  const SPINNER_INTERVAL = intervalOverride ?? chosen.interval
   // ─────────────────────────────────────────────────────────────────────────
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null

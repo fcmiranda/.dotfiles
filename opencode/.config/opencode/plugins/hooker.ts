@@ -25,28 +25,10 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     } catch {}
   }
 
-  // Spinner animation for the busy state (ora-style braille dots, ~200ms per frame)
+  // Static tmux inline-style strings for each state.
   const spinnerFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
   let spinnerFrame = 0
-  let spinnerTimer: ReturnType<typeof setInterval> | null = null
 
-  const startSpinner = () => {
-    if (spinnerTimer) return
-    spinnerTimer = setInterval(() => {
-      const frame = spinnerFrames[spinnerFrame % spinnerFrames.length]
-      spinnerFrame++
-      setTmuxRaw(`#[fg=yellow]${frame} #[fg=default]`)
-    }, 200)
-  }
-
-  const stopSpinner = () => {
-    if (!spinnerTimer) return
-    clearInterval(spinnerTimer)
-    spinnerTimer = null
-    spinnerFrame = 0
-  }
-
-  // Static tmux inline-style strings for non-animated states.
   const tmuxStates: Record<string, string> = {
     idle:       "#[fg=green] #[fg=default]",
     retry:      "#[fg=colour208] #[fg=default]",
@@ -55,9 +37,11 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
   const setAppState = (state: string) => {
     if (state === "busy") {
-      startSpinner()
+      const frame = spinnerFrames[spinnerFrame % spinnerFrames.length]
+      spinnerFrame++
+      setTmuxRaw(`#[fg=yellow]${frame} #[fg=default]`)
     } else {
-      stopSpinner()
+      spinnerFrame = 0
       setTmuxRaw(tmuxStates[state] ?? "")
     }
   }
@@ -65,7 +49,6 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Clear the window option when this opencode process exits so windows that
   // are no longer running opencode show an empty state in the tab label.
   const clearTmuxState = () => {
-    stopSpinner()
     if (!tmuxPane) return
     try {
       const { execSync } = require("child_process")

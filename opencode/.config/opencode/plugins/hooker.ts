@@ -26,10 +26,12 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
   // ── Spinner sets (uncomment one) ──────────────────────────────────────────
   // Braille dots  — 10 frames, classic feel
-  const SPINNER = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
+  // const SPINNER = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
 
   // Arc sweep     — 6 frames, smooth
-  // const SPINNER = ["◜","◠","◝","◞","◡","◟"]
+  // const SPINNER = ["◜","◠","◝","◞","◡","◟"] 
+  const SPINNER = ["","","","","",""]
+  
 
   // Quarter fills — 4 frames, bold, good at any speed
   // const SPINNER = ["◐","◓","◑","◒"]

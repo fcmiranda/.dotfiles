@@ -122,11 +122,14 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const tmuxWindow = tmuxPane
     ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#W"], { encoding: "utf8" }).stdout ?? "").trim()
     : ""
+  const tmuxWindowIndex = tmuxPane
+    ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#I"], { encoding: "utf8" }).stdout ?? "").trim()
+    : ""
 
   // Shows a tmux interactive menu — Enter/click to jump to the opencode window, Escape to dismiss
   const bell = (action: string) => {
     if (!tmuxPane) return
-    const title = `[${tmuxSession}] ${tmuxWindow} › ${action}`
+    const title = `[${tmuxSession}] ${tmuxWindowIndex}:${tmuxWindow} › ${action}`
     tmux("display-menu",
       "-x", "P", "-y", "P",
       "-T", title,

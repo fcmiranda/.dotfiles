@@ -7,52 +7,38 @@ import type { Plugin } from "@opencode-ai/plugin"
  */
 export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // $TMUX_PANE is inherited from the shell that launched opencode (e.g. "%3").
-  // set-option -w scopes the value to that specific window, so multiple windows
-  // each track their own opencode instance independently.
   const tmuxPane = process.env.TMUX_PANE ?? ""
 
-  // Wipe out any stale global @opencode_state left by old plugin versions
-  // (old code used `set -g` which all windows inherit). Doing this on startup
-  // ensures new windows always get an empty fallback without needing a tmux reload.
-  try { await $`tmux set -g @opencode_state ""` } catch {}
-
-  const setTmuxRaw = (value: string) => {
-    if (!tmuxPane) return
+  // Resolve the window ID once at startup so the state file is window-scoped.
+  // tmux window options (set -w) inherit across new windows; a plain file keyed
+  // by window_id does not — each window gets its own clean slate.
+  let stateFile = ""
+  if (tmuxPane) {
     try {
       const { execSync } = require("node:child_process")
-      // Single subprocess: both commands in one shell invocation
-      execSync(`tmux set-option -w -t '${tmuxPane}' @opencode_state '${value}' ; tmux refresh-client -S`)
+      const windowId = execSync(`tmux display-message -p -t '${tmuxPane}' '#{window_id}'`).toString().trim()
+      stateFile = `/tmp/opencode-state-${windowId.replace(/[^a-zA-Z0-9@_-]/g, "")}`
+      // Wipe any stale global @opencode_state from old plugin versions
+      execSync(`tmux set -g @opencode_state "" 2>/dev/null || true`)
     } catch {}
   }
 
-  // Static tmux inline-style strings for each state.
-  const spinnerFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-  let spinnerFrame = 0
-
-  const tmuxStates: Record<string, string> = {
-    idle:       "#[fg=green] #[fg=default]",
-    retry:      "#[fg=colour208] #[fg=default]",
-    permission: "#[fg=red] #[fg=default]",
-  }
-
-  const setAppState = (state: string) => {
-    if (state === "busy") {
-      const frame = spinnerFrames[spinnerFrame % spinnerFrames.length]
-      spinnerFrame++
-      setTmuxRaw(`#[fg=yellow]${frame} #[fg=default]`)
-    } else {
-      spinnerFrame = 0
-      setTmuxRaw(tmuxStates[state] ?? "")
-    }
-  }
-
-  // Clear the window option when this opencode process exits so windows that
-  // are no longer running opencode show an empty state in the tab label.
-  const clearTmuxState = () => {
-    if (!tmuxPane) return
+  const writeState = (state: string) => {
+    if (!stateFile) return
     try {
-      const { execSync } = require("child_process")
-      execSync(`tmux set-option -w -t ${tmuxPane} -u @opencode_state`)
+      require("node:fs").writeFileSync(stateFile, state)
+      // One refresh so non-busy state changes (idle, permission) appear immediately
+      require("node:child_process").execSync("tmux refresh-client -S")
+    } catch {}
+  }
+
+  const setAppState = (state: string) => writeState(state)
+
+  const clearTmuxState = () => {
+    if (!stateFile) return
+    try {
+      require("node:fs").unlinkSync(stateFile)
+      require("node:child_process").execSync("tmux refresh-client -S")
     } catch {}
   }
   process.on("exit", clearTmuxState)

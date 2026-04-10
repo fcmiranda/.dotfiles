@@ -129,6 +129,9 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Shows a tmux interactive menu — Enter/click to jump to the opencode window, Escape to dismiss
   const bell = (action: string) => {
     if (!tmuxPane) return
+    // Check the currently active pane — don't show popup if user is already on this window
+    const activePane = (spawnSync("tmux", ["display-message", "-p", "#{pane_id}"], { encoding: "utf8" }).stdout ?? "").trim()
+    if (activePane === tmuxPane) return
     const title = `[${tmuxSession}] ${tmuxWindowIndex}:${tmuxWindow} › ${action}`
     tmux("display-menu",
       "-x", "P", "-y", "P",

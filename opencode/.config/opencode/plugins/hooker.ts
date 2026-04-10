@@ -9,37 +9,77 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // $TMUX_PANE is inherited from the shell that launched opencode (e.g. "%3").
   const tmuxPane = process.env.TMUX_PANE ?? ""
 
-  // Resolve the window ID once at startup so the state file is window-scoped.
-  // tmux window options (set -w) inherit across new windows; a plain file keyed
-  // by window_id does not — each window gets its own clean slate.
-  let stateFile = ""
-  if (tmuxPane) {
-    try {
-      const { execSync } = require("node:child_process")
-      const windowId = execSync(`tmux display-message -p -t '${tmuxPane}' '#{window_id}'`).toString().trim()
-      stateFile = `/tmp/opencode-state-${windowId.replace(/[^a-zA-Z0-9@_-]/g, "")}`
-      // Wipe any stale global @opencode_state from old plugin versions
-      execSync(`tmux set -g @opencode_state "" 2>/dev/null || true`)
-    } catch {}
+  // spawnSync calls the tmux binary directly — no shell fork, no string parsing overhead.
+  // Two tmux commands are chained with ";" in one process invocation.
+  const { spawnSync } = require("node:child_process")
+  const tmux = (...args: string[]) => spawnSync("tmux", args, { stdio: "ignore" })
+
+  // Wipe stale global @opencode_state from old plugin versions once at startup
+  if (tmuxPane) tmux("set", "-g", "@opencode_state", "")
+
+  const setWindowState = (value: string) => {
+    if (!tmuxPane) return
+    // set-option + refresh-client in a single tmux process via ";" separator
+    tmux("set-option", "-w", "-t", tmuxPane, "@opencode_state", value,
+         ";", "refresh-client", "-S")
   }
 
-  const writeState = (state: string) => {
-    if (!stateFile) return
-    try {
-      require("node:fs").writeFileSync(stateFile, state)
-      // One refresh so non-busy state changes (idle, permission) appear immediately
-      require("node:child_process").execSync("tmux refresh-client -S")
-    } catch {}
+  // ── Spinner sets (uncomment one) ──────────────────────────────────────────
+  // Braille dots  — 10 frames, classic feel
+  const SPINNER = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]
+
+  // Arc sweep     — 6 frames, smooth
+  // const SPINNER = ["◜","◠","◝","◞","◡","◟"]
+
+  // Quarter fills — 4 frames, bold, good at any speed
+  // const SPINNER = ["◐","◓","◑","◒"]
+
+  // Box corners   — 4 frames, minimal
+  // const SPINNER = ["▖","▘","▝","▗"]
+
+  // Vertical bars — 8 frames
+  // const SPINNER = ["▁","▂","▃","▄","▅","▆","▇","█"]
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const SPINNER_INTERVAL = 150  // ms — adjust if too fast/slow
+  let spinnerFrame = 0
+  let spinnerTimer: ReturnType<typeof setInterval> | null = null
+
+  const startSpinner = () => {
+    if (spinnerTimer) return
+    spinnerTimer = setInterval(() => {
+      const frame = SPINNER[spinnerFrame++ % SPINNER.length]
+      setWindowState(`#[fg=yellow]${frame} #[fg=default]`)
+    }, SPINNER_INTERVAL)
   }
 
-  const setAppState = (state: string) => writeState(state)
+  const stopSpinner = () => {
+    if (!spinnerTimer) return
+    clearInterval(spinnerTimer)
+    spinnerTimer = null
+    spinnerFrame = 0
+  }
+
+  const STATES: Record<string, string> = {
+    idle:       "#[fg=green] #[fg=default]",
+    retry:      "#[fg=colour208] #[fg=default]",
+    permission: "#[fg=red] #[fg=default]",
+  }
+
+  const setAppState = (state: string) => {
+    if (state === "busy") {
+      startSpinner()
+    } else {
+      stopSpinner()
+      setWindowState(STATES[state] ?? "")
+    }
+  }
 
   const clearTmuxState = () => {
-    if (!stateFile) return
-    try {
-      require("node:fs").unlinkSync(stateFile)
-      require("node:child_process").execSync("tmux refresh-client -S")
-    } catch {}
+    stopSpinner()
+    if (!tmuxPane) return
+    tmux("set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state",
+         ";", "refresh-client", "-S")
   }
   process.on("exit", clearTmuxState)
   process.on("SIGINT",  () => { clearTmuxState(); process.exit(0) })

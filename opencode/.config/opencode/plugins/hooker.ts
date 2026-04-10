@@ -39,7 +39,8 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     moon:      { frames: ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"],     interval: 125 },
     monkey:    { frames: ["🙈","🙉","🙊"],                               interval: 333 },
     arc:       { frames: ["◜","◠","◝","◞","◡","◟"],                     interval: 150 },
-    nerd:      { frames: ["󰤆","󰤇","󰤈","󰤉","󰤊","󰤋"],                  interval: 100 },
+    nerd:      { frames: ["","","","","",""],                  interval: 100 },
+    nerdarc:   { frames: ["◜","","◝","◞","◡","◟",""],  interval: 120 },
   }
 
   // ── Spinner resolution: env var > config file > default ─────────────────

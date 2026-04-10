@@ -61,9 +61,10 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   }
 
   const STATES: Record<string, string> = {
-    idle:       "#[fg=green] #[fg=default]",
-    retry:      "#[fg=colour208] #[fg=default]",
-    permission: "#[fg=red] #[fg=default]",
+    idle:       "#[fg=green]󱥂 #[fg=default]",   // done — green robot answered
+    question:   "#[fg=cyan]󱜻 #[fg=default]",   // waiting for answer — cyan bell
+    retry:      "#[fg=colour208]󰨄 #[fg=default]",  // retrying — orange refresh
+    permission: "#[fg=red]󱅭 #[fg=default]",    // needs permission — red alert
   }
 
   const setAppState = (state: string) => {
@@ -123,14 +124,16 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
     "tool.execute.before": async (input) => {
       const toolName = (input as Record<string, any>)?.tool ?? "tool"
-      // Mark as busy whenever a tool runs
-      setAppState("busy")
       if (toolName === "question") {
+        // Switch to the question icon so the tab signals it needs attention
+        setAppState("question")
         try {
           await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
           console.error("NotifyIdlePlugin: notify-send for question failed", err)
         }
+      } else {
+        setAppState("busy")
       }
     },
 

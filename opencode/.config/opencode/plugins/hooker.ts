@@ -38,7 +38,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // const SPINNER = ["⢄","⢂","⢁","⡁","⡈","⡐","⡠"]; const SPINNER_INTERVAL = 100
 
   // Pulse — block fill, 4 frames, 8fps
-  const SPINNER = ["█","▓","▒","░"]; const SPINNER_INTERVAL = 125
+  //const SPINNER = ["█","▓","▒","░"]; const SPINNER_INTERVAL = 125
 
   // Points — travelling dot, 4 frames, 7fps
   // const SPINNER = ["∙∙∙","●∙∙","∙●∙","∙∙●"]; const SPINNER_INTERVAL = 143
@@ -53,7 +53,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // const SPINNER = ["",".","..",""]; const SPINNER_INTERVAL = 333
 
   // Globe — world rotation, 3 frames, 4fps
-  // const SPINNER = ["🌍","🌎","🌏"]; const SPINNER_INTERVAL = 250
+  // const SP2INNER = ["🌍","🌎","🌏"]; const SPINNER_INTERVAL = 250
 
   // Moon — lunar cycle, 8 frames, 8fps
   // const SPINNER = ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"]; const SPINNER_INTERVAL = 125
@@ -63,6 +63,10 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
   // Arc sweep — 6 frames (custom)
   // const SPINNER = ["◜","◠","◝","◞","◡","◟"]; const SPINNER_INTERVAL = 150
+
+  // nerd-icons spinner — 6 frames, 10fps
+  const SPINNER = ["","","","","",""]; const SPINNER_INTERVAL = 100
+
   // ─────────────────────────────────────────────────────────────────────────
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null

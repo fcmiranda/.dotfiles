@@ -145,7 +145,6 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
         "-x", "P", "-y", "P",
         "-T", title,
         "Go to window", "Enter", `switch-client -t '${tmuxPane}'`,
-        "Dismiss",      "q",    ""
       )
     }
   }

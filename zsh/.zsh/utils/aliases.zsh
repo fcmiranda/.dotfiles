@@ -8,3 +8,4 @@ alias install-packages='~/omc/install/install.zsh'
 alias clear="clear && [ -n \"\$TMUX\" ] && tmux clear-history"
 alias scrollback='tmux capture-pane -epS - > /tmp/tmux_scrollback.ansi && nvim -c "BaleiaColorize" -c "normal G" /tmp/tmux_scrollback.ansi'
 alias adopt='bash $HOME/.dotfiles/.shell/sh/stow-adopt-path.sh'
+alias oc='[ -n "$TMUX" ] && tmux rename-window opencode; opencode'

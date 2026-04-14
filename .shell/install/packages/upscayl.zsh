@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
-# Build and install Upscayl from source.
-# Required because upscayl-bin (AUR) is x86_64 only; this script handles aarch64 too.
+# Install Upscayl.
+# On x86_64: installs via the upscayl-bin AUR package.
+# On aarch64 (and others): builds from source, since upscayl-bin is x86_64 only.
 #
 # Uses `npm run dist -- --dir` to produce the unpacked Electron app without
 # invoking fpm/deb packaging, which ships an x86_64-only Ruby binary that
@@ -14,6 +15,21 @@
 #     compiler supports it; the UPSCAYL_ENABLE_LTO=OFF patch disables this.
 #   - ncnn submodule uses SSH URLs; override to HTTPS for clone without SSH keys.
 set -eo pipefail
+
+# ── x86_64: install via AUR (upscayl-bin) ────────────────────────────────────
+if [[ "$(uname -m)" == "x86_64" ]]; then
+  print -P "%F{blue}  →%f x86_64 detected — installing via AUR (upscayl-bin)..."
+  if command -v yay &>/dev/null; then
+    yay -S --noconfirm upscayl-bin
+  elif command -v paru &>/dev/null; then
+    paru -S --noconfirm upscayl-bin
+  else
+    print -P "%F{red}  ✗%f No AUR helper found (yay or paru). Cannot install upscayl-bin."
+    return 1
+  fi
+  print -P "%F{green}  ✓%f Upscayl installed via upscayl-bin."
+  return 0
+fi
 
 local UPSCAYL_REPO="https://github.com/upscayl/upscayl"
 local UPSCAYL_NCNN_REPO="https://github.com/upscayl/upscayl-ncnn"

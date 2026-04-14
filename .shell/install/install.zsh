@@ -36,7 +36,7 @@ install_packages \
     cava \
     mpv-wallpaper \
     bibata-cursor-theme-bin \
-    upscayl \
+    upscayl-bin \
 
 install_plugins \
     zsh-plugins \

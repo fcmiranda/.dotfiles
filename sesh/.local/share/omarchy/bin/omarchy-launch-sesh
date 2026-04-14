@@ -2,7 +2,7 @@
 
 set -u
 
-selection="$((/usr/bin/sesh list -d -c -t -T -z 2>/dev/null || true) | omarchy-launch-walker --dmenu --width 720 --minheight 1 --maxheight 620 -p 'Sesh…' 2>/dev/null)"
+selection="$((/usr/bin/sesh list -d -c -t -T -z 2>/dev/null || true) | fuzzel --dmenu --placeholder "Sesh…" --width 60 2>/dev/null)"
 
 if [[ -z "$selection" ]]; then
   exit 0

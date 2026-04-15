@@ -14,7 +14,6 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Two tmux commands are chained with ";" in one process invocation.
   const { spawnSync } = require("node:child_process")
   const tmux = (...args: string[]) => spawnSync("tmux", args, { stdio: "ignore" })
-  const bellScript = `${process.env.HOME}/.config/tmux/opencode-bell.sh`
 
   // Wipe stale global @opencode_state from old plugin versions once at startup
   if (tmuxPane) tmux("set", "-g", "@opencode_state", "")
@@ -104,7 +103,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     idle:       "#[fg=green]󱥂 #[fg=default]",   // done — green robot answered
     question:   "#[fg=cyan]󱜻 #[fg=default]",   // waiting for answer — cyan bell
     retry:      "#[fg=colour208]󰨄 #[fg=default]",  // retrying — orange refresh
-    permission: "#[fg=red]󰌾 #[fg=default]",    // needs permission — red lock
+    permission: "#[fg=red]󱅭 #[fg=default]",    // needs permission — red alert
   }
 
   const setAppState = (state: string) => {
@@ -130,18 +129,23 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#{window_id}"], { encoding: "utf8" }).stdout ?? "").trim()
     : ""
 
-  // Shows a transient tmux message on every client NOT already viewing the opencode window.
-  // It auto-dismisses after 2s and does not steal focus like a popup/menu.
+  // Shows a tmux interactive menu on every client NOT already viewing the opencode window.
+  // Skip only if the client is on the exact same session AND same window.
+  // Same session but different window → still show the bell.
   const bell = (action: string) => {
     if (!tmuxPane) return
     const title = `[${tmuxSession}] ${tmuxWindowIndex}:${tmuxWindow} › ${action}`
-    const label = spawnSync(bellScript, [title], { encoding: "utf8" }).stdout?.trim() || title
     const clientLines = (spawnSync("tmux", ["list-clients", "-F", "#{client_name} #{client_session} #{window_id}"], { encoding: "utf8" }).stdout ?? "")
       .trim().split("\n").filter(Boolean)
     for (const line of clientLines) {
       const [clientName, clientSession, clientWindowId] = line.split(" ")
       if (clientSession === tmuxSession && clientWindowId === tmuxWindowId) continue
-      tmux("display-message", "-c", clientName, "-d", "2000", label)
+      tmux("display-menu",
+        "-c", clientName,
+        "-x", "P", "-y", "P",
+        "-T", title,
+        "Go to window", "Enter", `switch-client -t '${tmuxPane}'`,
+      )
     }
   }
 
@@ -156,70 +160,69 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   process.on("SIGTERM", () => { clearTmuxState(); process.exit(0) })
   process.on("SIGHUP",  () => { clearTmuxState(); process.exit(0) })
 
-  const dbg = (msg: string) => {
-    try {
-      const fs = require("node:fs")
-      fs.appendFileSync("/tmp/opencode-plugin-debug.log", `[${new Date().toISOString()}] ${msg}\n`)
-    } catch {}
-  }
-
-  dbg("plugin initialized, tmuxPane=" + (tmuxPane || "(none)"))
-
   return {
     "event": async ({ event }) => {
-      const eventType = (event as any).type ?? "unknown"
+      if ((event as any).type !== "session.status") return
+
       const properties = (event as any)?.properties
+      const statusType: string = properties?.status?.type ?? "unknown"
 
-      if (eventType === "session.status") {
-        const statusType: string = properties?.status?.type ?? "unknown"
-        dbg(`session.status: ${statusType}`)
+      // Write to a debug file to confirm callback runs
+      try {
+        const fs = await import("node:fs")
+        fs.appendFileSync("/tmp/opencode-plugin-debug.log", `session.status: ${statusType}\n`)
+      } catch {}
 
-        setAppState(statusType)
+      // Reflect state in tmux status bar
+      setAppState(statusType)
 
-        if (statusType === "idle") bell("󱥂 finished")
+      if (statusType === "idle") bell("󱥂 finished")
 
-        // Desktop notifications
-        const statusMessages: Record<string, { title: string; body: string; urgency: string }> = {
-          idle: { title: "OpenCode Finished", body: "The AI has finished processing your prompt", urgency: "normal" },
-        }
-        const msg = statusMessages[statusType]
-        if (msg) {
-          try {
-            await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
-          } catch (err) {
-            dbg(`notify-send error: ${err}`)
-          }
-        }
-        return
+      // Desktop notifications
+      // SessionStatus.type values: "idle" | "busy" | "retry"
+      const statusMessages: Record<string, { title: string; body: string; urgency: string }> = {
+        idle: { title: "OpenCode Finished", body: "The AI has finished processing your prompt", urgency: "normal" },
       }
 
-      if (eventType === "permission.asked") {
-        const permission = properties?.permission ?? "unknown"
-        dbg(`permission.asked: permission=${permission}`)
-        setAppState("permission")
-        bell("󰌾 permission")
+      const msg = statusMessages[statusType]
+      if (msg) {
         try {
-          await $`notify-send -i dialog-password "OpenCode Permission Required" ${`Permission needed: ${permission}`} -u critical`
+          // Note: do NOT wrap template expressions in quotes — bun's $ handles escaping
+          await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
         } catch (err) {
-          dbg(`notify-send permission error: ${err}`)
+          try {
+            const fs = await import("node:fs")
+            fs.appendFileSync("/tmp/opencode-plugin-debug.log", `notify-send error: ${err}\n`)
+          } catch {}
         }
-        return
       }
     },
 
     "tool.execute.before": async (input) => {
       const toolName = (input as Record<string, any>)?.tool ?? "tool"
-      dbg(`tool.execute.before: tool=${toolName}`)
       if (toolName === "question") {
+        // Switch to the question icon so the tab signals it needs attention
         setAppState("question")
         bell("󱜻 question")
         try {
           await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
-          dbg(`notify-send question error: ${err}`)
+          console.error("NotifyIdlePlugin: notify-send for question failed", err)
         }
       } else {
         setAppState("busy")
+      }
+    },
+
+    "permission.ask": async (input) => {
+      const tool = (input as Record<string, any>)?.tool ?? "unknown tool"
+      // Use the permission style (red alert) so it's visible in the status bar
+      setAppState("permission")
+      bell("󱅭 permission")
+      try {
+        await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
+      } catch (err) {
+        console.error("NotifyIdlePlugin: notify-send for permission failed", err)
       }
     },
   }

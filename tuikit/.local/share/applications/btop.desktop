@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=btop
+Comment=Monitor system resources and processes
+Exec=omarchy-launch-tui btop
+Icon=btop
+Terminal=false
+Categories=System;Monitor;
+Keywords=system;process;cpu;memory;monitor;

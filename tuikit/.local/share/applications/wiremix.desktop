@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Audio
+Comment=Manage audio devices and volumes
+Exec=omarchy-launch-audio
+Icon=wiremix
+Terminal=false
+Categories=System;Audio;
+Keywords=audio;sound;volume;pipewire;

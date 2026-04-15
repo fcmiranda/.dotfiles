@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1d1b2e"/>
+  <!-- Speaker body: box + horn -->
+  <polygon points="80,206 175,206 255,145 255,367 175,306 80,306" fill="#8da9e8"/>
+  <!-- Sound wave arcs -->
+  <path d="M 285,200 Q 345,256 285,312" stroke="#8da9e8" stroke-width="30" fill="none" stroke-linecap="round"/>
+  <path d="M 330,155 Q 412,256 330,357" stroke="#8da9e8" stroke-width="30" fill="none" stroke-linecap="round"/>
+</svg>

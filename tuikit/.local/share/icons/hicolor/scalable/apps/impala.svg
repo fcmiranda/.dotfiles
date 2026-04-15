@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1d1b2e"/>
+  <!-- WiFi dot -->
+  <circle cx="256" cy="380" r="28" fill="#8da9e8"/>
+  <!-- Small arc: r=70, centered at (256,380), 225°→270°→315° clockwise -->
+  <path d="M 206,330 A 70,70 0 0 1 306,330" stroke="#8da9e8" stroke-width="32" fill="none" stroke-linecap="round"/>
+  <!-- Medium arc: r=140 -->
+  <path d="M 157,281 A 140,140 0 0 1 355,281" stroke="#8da9e8" stroke-width="32" fill="none" stroke-linecap="round"/>
+  <!-- Large arc: r=210 -->
+  <path d="M 107,232 A 210,210 0 0 1 405,232" stroke="#8da9e8" stroke-width="32" fill="none" stroke-linecap="round"/>
+</svg>

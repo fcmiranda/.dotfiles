@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Wi-Fi
+Comment=Manage wireless network connections
+Exec=omarchy-launch-wifi
+Icon=impala
+Terminal=false
+Categories=System;Network;
+Keywords=wifi;wireless;network;connect;

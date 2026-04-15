@@ -54,4 +54,4 @@ With a custom frame interval (ms):
 | `idle`       | 󱥂   | green  | AI finished the prompt      |
 | `question`   |    | cyan   | AI asking you something     |
 | `retry`      |    | orange | AI retrying                 |
-| `permission` |    | red    | Tool needs permission       |
+| `permission` | 󰌾 | red    | Tool needs permission       |

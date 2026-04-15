@@ -129,24 +129,31 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#{window_id}"], { encoding: "utf8" }).stdout ?? "").trim()
     : ""
 
-  // Shows a tmux interactive menu on every client NOT already viewing the opencode window.
-  // Skip only if the client is on the exact same session AND same window.
-  // Same session but different window → still show the bell.
+  // Updates the tmux status-right bell segment without stealing focus.
+  // Stores the source pane in @opencode_last_bell so prefix+i can jump to it.
+  // Clears automatically after 7 seconds via a detached background process.
+  // Only fires for clients NOT already viewing the opencode window.
   const bell = (action: string) => {
     if (!tmuxPane) return
-    const title = `[${tmuxSession}] ${tmuxWindowIndex}:${tmuxWindow} › ${action}`
-    const clientLines = (spawnSync("tmux", ["list-clients", "-F", "#{client_name} #{client_session} #{window_id}"], { encoding: "utf8" }).stdout ?? "")
+    const anyOtherClient = (spawnSync("tmux", ["list-clients", "-F", "#{client_session} #{window_id}"], { encoding: "utf8" }).stdout ?? "")
       .trim().split("\n").filter(Boolean)
-    for (const line of clientLines) {
-      const [clientName, clientSession, clientWindowId] = line.split(" ")
-      if (clientSession === tmuxSession && clientWindowId === tmuxWindowId) continue
-      tmux("display-menu",
-        "-c", clientName,
-        "-x", "P", "-y", "P",
-        "-T", title,
-        "Go to window", "Enter", `switch-client -t '${tmuxPane}'`,
-      )
-    }
+      .some(line => {
+        const [cs, wid] = line.split(" ")
+        return !(cs === tmuxSession && wid === tmuxWindowId)
+      })
+    if (!anyOtherClient) return
+
+    // Store the source pane so prefix+i can navigate to it
+    tmux("set", "-g", "@opencode_last_bell", tmuxPane)
+    // Write the bell message to the status-right segment variable
+    const msg = `  #[fg=cyan]${tmuxWindowIndex}:${tmuxWindow} › ${action} #[fg=yellow](i)#[fg=default]`
+    tmux("set", "-g", "@opencode_bell", msg, ";", "refresh-client", "-S")
+    // Clear after 7 seconds via a detached background process
+    const { spawn } = require("node:child_process")
+    const cleaner = spawn("sh", ["-c",
+      `sleep 7 && tmux set -g @opencode_bell '' && tmux refresh-client -S`
+    ], { detached: true, stdio: "ignore" })
+    cleaner.unref()
   }
 
   const clearTmuxState = () => {

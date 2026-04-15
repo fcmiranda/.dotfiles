@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Upscayl
+Comment=Free and Open Source AI Image Upscaler
+Exec=/home/fecavmi/.local/bin/upscayl
+Icon=upscayl
+Terminal=false
+Categories=Graphics;Photography;
+Keywords=upscale;image;ai;enhance;

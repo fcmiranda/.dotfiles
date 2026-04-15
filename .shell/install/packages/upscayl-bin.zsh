@@ -191,20 +191,7 @@ exec "$INSTALL_DIR/upscayl" "\$@"
 EOF
 chmod +x "$INSTALL_PATH"
 
-# ── Desktop entry ─────────────────────────────────────────────────────────────
-mkdir -p "$HOME/.local/share/applications"
-cat > "$HOME/.local/share/applications/upscayl.desktop" << EOF
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=Upscayl
-Comment=Free and Open Source AI Image Upscaler
-Exec=$INSTALL_PATH
-Icon=$INSTALL_DIR/resources/icons/512x512.png
-Terminal=false
-Categories=Graphics;Photography;
-Keywords=upscale;image;ai;enhance;
-EOF
+# Note: the .desktop file and icon are managed by the upscayl stow package.
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 rm -rf "$UPSCAYL_DIR" "$UPSCAYL_NCNN_DIR"

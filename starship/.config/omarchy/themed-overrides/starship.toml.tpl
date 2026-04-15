@@ -85,7 +85,7 @@ truncation_symbol = "…/"
 "dev" = "󰲋"
 
 [git_branch]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_git"
 format = '[[ $symbol $branch ]($style)]($style)'
 
@@ -94,52 +94,52 @@ style = "fg:color_bg bg:color_git"
 format = '[[($all_status$ahead_behind )]($style)]($style)'
 
 [nodejs]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [c]
-symbol = " "
+symbol = " "
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [cpp]
-symbol = " "
+symbol = " "
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [rust]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [golang]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [php]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [java]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [kotlin]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [haskell]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 
 [python]
-symbol = ""
+symbol = ""
 style = "fg:color_bg bg:color_lang"
 format = '[[ $symbol( $version) ]($style)]($style)'
 

@@ -14,6 +14,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Two tmux commands are chained with ";" in one process invocation.
   const { spawnSync } = require("node:child_process")
   const tmux = (...args: string[]) => spawnSync("tmux", args, { stdio: "ignore" })
+  const bellScript = `${process.env.HOME}/.config/tmux/opencode-bell.sh`
 
   // Wipe stale global @opencode_state from old plugin versions once at startup
   if (tmuxPane) tmux("set", "-g", "@opencode_state", "")
@@ -103,7 +104,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     idle:       "#[fg=green]󱥂 #[fg=default]",   // done — green robot answered
     question:   "#[fg=cyan]󱜻 #[fg=default]",   // waiting for answer — cyan bell
     retry:      "#[fg=colour208]󰨄 #[fg=default]",  // retrying — orange refresh
-    permission: "#[fg=red]󱅭 #[fg=default]",    // needs permission — red alert
+    permission: "#[fg=red]󰌾 #[fg=default]",    // needs permission — red lock
   }
 
   const setAppState = (state: string) => {
@@ -129,23 +130,18 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     ? (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#{window_id}"], { encoding: "utf8" }).stdout ?? "").trim()
     : ""
 
-  // Shows a tmux interactive menu on every client NOT already viewing the opencode window.
-  // Skip only if the client is on the exact same session AND same window.
-  // Same session but different window → still show the bell.
+  // Shows a transient tmux message on every client NOT already viewing the opencode window.
+  // It auto-dismisses after 2s and does not steal focus like a popup/menu.
   const bell = (action: string) => {
     if (!tmuxPane) return
     const title = `[${tmuxSession}] ${tmuxWindowIndex}:${tmuxWindow} › ${action}`
+    const label = spawnSync(bellScript, [title], { encoding: "utf8" }).stdout?.trim() || title
     const clientLines = (spawnSync("tmux", ["list-clients", "-F", "#{client_name} #{client_session} #{window_id}"], { encoding: "utf8" }).stdout ?? "")
       .trim().split("\n").filter(Boolean)
     for (const line of clientLines) {
       const [clientName, clientSession, clientWindowId] = line.split(" ")
       if (clientSession === tmuxSession && clientWindowId === tmuxWindowId) continue
-      tmux("display-menu",
-        "-c", clientName,
-        "-x", "P", "-y", "P",
-        "-T", title,
-        "Go to window", "Enter", `switch-client -t '${tmuxPane}'`,
-      )
+      tmux("display-message", "-c", clientName, "-d", "2000", label)
     }
   }
 
@@ -214,13 +210,13 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       }
     },
 
-    "permission.ask": async (input) => {
+    "permission.asked": async (input) => {
       const tool = (input as Record<string, any>)?.tool ?? "unknown tool"
       // Use the permission style (red alert) so it's visible in the status bar
       setAppState("permission")
-      bell("󱅭 permission")
+      bell("󰌾 permission")
       try {
-        await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
+        await $`notify-send -i dialog-password "OpenCode Permission Required" ${`Permission needed for tool: ${tool}`} -u critical`
       } catch (err) {
         console.error("NotifyIdlePlugin: notify-send for permission failed", err)
       }

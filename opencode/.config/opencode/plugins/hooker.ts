@@ -156,69 +156,70 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   process.on("SIGTERM", () => { clearTmuxState(); process.exit(0) })
   process.on("SIGHUP",  () => { clearTmuxState(); process.exit(0) })
 
+  const dbg = (msg: string) => {
+    try {
+      const fs = require("node:fs")
+      fs.appendFileSync("/tmp/opencode-plugin-debug.log", `[${new Date().toISOString()}] ${msg}\n`)
+    } catch {}
+  }
+
+  dbg("plugin initialized, tmuxPane=" + (tmuxPane || "(none)"))
+
   return {
     "event": async ({ event }) => {
-      if ((event as any).type !== "session.status") return
-
+      const eventType = (event as any).type ?? "unknown"
       const properties = (event as any)?.properties
-      const statusType: string = properties?.status?.type ?? "unknown"
 
-      // Write to a debug file to confirm callback runs
-      try {
-        const fs = await import("node:fs")
-        fs.appendFileSync("/tmp/opencode-plugin-debug.log", `session.status: ${statusType}\n`)
-      } catch {}
+      if (eventType === "session.status") {
+        const statusType: string = properties?.status?.type ?? "unknown"
+        dbg(`session.status: ${statusType}`)
 
-      // Reflect state in tmux status bar
-      setAppState(statusType)
+        setAppState(statusType)
 
-      if (statusType === "idle") bell("󱥂 finished")
+        if (statusType === "idle") bell("󱥂 finished")
 
-      // Desktop notifications
-      // SessionStatus.type values: "idle" | "busy" | "retry"
-      const statusMessages: Record<string, { title: string; body: string; urgency: string }> = {
-        idle: { title: "OpenCode Finished", body: "The AI has finished processing your prompt", urgency: "normal" },
+        // Desktop notifications
+        const statusMessages: Record<string, { title: string; body: string; urgency: string }> = {
+          idle: { title: "OpenCode Finished", body: "The AI has finished processing your prompt", urgency: "normal" },
+        }
+        const msg = statusMessages[statusType]
+        if (msg) {
+          try {
+            await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
+          } catch (err) {
+            dbg(`notify-send error: ${err}`)
+          }
+        }
+        return
       }
 
-      const msg = statusMessages[statusType]
-      if (msg) {
+      if (eventType === "permission.asked") {
+        const permission = properties?.permission ?? "unknown"
+        dbg(`permission.asked: permission=${permission}`)
+        setAppState("permission")
+        bell("󰌾 permission")
         try {
-          // Note: do NOT wrap template expressions in quotes — bun's $ handles escaping
-          await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
+          await $`notify-send -i dialog-password "OpenCode Permission Required" ${`Permission needed: ${permission}`} -u critical`
         } catch (err) {
-          try {
-            const fs = await import("node:fs")
-            fs.appendFileSync("/tmp/opencode-plugin-debug.log", `notify-send error: ${err}\n`)
-          } catch {}
+          dbg(`notify-send permission error: ${err}`)
         }
+        return
       }
     },
 
     "tool.execute.before": async (input) => {
       const toolName = (input as Record<string, any>)?.tool ?? "tool"
+      dbg(`tool.execute.before: tool=${toolName}`)
       if (toolName === "question") {
-        // Switch to the question icon so the tab signals it needs attention
         setAppState("question")
         bell("󱜻 question")
         try {
           await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
-          console.error("NotifyIdlePlugin: notify-send for question failed", err)
+          dbg(`notify-send question error: ${err}`)
         }
       } else {
         setAppState("busy")
-      }
-    },
-
-    "permission.asked": async (input) => {
-      const tool = (input as Record<string, any>)?.tool ?? "unknown tool"
-      // Use the permission style (red alert) so it's visible in the status bar
-      setAppState("permission")
-      bell("󰌾 permission")
-      try {
-        await $`notify-send -i dialog-password "OpenCode Permission Required" ${`Permission needed for tool: ${tool}`} -u critical`
-      } catch (err) {
-        console.error("NotifyIdlePlugin: notify-send for permission failed", err)
       }
     },
   }

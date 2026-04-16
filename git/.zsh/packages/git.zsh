@@ -336,28 +336,17 @@ ${diff}"
   printf '%s' "$prompt" > "$tmpfile"
   trap "rm -f $tmpfile" EXIT INT
 
-  echo "gaic: generating via ${provider}..." >&2
-
+  # Generate message with gum spinner
   local msg
-  case "$provider" in
-    opencode)
-      msg=$(opencode run --model "$model" -- "$(cat $tmpfile)" 2>/dev/null)
-      ;;
-    claude)
-      msg=$(claude --print "$(cat $tmpfile)" 2>/dev/null)
-      ;;
-    crush)
-      msg=$(crush "$(cat $tmpfile)" 2>/dev/null)
-      ;;
-    copilot)
-      msg=$(gh copilot explain "$(cat $tmpfile)" 2>/dev/null)
-      ;;
-    *)
-      echo "gaic: unknown provider '$provider'. Available: opencode, claude, crush, copilot" >&2
-      rm -f "$tmpfile"
-      return 1
-      ;;
-  esac
+  msg=$(gum spin --spinner dot --title "gaic: generating via ${provider}..." -- sh -c "
+    case '$provider' in
+      opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;
+    esac
+  ")
+
 
   rm -f "$tmpfile"
   trap - EXIT INT

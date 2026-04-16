@@ -278,6 +278,78 @@ ginit() {
 # AI Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
+# _gc_load_ignore_patterns — load .sgcignore (repo-local) or ~/.sgcignore (global)
+# Echoes a newline-separated list of glob patterns to exclude from AI analysis.
+# Built-in defaults are always included (lock files, minified assets).
+_gc_load_ignore_patterns() {
+  local git_root patterns
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+
+  # Built-in defaults
+  patterns="*-lock.*
+*.lock
+*.min.js
+*.min.css
+*.map"
+
+  # Repo-local .sgcignore overrides / extends
+  if [[ -n "$git_root" && -f "${git_root}/.sgcignore" ]]; then
+    patterns+=$'\n'"$(cat "${git_root}/.sgcignore")"
+  elif [[ -f "${HOME}/.sgcignore" ]]; then
+    # Global fallback
+    patterns+=$'\n'"$(cat "${HOME}/.sgcignore")"
+  fi
+
+  printf '%s\n' "$patterns"
+}
+
+# _gc_filter_ignored_files PATTERNS_FILE — read filenames from stdin, print non-ignored ones
+# Uses python3 fnmatch so patterns behave like .gitignore globs (basename + full path match).
+_gc_filter_ignored_files() {
+  local patterns_file="$1"
+  python3 - "$patterns_file" << 'PYEOF'
+import sys, fnmatch, os
+
+patterns_file = sys.argv[1]
+with open(patterns_file) as f:
+    patterns = [l.strip() for l in f if l.strip() and not l.startswith('#')]
+
+for line in sys.stdin:
+    path = line.rstrip('\n')
+    basename = os.path.basename(path)
+    ignored = any(
+        fnmatch.fnmatch(basename, p) or fnmatch.fnmatch(path, p)
+        for p in patterns
+    )
+    if not ignored:
+        print(path)
+PYEOF
+}
+
+# _gc_filter_diff_by_ignore PATTERNS_FILE — filter a unified diff, dropping ignored files' hunks
+_gc_filter_diff_by_ignore() {
+  local patterns_file="$1"
+  python3 - "$patterns_file" << 'PYEOF'
+import sys, fnmatch, os, re
+
+patterns_file = sys.argv[1]
+with open(patterns_file) as f:
+    patterns = [l.strip() for l in f if l.strip() and not l.startswith('#')]
+
+def is_ignored(path):
+    basename = os.path.basename(path)
+    return any(fnmatch.fnmatch(basename, p) or fnmatch.fnmatch(path, p) for p in patterns)
+
+skip = False
+for line in sys.stdin:
+    if line.startswith('diff --git '):
+        m = re.match(r'^diff --git a/(.+) b/(.+)$', line.rstrip())
+        skip = bool(m and is_ignored(m.group(2)))
+    if not skip:
+        sys.stdout.write(line)
+PYEOF
+}
+
 # _gc_compress_diff — reduce diff token count while preserving AI signal
 #
 # What is stripped (zero/minimal impact on commit message quality):
@@ -366,6 +438,8 @@ PYEOF
 #   gc -p crush                 # use crush CLI
 #   gc -p copilot               # use gh copilot CLI
 #   gc -m github-copilot/gpt-4o # override model (opencode only)
+#   gc -g 3                     # generate 3 candidates to pick from
+#   gc -l es                    # generate message in Spanish (ISO 639-1)
 #
 # Env overrides:
 #   GC_PROVIDER=claude gc
@@ -375,14 +449,20 @@ PYEOF
 gc() {
   local provider="${GC_PROVIDER:-opencode}"
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
+  local generate=1
+  local lang=""
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -p|--provider) provider="$2"; shift 2 ;;
       -m|--model)    model="$2";    shift 2 ;;
+      -g|--generate) generate="$2"; shift 2 ;;
+      -l|--lang)     lang="$2";     shift 2 ;;
       -h|--help)
-        echo "Usage: gc [-p provider] [-m model]"
+        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang]"
+        echo "  -g N      generate N candidate messages to pick from (default: 1)"
+        echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "gc: unknown option '$1'" >&2; return 1 ;;
@@ -422,20 +502,49 @@ gc() {
     esac
   fi
 
-  local diff
-  diff=$(git diff --staged | _gc_compress_diff)
+  # Load ignore patterns and filter staged diff
+  local ignore_tmpfile
+  ignore_tmpfile=$(mktemp /tmp/gc-ignore.XXXXXX)
+  _gc_load_ignore_patterns > "$ignore_tmpfile"
 
-  local prompt="Analyze the following staged git diff and generate a concise, conventional commit message.
+  local diff
+  diff=$(git diff --staged | _gc_filter_diff_by_ignore "$ignore_tmpfile" | _gc_compress_diff)
+  rm -f "$ignore_tmpfile"
+
+  # Language instruction (injected into rules if --lang is set)
+  local lang_rule=""
+  if [[ -n "$lang" ]]; then
+    lang_rule=$'\n'"- Write the commit message in the language with ISO 639-1 code: ${lang}"
+  fi
+
+  local prompt
+  if [[ "$generate" -gt 1 ]]; then
+    prompt="Analyze the following staged git diff and generate ${generate} distinct, concise conventional commit message candidates.
+
+Rules:
+- Use the conventional commits format: \`<type>(<optional scope>): <description>\`
+- Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
+- Keep each subject line under 72 characters
+- Each candidate must be meaningfully different (vary type, scope, or emphasis)
+- Output ONLY a valid JSON array of strings, no markdown fences, no explanation${lang_rule}
+
+Example output: [\"feat(auth): add OAuth2 login\", \"feat: integrate OAuth2 provider\"]
+
+Staged diff:
+${diff}"
+  else
+    prompt="Analyze the following staged git diff and generate a concise, conventional commit message.
 
 Rules:
 - Use the conventional commits format: \`<type>(<optional scope>): <description>\`
 - Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
 - Keep the subject line under 72 characters
 - If the changes are complex, add a short body after a blank line explaining the why
-- Output ONLY the commit message, nothing else
+- Output ONLY the commit message, nothing else${lang_rule}
 
 Staged diff:
 ${diff}"
+  fi
 
   # Write to tempfile — avoids diff lines (e.g. '-m ...') being parsed as CLI flags
   local tmpfile
@@ -443,9 +552,9 @@ ${diff}"
   printf '%s' "$prompt" > "$tmpfile"
   trap "rm -f $tmpfile" EXIT INT
 
-  # Generate message with gum spinner
-  local msg
-  msg=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c "
+  # Generate message(s) with gum spinner
+  local raw
+  raw=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c "
     case '$provider' in
       opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
       claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
@@ -454,17 +563,51 @@ ${diff}"
     esac
   ")
 
-
   rm -f "$tmpfile"
   trap - EXIT INT
 
-  if [[ -z "$msg" ]]; then
+  if [[ -z "$raw" ]]; then
     echo "gc: failed to generate commit message" >&2
     return 1
   fi
 
-  # Extract first non-empty, non-fence line (handles ```lang, ```, blank lines)
-  msg=$(printf '%s\n' "$msg" | grep -v '^\s*```' | grep -v '^\s*$' | head -n 1 | xargs)
+  local msg
+  if [[ "$generate" -gt 1 ]]; then
+    # Parse JSON array of candidates and let user pick one
+    local candidates
+    candidates=$(python3 -c "
+import json, re, sys
+raw = sys.stdin.read()
+m = re.search(r'\[.*\]', raw, re.DOTALL)
+if not m:
+    sys.exit(1)
+try:
+    items = json.loads(m.group())
+    for item in items:
+        print(item)
+except Exception:
+    sys.exit(1)
+" <<< "$raw" 2>/dev/null)
+
+    if [[ -z "$candidates" ]]; then
+      echo "gc: could not parse candidates from AI response" >&2
+      echo "$raw" >&2
+      return 1
+    fi
+
+    msg=$(printf '%s\n' "$candidates" \
+      | gum choose \
+          --header "Pick a commit message · Enter to confirm" \
+          --cursor.foreground="212")
+
+    if [[ -z "$msg" ]]; then
+      echo "gc: no message selected — aborted" >&2
+      return 1
+    fi
+  else
+    # Extract first non-empty, non-fence line (handles ```lang, ```, blank lines)
+    msg=$(printf '%s\n' "$raw" | grep -v '^\s*```' | grep -v '^\s*$' | head -n 1 | xargs)
+  fi
 
   if [[ -z "$msg" ]]; then
     echo "gc: model returned empty message after cleanup" >&2
@@ -482,6 +625,7 @@ ${diff}"
 #   sgc                          # uses default provider (opencode)
 #   sgc -p claude                # use claude CLI
 #   sgc -m github-copilot/gpt-4o # override model (opencode only)
+#   sgc -l es                    # generate messages in Spanish (ISO 639-1)
 #
 # Env overrides:
 #   GC_PROVIDER=claude sgc
@@ -489,14 +633,17 @@ ${diff}"
 sgc() {
   local provider="${GC_PROVIDER:-opencode}"
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
+  local lang=""
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -p|--provider) provider="$2"; shift 2 ;;
       -m|--model)    model="$2";    shift 2 ;;
+      -l|--lang)     lang="$2";     shift 2 ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model]"
+        echo "Usage: sgc [-p provider] [-m model] [-l lang]"
+        echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
@@ -511,16 +658,38 @@ sgc() {
     return 1
   fi
 
-  # Build full context: unstaged diffs + untracked file contents
+  # Load ignore patterns into a temp file (reused across filter calls)
+  local ignore_tmpfile
+  ignore_tmpfile=$(mktemp /tmp/sgc-ignore.XXXXXX)
+  _gc_load_ignore_patterns > "$ignore_tmpfile"
+
+  # Build full context: unstaged diffs + untracked file contents (both filtered)
   local diff_content untracked_content
-  diff_content=$(git diff 2>/dev/null | _gc_compress_diff)
+  diff_content=$(git diff 2>/dev/null | _gc_filter_diff_by_ignore "$ignore_tmpfile" | _gc_compress_diff)
 
   local untracked_files
-  untracked_files=$(git ls-files --others --exclude-standard)
+  untracked_files=$(git ls-files --others --exclude-standard \
+    | _gc_filter_ignored_files "$ignore_tmpfile")
   if [[ -n "$untracked_files" ]]; then
     while IFS= read -r f; do
       untracked_content+="=== NEW FILE: ${f} ===\n$(cat "$f" 2>/dev/null)\n\n"
     done <<< "$untracked_files"
+  fi
+
+  # Filtered status: remove ignored files from the status shown to AI
+  local filtered_status
+  filtered_status=$(git status --short \
+    | awk '{print $NF}' \
+    | _gc_filter_ignored_files "$ignore_tmpfile" \
+    | while IFS= read -r f; do git status --short -- "$f" 2>/dev/null; done)
+  [[ -z "$filtered_status" ]] && filtered_status="$status_output"
+
+  rm -f "$ignore_tmpfile"
+
+  # Language instruction
+  local lang_rule=""
+  if [[ -n "$lang" ]]; then
+    lang_rule=$'\n'"- Write all commit messages in the language with ISO 639-1 code: ${lang}"
   fi
 
   # ── Cache: fingerprint the exact content the AI would analyse ──────────────
@@ -530,7 +699,7 @@ sgc() {
   cache_hash_file="${cache_dir}/last.hash"
   cache_json_file="${cache_dir}/last.json"
 
-  current_hash=$(printf '%s\0%s\0%s' "$status_output" "$diff_content" "$untracked_content" \
+  current_hash=$(printf '%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" \
     | md5sum | cut -d' ' -f1)
 
   local json
@@ -542,7 +711,7 @@ sgc() {
     local prompt="You are a git expert. Analyze the following unstaged and untracked changes and group them into logical, atomic conventional commits.
 
 Git status:
-${status_output}
+${filtered_status}
 
 Unstaged diffs:
 ${diff_content}
@@ -555,7 +724,7 @@ Rules:
 - Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
 - Group related files into the same commit — each commit must be atomic and focused
 - A file must appear in exactly one commit
-- Output ONLY a valid JSON array, no markdown fences, no explanation
+- Output ONLY a valid JSON array, no markdown fences, no explanation${lang_rule}
 
 Output format:
 [
@@ -683,19 +852,28 @@ print(json.dumps(remaining))
 " "${accepted_indices[@]}" <<< "$json" 2>/dev/null)
 
   if [[ -n "$remaining_json" ]] && python3 -c "import json,sys; d=json.loads(sys.stdin.read()); sys.exit(0 if len(d)>0 else 1)" <<< "$remaining_json" 2>/dev/null; then
-    # Recompute hash based on current working tree state (post-commit)
-    local new_status new_diff new_untracked new_hash
-    new_status=$(git status --short)
-    new_diff=$(git diff 2>/dev/null | _gc_compress_diff)
+    # Recompute hash based on current working tree state (post-commit), with ignore filter
+    local new_ignore_tmpfile new_status new_diff new_untracked new_hash
+    new_ignore_tmpfile=$(mktemp /tmp/sgc-ignore.XXXXXX)
+    _gc_load_ignore_patterns > "$new_ignore_tmpfile"
+
+    new_status=$(git status --short \
+      | awk '{print $NF}' \
+      | _gc_filter_ignored_files "$new_ignore_tmpfile" \
+      | while IFS= read -r f; do git status --short -- "$f" 2>/dev/null; done)
+    new_diff=$(git diff 2>/dev/null | _gc_filter_diff_by_ignore "$new_ignore_tmpfile" | _gc_compress_diff)
     new_untracked=""
     local new_untracked_files
-    new_untracked_files=$(git ls-files --others --exclude-standard)
+    new_untracked_files=$(git ls-files --others --exclude-standard \
+      | _gc_filter_ignored_files "$new_ignore_tmpfile")
     if [[ -n "$new_untracked_files" ]]; then
       while IFS= read -r f; do
         new_untracked+="=== NEW FILE: ${f} ===\n$(cat "$f" 2>/dev/null)\n\n"
       done <<< "$new_untracked_files"
     fi
-    new_hash=$(printf '%s\0%s\0%s' "$new_status" "$new_diff" "$new_untracked" \
+    rm -f "$new_ignore_tmpfile"
+
+    new_hash=$(printf '%s\0%s\0%s\0%s' "$new_status" "$new_diff" "$new_untracked" "$lang" \
       | md5sum | cut -d' ' -f1)
     mkdir -p "$cache_dir"
     printf '%s' "$new_hash"       > "$cache_hash_file"

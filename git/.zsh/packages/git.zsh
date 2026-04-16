@@ -367,13 +367,8 @@ ${diff}"
     return 1
   fi
 
-  # Strip markdown code fences, leading/trailing whitespace and blank lines
-  msg=$(printf '%s' "$msg" \
-    | sed 's/^```[a-z]*$//' \
-    | sed '/^[[:space:]]*$/d' \
-    | sed 's/^[[:space:]]*//' \
-    | sed 's/[[:space:]]*$//' \
-    | head -n 1)
+  # Extract first non-empty, non-fence line (handles ```lang, ```, blank lines)
+  msg=$(printf '%s\n' "$msg" | grep -v '^\s*```' | grep -v '^\s*$' | head -n 1 | xargs)
 
   if [[ -z "$msg" ]]; then
     echo "gaic: model returned empty message after cleanup" >&2

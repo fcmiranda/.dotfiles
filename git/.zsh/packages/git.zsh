@@ -276,24 +276,91 @@ ginit() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# AI Helpers (requires opencode)
+# AI Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
 # gcm — generate a conventional commit message from staged changes via AI
-# Uses opencode run --command commit (triggers the /commit slash command)
-# which reads git diff --staged internally via the github-copilot/gpt-4o model.
+#
+# Usage:
+#   gcm                          # uses default provider (opencode)
+#   gcm -p claude                # use claude CLI
+#   gcm -p crush                 # use crush CLI
+#   gcm -p copilot               # use gh copilot CLI
+#   gcm -m github-copilot/gpt-4o # override model (opencode only)
+#
+# Env overrides:
+#   GCM_PROVIDER=claude gcm
+#   GCM_MODEL=github-copilot/gpt-5 gcm
+#
 # Pre-fills the zsh readline buffer with: git commit -m "<message>"
-# Usage: git add <files> && gcm
 gcm() {
+  local provider="${GCM_PROVIDER:-opencode}"
+  local model="${GCM_MODEL:-github-copilot/gpt-4o}"
+
+  # Parse flags
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p|--provider) provider="$2"; shift 2 ;;
+      -m|--model)    model="$2";    shift 2 ;;
+      -h|--help)
+        echo "Usage: gcm [-p provider] [-m model]"
+        echo "Providers: opencode (default), claude, crush, copilot"
+        return 0 ;;
+      *) echo "gcm: unknown option '$1'" >&2; return 1 ;;
+    esac
+  done
+
   if git diff --staged --quiet; then
     echo "gcm: no staged changes — run 'git add' first" >&2
     return 1
   fi
 
-  echo "gcm: generating commit message..." >&2
+  local diff
+  diff=$(git diff --staged)
+
+  local prompt="Analyze the following staged git diff and generate a concise, conventional commit message.
+
+Rules:
+- Use the conventional commits format: \`<type>(<optional scope>): <description>\`
+- Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
+- Keep the subject line under 72 characters
+- If the changes are complex, add a short body after a blank line explaining the why
+- Output ONLY the commit message, nothing else
+
+Staged diff:
+${diff}"
+
+  # Write to tempfile — avoids diff lines (e.g. '-m ...') being parsed as CLI flags
+  local tmpfile
+  tmpfile=$(mktemp /tmp/gcm.XXXXXX)
+  printf '%s' "$prompt" > "$tmpfile"
+  trap "rm -f $tmpfile" EXIT INT
+
+  echo "gcm: generating via ${provider}..." >&2
 
   local msg
-  msg=$(opencode run --command commit 2>/dev/null)
+  case "$provider" in
+    opencode)
+      msg=$(opencode run --model "$model" -- "$(cat $tmpfile)" 2>/dev/null)
+      ;;
+    claude)
+      msg=$(claude --print "$(cat $tmpfile)" 2>/dev/null)
+      ;;
+    crush)
+      msg=$(crush "$(cat $tmpfile)" 2>/dev/null)
+      ;;
+    copilot)
+      msg=$(gh copilot explain "$(cat $tmpfile)" 2>/dev/null)
+      ;;
+    *)
+      echo "gcm: unknown provider '$provider'. Available: opencode, claude, crush, copilot" >&2
+      rm -f "$tmpfile"
+      return 1
+      ;;
+  esac
+
+  rm -f "$tmpfile"
+  trap - EXIT INT
 
   if [[ -z "$msg" ]]; then
     echo "gcm: failed to generate commit message" >&2

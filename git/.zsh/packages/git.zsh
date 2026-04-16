@@ -651,6 +651,7 @@ except Exception:
 
   # Execute each selected commit in order
   local created=0
+  local accepted_indices=()
   for (( i=1; i<=commit_count; i++ )); do
     local line="${display_lines[$i]}"
     if ! echo "$selected" | grep -qF "$line"; then
@@ -665,11 +666,42 @@ except Exception:
     echo "$cfiles" | xargs git add
     git commit -m "$cmsg"
     (( created++ ))
+    accepted_indices+=($idx)
   done
 
   echo ""
   gum style --foreground 212 --bold "✓ ${created} commit(s) created"
 
-  # Invalidate cache — committed changes are no longer pending
-  rm -f "$cache_hash_file" "$cache_json_file"
+  # Update cache: keep remaining (unaccepted) commits so next sgc run reuses them
+  local remaining_json
+  remaining_json=$(python3 -c "
+import json, sys
+accepted = set(map(int, sys.argv[1:]))
+data = json.loads(sys.stdin.read())
+remaining = [d for i, d in enumerate(data) if i not in accepted]
+print(json.dumps(remaining))
+" "${accepted_indices[@]}" <<< "$json" 2>/dev/null)
+
+  if [[ -n "$remaining_json" ]] && python3 -c "import json,sys; d=json.loads(sys.stdin.read()); sys.exit(0 if len(d)>0 else 1)" <<< "$remaining_json" 2>/dev/null; then
+    # Recompute hash based on current working tree state (post-commit)
+    local new_status new_diff new_untracked new_hash
+    new_status=$(git status --short)
+    new_diff=$(git diff 2>/dev/null | _gc_compress_diff)
+    new_untracked=""
+    local new_untracked_files
+    new_untracked_files=$(git ls-files --others --exclude-standard)
+    if [[ -n "$new_untracked_files" ]]; then
+      while IFS= read -r f; do
+        new_untracked+="=== NEW FILE: ${f} ===\n$(cat "$f" 2>/dev/null)\n\n"
+      done <<< "$new_untracked_files"
+    fi
+    new_hash=$(printf '%s\0%s\0%s' "$new_status" "$new_diff" "$new_untracked" \
+      | md5sum | cut -d' ' -f1)
+    mkdir -p "$cache_dir"
+    printf '%s' "$new_hash"       > "$cache_hash_file"
+    printf '%s' "$remaining_json" > "$cache_json_file"
+  else
+    # All commits accepted — invalidate cache fully
+    rm -f "$cache_hash_file" "$cache_json_file"
+  fi
 }

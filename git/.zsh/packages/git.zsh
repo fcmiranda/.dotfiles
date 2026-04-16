@@ -430,6 +430,331 @@ print('\n'.join(out))
 PYEOF
 }
 
+# _gc_load_commitlint_rules — parse commitlint config in the current repo root
+#
+# Searches for (in order):
+#   .commitlintrc  .commitlintrc.json  .commitlintrc.yml  .commitlintrc.yaml
+#   .commitlintrc.js  commitlint.config.js  commitlint.config.ts
+#   commitlint.config.cjs  commitlint.config.mjs
+#
+# Extracts: type-enum, scope-enum, subject-max-length / header-max-length,
+#           scope-case, subject-case rules and prints them as human-readable
+#           constraint lines ready to append to the AI prompt.
+#
+# Outputs nothing (silently) when no config is found or no relevant rules exist.
+_gc_load_commitlint_rules() {
+  local git_root
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  [[ -z "$git_root" ]] && return
+
+  python3 << PYEOF
+import os, sys, json, re
+
+root = "$git_root"
+
+# ── 1. Locate config file ────────────────────────────────────────────────────
+candidates = [
+    ".commitlintrc",
+    ".commitlintrc.json",
+    ".commitlintrc.yml",
+    ".commitlintrc.yaml",
+    ".commitlintrc.js",
+    ".commitlintrc.cjs",
+    "commitlint.config.js",
+    "commitlint.config.ts",
+    "commitlint.config.cjs",
+    "commitlint.config.mjs",
+]
+config_file = None
+for c in candidates:
+    p = os.path.join(root, c)
+    if os.path.isfile(p):
+        config_file = p
+        break
+
+# Also check package.json commitlint key
+if config_file is None:
+    pkg = os.path.join(root, "package.json")
+    if os.path.isfile(pkg):
+        try:
+            with open(pkg) as f:
+                pkg_data = json.load(f)
+            if "commitlint" in pkg_data:
+                config_file = pkg
+        except Exception:
+            pass
+
+if config_file is None:
+    sys.exit(0)
+
+# ── 2. Parse config ──────────────────────────────────────────────────────────
+rules = {}
+
+def parse_json_or_yaml(text):
+    # Try JSON first
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+    # Minimal YAML: handle simple key: value and key: [list] structures
+    # (avoids requiring PyYAML which may not be installed)
+    try:
+        import yaml
+        return yaml.safe_load(text)
+    except ImportError:
+        pass
+    # Hand-rolled fallback for common commitlintrc YAML patterns
+    data = {}
+    current_key = None
+    list_items = []
+    in_list = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.startswith("- ") and in_list:
+            list_items.append(stripped[2:].strip().strip("'\""))
+            continue
+        if ":" in stripped:
+            if in_list and current_key:
+                data[current_key] = list_items
+            in_list = False
+            k, _, v = stripped.partition(":")
+            k = k.strip()
+            v = v.strip()
+            if v == "":
+                current_key = k
+                list_items = []
+                in_list = True
+            else:
+                data[k] = v
+    if in_list and current_key:
+        data[current_key] = list_items
+    return data
+
+ext = os.path.splitext(config_file)[1].lower()
+with open(config_file) as f:
+    raw = f.read()
+
+config_data = {}
+if config_file.endswith("package.json"):
+    try:
+        config_data = json.loads(raw).get("commitlint", {})
+    except Exception:
+        pass
+elif ext in (".json", "") :
+    config_data = parse_json_or_yaml(raw)
+elif ext in (".yml", ".yaml"):
+    config_data = parse_json_or_yaml(raw)
+elif ext in (".js", ".ts", ".cjs", ".mjs"):
+    # Extract rules object from JS/TS with regex — handles:
+    #   module.exports = { rules: { ... } }
+    #   export default { rules: { ... } }
+    # We find the "rules" key and try to parse the JSON-like value
+    m = re.search(r'rules\s*:\s*(\{[^}]+\})', raw, re.DOTALL)
+    if m:
+        # Normalise JS object to JSON: quote unquoted keys, fix trailing commas
+        js_obj = m.group(1)
+        js_obj = re.sub(r'(\w[\w-]*)\s*:', r'"\1":', js_obj)       # quote keys
+        js_obj = re.sub(r',\s*\}', '}', js_obj)                     # trailing comma
+        js_obj = re.sub(r',\s*\]', ']', js_obj)
+        try:
+            config_data = {"rules": json.loads(js_obj)}
+        except Exception:
+            pass
+
+rules = config_data.get("rules", {})
+if not rules:
+    sys.exit(0)
+
+# ── 3. Extract relevant constraints ─────────────────────────────────────────
+# Rule format: [level, 'always'|'never', value]   (level 2 = error, 1 = warn)
+lines = []
+
+def rule_val(r):
+    """Return (active, value) from a commitlint rule tuple/list."""
+    if not isinstance(r, (list, tuple)) or len(r) < 1:
+        return False, None
+    level = r[0] if len(r) >= 1 else 0
+    condition = r[1] if len(r) >= 2 else "always"
+    value = r[2] if len(r) >= 3 else None
+    if level == 0:
+        return False, None
+    return True, (value, condition)
+
+# type-enum
+active, val = rule_val(rules.get("type-enum", []))
+if active and val and isinstance(val[0], list):
+    condition = val[1]
+    types = val[0]
+    if condition == "always":
+        lines.append(f"- Valid commit types (enforced by commitlint): {', '.join(types)}")
+    elif condition == "never":
+        lines.append(f"- Forbidden commit types (enforced by commitlint): {', '.join(types)}")
+
+# scope-enum
+active, val = rule_val(rules.get("scope-enum", []))
+if active and val and isinstance(val[0], list) and val[0]:
+    condition = val[1]
+    scopes = val[0]
+    if condition == "always":
+        lines.append(f"- Valid scopes (enforced by commitlint): {', '.join(scopes)}")
+
+# subject / header max length
+for rule_name in ("header-max-length", "subject-max-length"):
+    active, val = rule_val(rules.get(rule_name, []))
+    if active and val and isinstance(val[0], int):
+        lines.append(f"- Keep the subject line under {val[0]} characters (enforced by commitlint)")
+        break  # one is enough
+
+# subject-case
+active, val = rule_val(rules.get("subject-case", []))
+if active and val:
+    cases, condition = val
+    if condition == "always":
+        c = cases if isinstance(cases, str) else (cases[0] if cases else None)
+        if c:
+            lines.append(f"- Subject must be {c} case (enforced by commitlint)")
+    elif condition == "never":
+        cs = cases if isinstance(cases, list) else [cases]
+        lines.append(f"- Subject must NOT be {', '.join(cs)} case (enforced by commitlint)")
+
+# scope-case
+active, val = rule_val(rules.get("scope-case", []))
+if active and val:
+    cases, condition = val
+    if condition == "always":
+        c = cases if isinstance(cases, str) else (cases[0] if cases else None)
+        if c:
+            lines.append(f"- Scope must be {c} case (enforced by commitlint)")
+
+if lines:
+    print("\n# Commitlint constraints (from project config — you MUST follow these):")
+    for l in lines:
+        print(l)
+PYEOF
+}
+
+# _gc_hook_script — emit the prepare-commit-msg hook body
+# The hook only fires when the commit message file is empty and it's not a
+# merge/squash/fixup commit — same guard opencommit uses.
+_gc_hook_script() {
+  cat << 'HOOKEOF'
+#!/usr/bin/env bash
+# gc-managed: prepare-commit-msg hook
+# Automatically generates a commit message via gc when no message is provided.
+# Remove this hook with: gc hook uninstall
+
+COMMIT_MSG_FILE="$1"
+COMMIT_SOURCE="$2"   # message | template | merge | squash | commit (amend)
+
+# Only run when the user hasn't supplied a message and it's not a special commit
+if [[ -n "$COMMIT_SOURCE" ]]; then
+  exit 0
+fi
+
+# Skip if the file already has a non-comment line (e.g. -t template)
+if grep -qE '^[^#]' "$COMMIT_MSG_FILE" 2>/dev/null; then
+  exit 0
+fi
+
+# Require staged changes
+if git diff --staged --quiet; then
+  exit 0
+fi
+
+# Load zsh environment so gc and its helpers are available
+if [[ -f "${HOME}/.zshrc" ]]; then
+  # Run gc in a zsh subshell; capture the generated message
+  msg=$(zsh -i -c 'source ~/.zshrc 2>/dev/null; gc' 2>/dev/null \
+    | grep -v '^$' | tail -n 1)
+fi
+
+if [[ -n "$msg" ]]; then
+  # Prepend the generated message (keep existing comments below)
+  existing=$(cat "$COMMIT_MSG_FILE")
+  printf '%s\n\n%s\n' "$msg" "$existing" > "$COMMIT_MSG_FILE"
+fi
+HOOKEOF
+}
+
+# gc hook — manage the prepare-commit-msg hook in the current repo
+#
+# Usage:
+#   gc hook install    # install hook into .git/hooks/prepare-commit-msg
+#   gc hook uninstall  # remove the gc-managed hook
+#   gc hook status     # show whether the hook is installed
+_gc_hook() {
+  local subcmd="$1"
+  local git_root hook_file
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$git_root" ]]; then
+    echo "gc hook: not inside a git repository" >&2
+    return 1
+  fi
+  hook_file="${git_root}/.git/hooks/prepare-commit-msg"
+
+  case "$subcmd" in
+    install)
+      if [[ -f "$hook_file" ]] && grep -q "gc-managed" "$hook_file" 2>/dev/null; then
+        echo "gc hook: already installed in this repository"
+        return 0
+      fi
+      if [[ -f "$hook_file" ]]; then
+        echo "gc hook: a prepare-commit-msg hook already exists — appending gc block"
+        printf '\n' >> "$hook_file"
+      fi
+      _gc_hook_script >> "$hook_file"
+      chmod +x "$hook_file"
+      echo "gc hook: installed → ${hook_file}"
+      ;;
+    uninstall)
+      if [[ ! -f "$hook_file" ]]; then
+        echo "gc hook: no hook file found"
+        return 0
+      fi
+      if ! grep -q "gc-managed" "$hook_file" 2>/dev/null; then
+        echo "gc hook: hook file exists but was not installed by gc — not touching it"
+        return 1
+      fi
+      # Remove everything from the gc-managed marker onwards
+      python3 - "$hook_file" << 'PYEOF'
+import sys
+path = sys.argv[1]
+with open(path) as f:
+    lines = f.readlines()
+# Find the gc-managed marker line
+marker = next((i for i, l in enumerate(lines) if "gc-managed" in l), None)
+if marker is None:
+    sys.exit(0)
+# Keep everything before the marker (strip trailing blank lines)
+kept = lines[:marker]
+while kept and kept[-1].strip() == "":
+    kept.pop()
+if kept:
+    with open(path, "w") as f:
+        f.writelines(kept)
+        f.write("\n")
+else:
+    import os
+    os.remove(path)
+PYEOF
+      echo "gc hook: uninstalled from ${hook_file}"
+      ;;
+    status)
+      if [[ -f "$hook_file" ]] && grep -q "gc-managed" "$hook_file" 2>/dev/null; then
+        echo "gc hook: installed → ${hook_file}"
+      else
+        echo "gc hook: not installed (run: gc hook install)"
+      fi
+      ;;
+    *)
+      echo "Usage: gc hook <install|uninstall|status>" >&2
+      return 1
+      ;;
+  esac
+}
+
 # gc — generate a conventional commit message from staged changes via AI
 #
 # Usage:
@@ -440,6 +765,9 @@ PYEOF
 #   gc -m github-copilot/gpt-4o # override model (opencode only)
 #   gc -g 3                     # generate 3 candidates to pick from
 #   gc -l es                    # generate message in Spanish (ISO 639-1)
+#   gc hook install             # install prepare-commit-msg hook in current repo
+#   gc hook uninstall           # remove the gc-managed hook
+#   gc hook status              # show hook installation status
 #
 # Env overrides:
 #   GC_PROVIDER=claude gc
@@ -447,6 +775,13 @@ PYEOF
 #
 # Pre-fills the zsh readline buffer with: git commit -m "<message>"
 gc() {
+  # Delegate hook subcommand
+  if [[ "$1" == "hook" ]]; then
+    shift
+    _gc_hook "$@"
+    return $?
+  fi
+
   local provider="${GC_PROVIDER:-opencode}"
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
   local generate=1
@@ -461,6 +796,7 @@ gc() {
       -l|--lang)     lang="$2";     shift 2 ;;
       -h|--help)
         echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang]"
+        echo "       gc hook <install|uninstall|status>"
         echo "  -g N      generate N candidate messages to pick from (default: 1)"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "Providers: opencode (default), claude, crush, copilot"
@@ -511,6 +847,10 @@ gc() {
   diff=$(git diff --staged | _gc_filter_diff_by_ignore "$ignore_tmpfile" | _gc_compress_diff)
   rm -f "$ignore_tmpfile"
 
+  # Commitlint constraints (empty string if no config found)
+  local commitlint_rules
+  commitlint_rules=$(_gc_load_commitlint_rules)
+
   # Language instruction (injected into rules if --lang is set)
   local lang_rule=""
   if [[ -n "$lang" ]]; then
@@ -527,7 +867,7 @@ Rules:
 - Keep each subject line under 72 characters
 - Each candidate must be meaningfully different (vary type, scope, or emphasis)
 - Output ONLY a valid JSON array of strings, no markdown fences, no explanation${lang_rule}
-
+${commitlint_rules}
 Example output: [\"feat(auth): add OAuth2 login\", \"feat: integrate OAuth2 provider\"]
 
 Staged diff:
@@ -541,7 +881,7 @@ Rules:
 - Keep the subject line under 72 characters
 - If the changes are complex, add a short body after a blank line explaining the why
 - Output ONLY the commit message, nothing else${lang_rule}
-
+${commitlint_rules}
 Staged diff:
 ${diff}"
   fi
@@ -686,6 +1026,10 @@ sgc() {
 
   rm -f "$ignore_tmpfile"
 
+  # Commitlint constraints (empty string if no config found)
+  local commitlint_rules
+  commitlint_rules=$(_gc_load_commitlint_rules)
+
   # Language instruction
   local lang_rule=""
   if [[ -n "$lang" ]]; then
@@ -699,7 +1043,7 @@ sgc() {
   cache_hash_file="${cache_dir}/last.hash"
   cache_json_file="${cache_dir}/last.json"
 
-  current_hash=$(printf '%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" \
+  current_hash=$(printf '%s\0%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" "$commitlint_rules" \
     | md5sum | cut -d' ' -f1)
 
   local json
@@ -725,7 +1069,7 @@ Rules:
 - Group related files into the same commit — each commit must be atomic and focused
 - A file must appear in exactly one commit
 - Output ONLY a valid JSON array, no markdown fences, no explanation${lang_rule}
-
+${commitlint_rules}
 Output format:
 [
   {\"message\": \"<conventional commit message>\", \"files\": [\"<relative/path>\"]},

@@ -44,7 +44,7 @@
       ]
     ],
     "scope-case": [2, "always", "lower-case"],
-    "subject-case": [2, "never", ["sentence-case", "start-case", "pascal-case", "upper-case"]],
+    "subject-case": [1, "never", ["pascal-case", "upper-case"]],
     "subject-max-length": [2, "always", 72],
     "subject-empty": [2, "never"],
     "subject-full-stop": [2, "never", "."],

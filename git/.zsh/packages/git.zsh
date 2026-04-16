@@ -755,6 +755,21 @@ PYEOF
   esac
 }
 
+# _gc_emoji_rule — returns the gitmoji instruction line to inject into prompts
+# Each conventional commit type maps to one canonical emoji.
+_gc_emoji_rule() {
+  cat << 'EOF'
+
+# Gitmoji (prepend ONE emoji to the subject, before the type):
+# feat       → ✨   fix        → 🐛   refactor   → ♻️
+# perf       → ⚡️   docs       → 📝   style      → 🎨
+# test       → 🧪   chore      → 🔧   ci         → 👷
+# build      → 📦   revert     → ⏪️   security   → 🔒️
+- Prepend exactly one gitmoji emoji to the subject line, matching the commit type (see map above)
+- Format: <emoji> <type>(<scope>): <description>   e.g. ✨ feat(gc): add emoji support
+EOF
+}
+
 # gc — generate a conventional commit message from staged changes via AI
 #
 # Usage:
@@ -765,6 +780,7 @@ PYEOF
 #   gc -m github-copilot/gpt-4o # override model (opencode only)
 #   gc -g 3                     # generate 3 candidates to pick from
 #   gc -l es                    # generate message in Spanish (ISO 639-1)
+#   gc -e                       # prefix message with a gitmoji emoji
 #   gc hook install             # install prepare-commit-msg hook in current repo
 #   gc hook uninstall           # remove the gc-managed hook
 #   gc hook status              # show hook installation status
@@ -772,6 +788,7 @@ PYEOF
 # Env overrides:
 #   GC_PROVIDER=claude gc
 #   GC_MODEL=github-copilot/gpt-5 gc
+#   GC_EMOJI=1 gc
 #
 # Pre-fills the zsh readline buffer with: git commit -m "<message>"
 gc() {
@@ -786,6 +803,7 @@ gc() {
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
   local generate=1
   local lang=""
+  local emoji="${GC_EMOJI:-0}"
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -794,11 +812,13 @@ gc() {
       -m|--model)    model="$2";    shift 2 ;;
       -g|--generate) generate="$2"; shift 2 ;;
       -l|--lang)     lang="$2";     shift 2 ;;
+      -e|--emoji)    emoji=1;       shift ;;
       -h|--help)
-        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang]"
+        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e]"
         echo "       gc hook <install|uninstall|status>"
         echo "  -g N      generate N candidate messages to pick from (default: 1)"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
+        echo "  -e        prefix commit message with a gitmoji emoji"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "gc: unknown option '$1'" >&2; return 1 ;;
@@ -857,6 +877,10 @@ gc() {
     lang_rule=$'\n'"- Write the commit message in the language with ISO 639-1 code: ${lang}"
   fi
 
+  # Emoji instruction
+  local emoji_rule=""
+  [[ "$emoji" == "1" ]] && emoji_rule=$(_gc_emoji_rule)
+
   local prompt
   if [[ "$generate" -gt 1 ]]; then
     prompt="Analyze the following staged git diff and generate ${generate} distinct, concise conventional commit message candidates.
@@ -867,6 +891,7 @@ Rules:
 - Keep each subject line under 72 characters
 - Each candidate must be meaningfully different (vary type, scope, or emphasis)
 - Output ONLY a valid JSON array of strings, no markdown fences, no explanation${lang_rule}
+${emoji_rule}
 ${commitlint_rules}
 Example output: [\"feat(auth): add OAuth2 login\", \"feat: integrate OAuth2 provider\"]
 
@@ -881,6 +906,7 @@ Rules:
 - Keep the subject line under 72 characters
 - If the changes are complex, add a short body after a blank line explaining the why
 - Output ONLY the commit message, nothing else${lang_rule}
+${emoji_rule}
 ${commitlint_rules}
 Staged diff:
 ${diff}"
@@ -966,14 +992,17 @@ except Exception:
 #   sgc -p claude                # use claude CLI
 #   sgc -m github-copilot/gpt-4o # override model (opencode only)
 #   sgc -l es                    # generate messages in Spanish (ISO 639-1)
+#   sgc -e                       # prefix messages with gitmoji emojis
 #
 # Env overrides:
 #   GC_PROVIDER=claude sgc
 #   GC_MODEL=github-copilot/gpt-5 sgc
+#   GC_EMOJI=1 sgc
 sgc() {
   local provider="${GC_PROVIDER:-opencode}"
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
   local lang=""
+  local emoji="${GC_EMOJI:-0}"
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -981,9 +1010,11 @@ sgc() {
       -p|--provider) provider="$2"; shift 2 ;;
       -m|--model)    model="$2";    shift 2 ;;
       -l|--lang)     lang="$2";     shift 2 ;;
+      -e|--emoji)    emoji=1;       shift ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model] [-l lang]"
+        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e]"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
+        echo "  -e        prefix commit messages with gitmoji emojis"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
@@ -1036,6 +1067,10 @@ sgc() {
     lang_rule=$'\n'"- Write all commit messages in the language with ISO 639-1 code: ${lang}"
   fi
 
+  # Emoji instruction
+  local emoji_rule=""
+  [[ "$emoji" == "1" ]] && emoji_rule=$(_gc_emoji_rule)
+
   # ── Cache: fingerprint the exact content the AI would analyse ──────────────
   local git_root cache_dir cache_hash_file cache_json_file current_hash
   git_root=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -1043,7 +1078,7 @@ sgc() {
   cache_hash_file="${cache_dir}/last.hash"
   cache_json_file="${cache_dir}/last.json"
 
-  current_hash=$(printf '%s\0%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" "$commitlint_rules" \
+  current_hash=$(printf '%s\0%s\0%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" "$commitlint_rules" "$emoji" \
     | md5sum | cut -d' ' -f1)
 
   local json
@@ -1069,6 +1104,7 @@ Rules:
 - Group related files into the same commit — each commit must be atomic and focused
 - A file must appear in exactly one commit
 - Output ONLY a valid JSON array, no markdown fences, no explanation${lang_rule}
+${emoji_rule}
 ${commitlint_rules}
 Output format:
 [

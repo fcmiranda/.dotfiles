@@ -1081,9 +1081,14 @@ sgc() {
   current_hash=$(printf '%s\0%s\0%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" "$commitlint_rules" "$emoji" \
     | md5sum | cut -d' ' -f1)
 
+  local stored_hash=""
+  [[ -f "$cache_hash_file" ]] && stored_hash=$(cat "$cache_hash_file")
+  gum style --faint "  debug: current=$current_hash"
+  gum style --faint "  debug: stored =$stored_hash"
+
   local json
   if [[ -f "$cache_hash_file" && -f "$cache_json_file" ]] \
-      && [[ "$(cat "$cache_hash_file")" == "$current_hash" ]]; then
+      && [[ "$stored_hash" == "$current_hash" ]]; then
     gum style --faint "↩ using cached commit plan (no changes since last run)"
     json=$(cat "$cache_json_file")
   else
@@ -1253,8 +1258,12 @@ print(json.dumps(remaining))
     fi
     rm -f "$new_ignore_tmpfile"
 
-    new_hash=$(printf '%s\0%s\0%s\0%s' "$new_status" "$new_diff" "$new_untracked" "$lang" \
+    new_hash=$(printf '%s\0%s\0%s\0%s\0%s\0%s' "$new_status" "$new_diff" "$new_untracked" "$lang" "$commitlint_rules" "$emoji" \
       | md5sum | cut -d' ' -f1)
+    gum style --faint "  debug: saving new_hash=$new_hash"
+    gum style --faint "  debug: new_status=$(printf '%s' "$new_status" | head -c 80 | tr '\n' '|')"
+    gum style --faint "  debug: new_diff=$(printf '%s' "$new_diff" | head -c 80 | tr '\n' '|')"
+    gum style --faint "  debug: new_untracked=$(printf '%s' "$new_untracked" | head -c 80 | tr '\n' '|')"
     mkdir -p "$cache_dir"
     printf '%s' "$new_hash"       > "$cache_hash_file"
     printf '%s' "$remaining_json" > "$cache_json_file"

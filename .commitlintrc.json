@@ -1,0 +1,55 @@
+{
+  "rules": {
+    "type-enum": [
+      2,
+      "always",
+      [
+        "feat",
+        "fix",
+        "refactor",
+        "chore",
+        "docs",
+        "style",
+        "test",
+        "perf",
+        "ci",
+        "build"
+      ]
+    ],
+    "scope-enum": [
+      2,
+      "always",
+      [
+        "gc",
+        "sgc",
+        "git",
+        "zsh",
+        "tmux",
+        "nvim",
+        "hypr",
+        "waybar",
+        "ghostty",
+        "starship",
+        "yazi",
+        "sesh",
+        "fzf",
+        "atuin",
+        "walker",
+        "mako",
+        "kanshi",
+        "fonts",
+        "stow",
+        "shell",
+        "deps"
+      ]
+    ],
+    "scope-case": [2, "always", "lower-case"],
+    "subject-case": [2, "never", ["sentence-case", "start-case", "pascal-case", "upper-case"]],
+    "subject-max-length": [2, "always", 72],
+    "subject-empty": [2, "never"],
+    "subject-full-stop": [2, "never", "."],
+    "type-case": [2, "always", "lower-case"],
+    "type-empty": [2, "never"],
+    "header-max-length": [2, "always", 72]
+  }
+}

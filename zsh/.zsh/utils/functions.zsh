@@ -2,9 +2,10 @@
 # Dotfiles Helper Functions
 # ─────────────────────────────────────────────────────────────────────────────
 
-# gcm — AI-generated commit message via opencode run (free model)
-# Generates a conventional commit message from staged changes and
-# pre-fills the shell prompt with: git commit -m "<message>"
+# gcm — AI-generated commit message via opencode /commit slash command
+# Triggers the custom /commit command non-interactively using opencode run.
+# The /commit command reads git diff --staged internally (no args passed).
+# Pre-fills the shell prompt with: git commit -m "<message>"
 # Usage: git add <files> && gcm
 gcm() {
   if git diff --staged --quiet; then
@@ -12,27 +13,10 @@ gcm() {
     return 1
   fi
 
-  local diff
-  diff=$(git diff --staged)
-
   echo "gcm: generating commit message..." >&2
 
-  # Build prompt as a variable and pass with -- to stop opencode from
-  # treating diff content (lines like "-m ...") as CLI flags.
-  local prompt="Analyze the following staged git diff and generate a concise, conventional commit message.
-
-Rules:
-- Use the conventional commits format: \`<type>(<optional scope>): <description>\`
-- Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
-- Keep the subject line under 72 characters
-- If the changes are complex, add a short body after a blank line explaining the why
-- Output ONLY the commit message, nothing else
-
-Staged diff:
-${diff}"
-
   local msg
-  msg=$(opencode run --model opencode/gpt-5-nano -- "$prompt" 2>/dev/null)
+  msg=$(opencode run --command commit 2>/dev/null)
 
   if [[ -z "$msg" ]]; then
     echo "gcm: failed to generate commit message" >&2

@@ -523,7 +523,23 @@ sgc() {
     done <<< "$untracked_files"
   fi
 
-  local prompt="You are a git expert. Analyze the following unstaged and untracked changes and group them into logical, atomic conventional commits.
+  # ── Cache: fingerprint the exact content the AI would analyse ──────────────
+  local git_root cache_dir cache_hash_file cache_json_file current_hash
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/sgc/$(echo "$git_root" | md5sum | cut -d' ' -f1)"
+  cache_hash_file="${cache_dir}/last.hash"
+  cache_json_file="${cache_dir}/last.json"
+
+  current_hash=$(printf '%s\0%s\0%s' "$status_output" "$diff_content" "$untracked_content" \
+    | md5sum | cut -d' ' -f1)
+
+  local json
+  if [[ -f "$cache_hash_file" && -f "$cache_json_file" ]] \
+      && [[ "$(cat "$cache_hash_file")" == "$current_hash" ]]; then
+    gum style --faint "↩ using cached commit plan (no changes since last run)"
+    json=$(cat "$cache_json_file")
+  else
+    local prompt="You are a git expert. Analyze the following unstaged and untracked changes and group them into logical, atomic conventional commits.
 
 Git status:
 ${status_output}
@@ -547,32 +563,31 @@ Output format:
   ...
 ]"
 
-  local tmpfile
-  tmpfile=$(mktemp /tmp/sgc.XXXXXX)
-  printf '%s' "$prompt" > "$tmpfile"
-  trap "rm -f $tmpfile" EXIT INT
+    local tmpfile
+    tmpfile=$(mktemp /tmp/sgc.XXXXXX)
+    printf '%s' "$prompt" > "$tmpfile"
+    trap "rm -f $tmpfile" EXIT INT
 
-  local raw
-  raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c "
-    case '$provider' in
-      opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
-      claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
-      crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
-      copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;
-    esac
-  ")
+    local raw
+    raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c "
+      case '$provider' in
+        opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
+        claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
+        crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
+        copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      esac
+    ")
 
-  rm -f "$tmpfile"
-  trap - EXIT INT
+    rm -f "$tmpfile"
+    trap - EXIT INT
 
-  if [[ -z "$raw" ]]; then
-    echo "sgc: failed to get response from AI" >&2
-    return 1
-  fi
+    if [[ -z "$raw" ]]; then
+      echo "sgc: failed to get response from AI" >&2
+      return 1
+    fi
 
-  # Extract JSON array robustly (strip markdown fences if present)
-  local json
-  json=$(python3 -c "
+    # Extract JSON array robustly (strip markdown fences if present)
+    json=$(python3 -c "
 import json, re, sys
 raw = sys.stdin.read()
 m = re.search(r'\[.*\]', raw, re.DOTALL)
@@ -585,10 +600,16 @@ except Exception:
     sys.exit(1)
 " <<< "$raw" 2>/dev/null)
 
-  if [[ -z "$json" ]]; then
-    echo "sgc: could not parse AI response as JSON" >&2
-    echo "$raw" >&2
-    return 1
+    if [[ -z "$json" ]]; then
+      echo "sgc: could not parse AI response as JSON" >&2
+      echo "$raw" >&2
+      return 1
+    fi
+
+    # Save to cache
+    mkdir -p "$cache_dir"
+    printf '%s' "$current_hash" > "$cache_hash_file"
+    printf '%s' "$json"         > "$cache_json_file"
   fi
 
   local commit_count
@@ -648,4 +669,7 @@ except Exception:
 
   echo ""
   gum style --foreground 212 --bold "✓ ${created} commit(s) created"
+
+  # Invalidate cache — committed changes are no longer pending
+  rm -f "$cache_hash_file" "$cache_json_file"
 }

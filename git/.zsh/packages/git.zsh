@@ -307,7 +307,9 @@ _gc_load_ignore_patterns() {
 # Uses python3 fnmatch so patterns behave like .gitignore globs (basename + full path match).
 _gc_filter_ignored_files() {
   local patterns_file="$1"
-  python3 - "$patterns_file" << 'PYEOF'
+  local py_script
+  py_script=$(mktemp /tmp/sgc-filter.XXXXXX.py)
+  cat > "$py_script" << 'PYEOF'
 import sys, fnmatch, os
 
 patterns_file = sys.argv[1]
@@ -324,12 +326,16 @@ for line in sys.stdin:
     if not ignored:
         print(path)
 PYEOF
+  python3 "$py_script" "$patterns_file"
+  rm -f "$py_script"
 }
 
 # _gc_filter_diff_by_ignore PATTERNS_FILE — filter a unified diff, dropping ignored files' hunks
 _gc_filter_diff_by_ignore() {
   local patterns_file="$1"
-  python3 - "$patterns_file" << 'PYEOF'
+  local py_script
+  py_script=$(mktemp /tmp/sgc-filter.XXXXXX.py)
+  cat > "$py_script" << 'PYEOF'
 import sys, fnmatch, os, re
 
 patterns_file = sys.argv[1]
@@ -348,6 +354,8 @@ for line in sys.stdin:
     if not skip:
         sys.stdout.write(line)
 PYEOF
+  python3 "$py_script" "$patterns_file"
+  rm -f "$py_script"
 }
 
 # _gc_compress_diff — reduce diff token count while preserving AI signal
@@ -1083,9 +1091,6 @@ sgc() {
 
   local stored_hash=""
   [[ -f "$cache_hash_file" ]] && stored_hash=$(cat "$cache_hash_file")
-  gum style --faint "  debug: current=$current_hash"
-  gum style --faint "  debug: stored =$stored_hash"
-
   local json
   if [[ -f "$cache_hash_file" && -f "$cache_json_file" ]] \
       && [[ "$stored_hash" == "$current_hash" ]]; then
@@ -1260,10 +1265,6 @@ print(json.dumps(remaining))
 
     new_hash=$(printf '%s\0%s\0%s\0%s\0%s\0%s' "$new_status" "$new_diff" "$new_untracked" "$lang" "$commitlint_rules" "$emoji" \
       | md5sum | cut -d' ' -f1)
-    gum style --faint "  debug: saving new_hash=$new_hash"
-    gum style --faint "  debug: new_status=$(printf '%s' "$new_status" | head -c 80 | tr '\n' '|')"
-    gum style --faint "  debug: new_diff=$(printf '%s' "$new_diff" | head -c 80 | tr '\n' '|')"
-    gum style --faint "  debug: new_untracked=$(printf '%s' "$new_untracked" | head -c 80 | tr '\n' '|')"
     mkdir -p "$cache_dir"
     printf '%s' "$new_hash"       > "$cache_hash_file"
     printf '%s' "$remaining_json" > "$cache_json_file"

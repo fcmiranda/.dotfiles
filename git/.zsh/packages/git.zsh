@@ -28,7 +28,6 @@ alias gbr='git branch --remotes'
 # Checkout
 alias gco='git checkout'
 alias gcb='git checkout -b'
-alias gcm='git checkout main 2>/dev/null || git checkout master'
 alias gcd='git checkout develop'
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -41,7 +40,6 @@ alias gap='git add --patch'
 alias gai='git add --interactive'
 
 alias gc='git commit'
-alias gcm='git commit --message'
 alias gca='git commit --amend'
 alias gcan='git commit --amend --no-edit'
 alias gcf='git commit --fixup'
@@ -275,4 +273,33 @@ ginit() {
     git config push.default simple
     git config pull.rebase false
     echo "Git repository initialized with sensible defaults"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI Helpers (requires opencode)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# gcm — generate a conventional commit message from staged changes via AI
+# Uses opencode run --command commit (triggers the /commit slash command)
+# which reads git diff --staged internally via the github-copilot/gpt-4o model.
+# Pre-fills the zsh readline buffer with: git commit -m "<message>"
+# Usage: git add <files> && gcm
+gcm() {
+  if git diff --staged --quiet; then
+    echo "gcm: no staged changes — run 'git add' first" >&2
+    return 1
+  fi
+
+  echo "gcm: generating commit message..." >&2
+
+  local msg
+  msg=$(opencode run --command commit 2>/dev/null)
+
+  if [[ -z "$msg" ]]; then
+    echo "gcm: failed to generate commit message" >&2
+    return 1
+  fi
+
+  echo "$msg"
+  print -z "git commit -m ${(q)msg}"
 }

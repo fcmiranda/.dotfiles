@@ -2,32 +2,6 @@
 # Dotfiles Helper Functions
 # ─────────────────────────────────────────────────────────────────────────────
 
-# gcm — AI-generated commit message via opencode /commit slash command
-# Triggers the custom /commit command non-interactively using opencode run.
-# The /commit command reads git diff --staged internally (no args passed).
-# Pre-fills the shell prompt with: git commit -m "<message>"
-# Usage: git add <files> && gcm
-gcm() {
-  if git diff --staged --quiet; then
-    echo "gcm: no staged changes — run 'git add' first" >&2
-    return 1
-  fi
-
-  echo "gcm: generating commit message..." >&2
-
-  local msg
-  msg=$(opencode run --command commit 2>/dev/null)
-
-  if [[ -z "$msg" ]]; then
-    echo "gcm: failed to generate commit message" >&2
-    return 1
-  fi
-
-  echo "$msg"
-  # Pre-fill the zsh readline buffer so the user just hits Enter
-  print -z "git commit -m ${(q)msg}"
-}
-
 # dotadd - Copy current directory contents to dotfiles with proper stow structure
 # Usage: dotadd <package-name> [files...]
 #   If no files specified, copies all files in current directory

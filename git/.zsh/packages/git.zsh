@@ -368,5 +368,5 @@ ${diff}"
   fi
 
   echo "$msg"
-  print -z "git commit -m ${(q)msg}"
+  print -z "git commit -m ${(qq)msg}"
 }

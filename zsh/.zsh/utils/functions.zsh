@@ -17,12 +17,9 @@ gcm() {
 
   echo "gcm: generating commit message..." >&2
 
-  # Write prompt to temp file to avoid shell argument parsing issues
-  # (diff lines like "-m ..." would be misinterpreted as CLI flags)
-  local tmpfile
-  tmpfile=$(mktemp /tmp/gcm-prompt.XXXXXX.md)
-  cat > "$tmpfile" <<EOF
-Analyze the following staged git diff and generate a concise, conventional commit message.
+  # Build prompt as a variable and pass with -- to stop opencode from
+  # treating diff content (lines like "-m ...") as CLI flags.
+  local prompt="Analyze the following staged git diff and generate a concise, conventional commit message.
 
 Rules:
 - Use the conventional commits format: \`<type>(<optional scope>): <description>\`
@@ -32,13 +29,10 @@ Rules:
 - Output ONLY the commit message, nothing else
 
 Staged diff:
-${diff}
-EOF
+${diff}"
 
   local msg
-  msg=$(opencode run --model opencode/gpt-5-nano --file "$tmpfile" \
-    "Generate a commit message from the attached diff following the rules in the file." 2>/dev/null)
-  rm -f "$tmpfile"
+  msg=$(opencode run --model opencode/gpt-5-nano -- "$prompt" 2>/dev/null)
 
   if [[ -z "$msg" ]]; then
     echo "gcm: failed to generate commit message" >&2

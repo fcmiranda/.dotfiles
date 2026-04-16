@@ -310,8 +310,36 @@ gc() {
   done
 
   if git diff --staged --quiet; then
-    echo "gc: no staged changes — run 'git add' first" >&2
-    return 1
+    # No staged changes — check for unstaged/untracked files
+    local unstaged
+    unstaged=$(git -c color.status=always status --short | grep -v '^[MADRCU]')
+    if [[ -z "$unstaged" ]]; then
+      echo "gc: nothing to commit — working tree clean" >&2
+      return 1
+    fi
+
+    local choice
+    choice=$(gum choose "Add all files" "Select files")
+
+    case "$choice" in
+      "Add all files")
+        git add --all
+        ;;
+      "Select files")
+        local selected
+        selected=$(git status --short | grep -v '^[MADRCU]' | awk '{print $2}' \
+          | gum filter --no-limit --placeholder "select files to stage…")
+        if [[ -z "$selected" ]]; then
+          echo "gc: no files selected" >&2
+          return 1
+        fi
+        echo "$selected" | xargs git add
+        ;;
+      *)
+        echo "gc: aborted" >&2
+        return 1
+        ;;
+    esac
   fi
 
   local diff

@@ -39,7 +39,7 @@ alias gaa='git add --all'
 alias gap='git add --patch'
 alias gai='git add --interactive'
 
-alias gcbare='git commit'
+alias gc='git commit'
 alias gca='git commit --amend'
 alias gcan='git commit --amend --no-edit'
 alias gcf='git commit --fixup'
@@ -279,22 +279,21 @@ ginit() {
 # AI Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-# gc — generate a conventional commit message from staged changes via AI
+# gaic — generate a conventional commit message from staged changes via AI
 #
 # Usage:
-#   gc                          # uses default provider (opencode)
-#   gc -p claude                # use claude CLI
-#   gc -p crush                 # use crush CLI
-#   gc -p copilot               # use gh copilot CLI
-#   gc -m github-copilot/gpt-4o # override model (opencode only)
+#   gaic                          # uses default provider (opencode)
+#   gaic -p claude                # use claude CLI
+#   gaic -p crush                 # use crush CLI
+#   gaic -p copilot               # use gh copilot CLI
+#   gaic -m github-copilot/gpt-4o # override model (opencode only)
 #
 # Env overrides:
-#   GC_PROVIDER=claude gc
-#   GC_MODEL=github-copilot/gpt-5 gc
+#   GC_PROVIDER=claude gaic
+#   GC_MODEL=github-copilot/gpt-5 gaic
 #
-# Fallback: gcbare = plain 'git commit' (opens editor)
 # Pre-fills the zsh readline buffer with: git commit -m "<message>"
-gc() {
+gaic() {
   local provider="${GC_PROVIDER:-opencode}"
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
 
@@ -304,16 +303,15 @@ gc() {
       -p|--provider) provider="$2"; shift 2 ;;
       -m|--model)    model="$2";    shift 2 ;;
       -h|--help)
-        echo "Usage: gc [-p provider] [-m model]"
+        echo "Usage: gaic [-p provider] [-m model]"
         echo "Providers: opencode (default), claude, crush, copilot"
-        echo "Tip: use 'gcbare' to open git commit editor directly"
         return 0 ;;
-      *) echo "gc: unknown option '$1'" >&2; return 1 ;;
+      *) echo "gaic: unknown option '$1'" >&2; return 1 ;;
     esac
   done
 
   if git diff --staged --quiet; then
-    echo "gc: no staged changes — run 'git add' first" >&2
+    echo "gaic: no staged changes — run 'git add' first" >&2
     return 1
   fi
 
@@ -334,11 +332,11 @@ ${diff}"
 
   # Write to tempfile — avoids diff lines (e.g. '-m ...') being parsed as CLI flags
   local tmpfile
-  tmpfile=$(mktemp /tmp/gc.XXXXXX)
+  tmpfile=$(mktemp /tmp/gaic.XXXXXX)
   printf '%s' "$prompt" > "$tmpfile"
   trap "rm -f $tmpfile" EXIT INT
 
-  echo "gc: generating via ${provider}..." >&2
+  echo "gaic: generating via ${provider}..." >&2
 
   local msg
   case "$provider" in
@@ -355,7 +353,7 @@ ${diff}"
       msg=$(gh copilot explain "$(cat $tmpfile)" 2>/dev/null)
       ;;
     *)
-      echo "gc: unknown provider '$provider'. Available: opencode, claude, crush, copilot" >&2
+      echo "gaic: unknown provider '$provider'. Available: opencode, claude, crush, copilot" >&2
       rm -f "$tmpfile"
       return 1
       ;;
@@ -365,7 +363,7 @@ ${diff}"
   trap - EXIT INT
 
   if [[ -z "$msg" ]]; then
-    echo "gc: failed to generate commit message" >&2
+    echo "gaic: failed to generate commit message" >&2
     return 1
   fi
 

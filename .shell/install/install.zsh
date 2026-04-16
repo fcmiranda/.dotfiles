@@ -34,6 +34,7 @@ install_packages \
     crush-bin \
     hugo \
     cava \
+    bun \
     mpv-wallpaper \
     bibata-cursor-theme-bin \
     upscayl-bin \

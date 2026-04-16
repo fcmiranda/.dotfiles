@@ -278,6 +278,86 @@ ginit() {
 # AI Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
+# _gc_compress_diff — reduce diff token count while preserving AI signal
+#
+# What is stripped (zero/minimal impact on commit message quality):
+#   - "index abc..def" lines          — git object hashes, useless to AI
+#   - "old mode / new mode" lines     — file permission metadata
+#   - Binary file notices             — replaced with a short note
+#   - Unchanged context lines         — reduced from 3 to 1 per hunk
+#
+# What is preserved (critical for AI analysis):
+#   - "--- a/file" / "+++ b/file"     — filenames drive scope detection
+#   - All "+" / "-" lines             — the actual changes
+#   - Hunk headers "@@ ... @@"        — structural context
+#   - Truncation markers              — AI knows when diff was capped
+#
+# Large hunks (>80 changed lines) are capped and annotated so the AI
+# knows content was omitted rather than seeing a silently incomplete diff.
+_gc_compress_diff() {
+  python3 << 'PYEOF'
+import sys, re
+
+MAX_CHANGED_LINES = 80  # per hunk before truncating
+
+lines = sys.stdin.read().splitlines()
+out = []
+i = 0
+while i < len(lines):
+    line = lines[i]
+
+    # Strip index / mode metadata
+    if re.match(r'^index [0-9a-f]+\.\.[0-9a-f]+', line) or \
+       re.match(r'^(old|new) mode ', line) or \
+       re.match(r'^deleted file mode ', line) or \
+       re.match(r'^new file mode ', line):
+        i += 1
+        continue
+
+    # Collapse binary notices
+    if re.match(r'^Binary files ', line):
+        m = re.match(r'^Binary files (.+) and (.+) differ', line)
+        if m:
+            out.append(f'Binary file changed: {m.group(1)}')
+        i += 1
+        continue
+
+    # At a hunk header — collect the hunk, strip extra context, cap if huge
+    if line.startswith('@@'):
+        out.append(line)
+        i += 1
+        hunk_changed = 0
+        hunk_ctx_streak = 0
+        truncated = False
+        while i < len(lines) and not lines[i].startswith('@@') and \
+              not lines[i].startswith('diff '):
+            l = lines[i]
+            if l.startswith('+') or l.startswith('-'):
+                hunk_changed += 1
+                hunk_ctx_streak = 0
+                if hunk_changed > MAX_CHANGED_LINES:
+                    truncated = True
+                    i += 1
+                    continue
+                out.append(l)
+            else:
+                # context line — keep only 1 per streak to reduce noise
+                hunk_ctx_streak += 1
+                if hunk_ctx_streak <= 1 and not truncated:
+                    out.append(l)
+            i += 1
+        if truncated:
+            skipped = hunk_changed - MAX_CHANGED_LINES
+            out.append(f' [... {skipped} lines truncated for brevity ...]')
+        continue
+
+    out.append(line)
+    i += 1
+
+print('\n'.join(out))
+PYEOF
+}
+
 # gc — generate a conventional commit message from staged changes via AI
 #
 # Usage:
@@ -343,7 +423,7 @@ gc() {
   fi
 
   local diff
-  diff=$(git diff --staged)
+  diff=$(git diff --staged | _gc_compress_diff)
 
   local prompt="Analyze the following staged git diff and generate a concise, conventional commit message.
 
@@ -393,4 +473,179 @@ ${diff}"
 
   echo "$msg"
   print -z "git commit -m ${(qq)msg}"
+}
+
+# sgc — smart AI commit: analyzes ALL unstaged changes, groups them into
+#        logical atomic commits, lets you pick which ones to run
+#
+# Usage:
+#   sgc                          # uses default provider (opencode)
+#   sgc -p claude                # use claude CLI
+#   sgc -m github-copilot/gpt-4o # override model (opencode only)
+#
+# Env overrides:
+#   GC_PROVIDER=claude sgc
+#   GC_MODEL=github-copilot/gpt-5 sgc
+sgc() {
+  local provider="${GC_PROVIDER:-opencode}"
+  local model="${GC_MODEL:-github-copilot/gpt-4o}"
+
+  # Parse flags
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p|--provider) provider="$2"; shift 2 ;;
+      -m|--model)    model="$2";    shift 2 ;;
+      -h|--help)
+        echo "Usage: sgc [-p provider] [-m model]"
+        echo "Providers: opencode (default), claude, crush, copilot"
+        return 0 ;;
+      *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
+    esac
+  done
+
+  # Collect unstaged/untracked files
+  local status_output
+  status_output=$(git status --short)
+  if [[ -z "$status_output" ]]; then
+    echo "sgc: nothing to commit — working tree clean" >&2
+    return 1
+  fi
+
+  # Build full context: unstaged diffs + untracked file contents
+  local diff_content untracked_content
+  diff_content=$(git diff 2>/dev/null | _gc_compress_diff)
+
+  local untracked_files
+  untracked_files=$(git ls-files --others --exclude-standard)
+  if [[ -n "$untracked_files" ]]; then
+    while IFS= read -r f; do
+      untracked_content+="=== NEW FILE: ${f} ===\n$(cat "$f" 2>/dev/null)\n\n"
+    done <<< "$untracked_files"
+  fi
+
+  local prompt="You are a git expert. Analyze the following unstaged and untracked changes and group them into logical, atomic conventional commits.
+
+Git status:
+${status_output}
+
+Unstaged diffs:
+${diff_content}
+
+New untracked files:
+${untracked_content}
+
+Rules:
+- Use conventional commits format: <type>(<optional scope>): <description>
+- Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
+- Group related files into the same commit — each commit must be atomic and focused
+- A file must appear in exactly one commit
+- Output ONLY a valid JSON array, no markdown fences, no explanation
+
+Output format:
+[
+  {\"message\": \"<conventional commit message>\", \"files\": [\"<relative/path>\"]},
+  ...
+]"
+
+  local tmpfile
+  tmpfile=$(mktemp /tmp/sgc.XXXXXX)
+  printf '%s' "$prompt" > "$tmpfile"
+  trap "rm -f $tmpfile" EXIT INT
+
+  local raw
+  raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c "
+    case '$provider' in
+      opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;
+    esac
+  ")
+
+  rm -f "$tmpfile"
+  trap - EXIT INT
+
+  if [[ -z "$raw" ]]; then
+    echo "sgc: failed to get response from AI" >&2
+    return 1
+  fi
+
+  # Extract JSON array robustly (strip markdown fences if present)
+  local json
+  json=$(python3 -c "
+import json, re, sys
+raw = sys.stdin.read()
+m = re.search(r'\[.*\]', raw, re.DOTALL)
+if not m:
+    sys.exit(1)
+try:
+    parsed = json.loads(m.group())
+    print(json.dumps(parsed))
+except Exception:
+    sys.exit(1)
+" <<< "$raw" 2>/dev/null)
+
+  if [[ -z "$json" ]]; then
+    echo "sgc: could not parse AI response as JSON" >&2
+    echo "$raw" >&2
+    return 1
+  fi
+
+  local commit_count
+  commit_count=$(python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" <<< "$json")
+
+  if [[ -z "$commit_count" || "$commit_count" -eq 0 ]]; then
+    echo "sgc: AI returned no commits" >&2
+    return 1
+  fi
+
+  # Build display lines: "feat(scope): msg  ← file1, file2"
+  local display_lines=()
+  local i msg files_str
+  for (( i=0; i<commit_count; i++ )); do
+    msg=$(python3 -c "import json,sys; d=json.loads(sys.stdin.read()); print(d[$i]['message'])" <<< "$json")
+    files_str=$(python3 -c "import json,sys; d=json.loads(sys.stdin.read()); print(', '.join(d[$i]['files']))" <<< "$json")
+    display_lines+=("${msg}  ← ${files_str}")
+  done
+
+  # Build --selected flags to pre-check all options
+  local selected_flags=()
+  for line in "${display_lines[@]}"; do
+    selected_flags+=(--selected "$line")
+  done
+
+  # Let user pick which commits to run (gum choose supports multi-select with space)
+  local selected
+  selected=$(printf '%s\n' "${display_lines[@]}" \
+    | gum choose --no-limit \
+        "${selected_flags[@]}" \
+        --header "Space to select commits · Enter to confirm" \
+        --cursor.foreground="212" \
+        --selected.foreground="212")
+
+  if [[ -z "$selected" ]]; then
+    echo "sgc: no commits selected — aborted" >&2
+    return 1
+  fi
+
+  # Execute each selected commit in order
+  local created=0
+  for (( i=1; i<=commit_count; i++ )); do
+    local line="${display_lines[$i]}"
+    if ! echo "$selected" | grep -qF "$line"; then
+      continue
+    fi
+
+    local idx=$(( i - 1 ))
+    local cmsg cfiles
+    cmsg=$(python3 -c "import json,sys; d=json.loads(sys.stdin.read()); print(d[$idx]['message'])" <<< "$json")
+    cfiles=$(python3 -c "import json,sys; d=json.loads(sys.stdin.read()); [print(f) for f in d[$idx]['files']]" <<< "$json")
+
+    echo "$cfiles" | xargs git add
+    git commit -m "$cmsg"
+    (( created++ ))
+  done
+
+  echo ""
+  gum style --foreground 212 --bold "✓ ${created} commit(s) created"
 }

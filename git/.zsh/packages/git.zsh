@@ -338,7 +338,7 @@ ${diff}"
 
   # Generate message with gum spinner
   local msg
-  msg=$(gum spin --spinner dot --title "gaic: generating via ${provider}..." -- sh -c "
+  msg=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c "
     case '$provider' in
       opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
       claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;

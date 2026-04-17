@@ -1131,76 +1131,132 @@ Rules:
 - Use conventional commits format: <type>(<optional scope>): <description>
 - Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
 - Group related files into the same commit — each commit must be atomic and focused
-- A file must appear in exactly one commit
-- Output ONLY a valid JSON array, no markdown fences, no explanation${lang_rule}
+- A file must appear in exactly one commit${lang_rule}
 ${emoji_rule}
 ${commitlint_rules}
-Output format:
+CRITICAL OUTPUT RULES — you MUST follow these exactly:
+- Output ONLY a raw JSON array. Nothing else. No explanation, no markdown, no code fences.
+- Use real double-quote characters (") — do NOT escape them as \" in your output.
+- Every object must have exactly two keys: "message" (string) and "files" (array of strings).
+
+Required output format (copy this structure exactly):
 [
-  {\"message\": \"<conventional commit message>\", \"files\": [\"<relative/path>\"]},
-  ...
+  {"message": "feat(scope): description", "files": ["path/to/file.ext"]},
+  {"message": "fix: another change", "files": ["other/file.ts", "another.ts"]}
 ]"
 
     local tmpfile
     tmpfile=$(mktemp /tmp/sgc.XXXXXX)
-    printf '%s' "$prompt" > "$tmpfile"
-    trap "rm -f $tmpfile" EXIT INT
 
-    local raw
-    if [[ "$debug" == "1" ]]; then
-      local prompt_bytes
-      prompt_bytes=$(wc -c < "$tmpfile" | tr -d ' ')
-      gum style --faint "debug: provider=$provider model=$model"
-      gum style --faint "debug: prompt written to $tmpfile ($prompt_bytes bytes)"
-      echo "--- prompt preview (first 500 chars) ---"
-      head -c 500 "$tmpfile"
-      echo ""
-      echo "--- running $provider (raw output) ---"
-      case "$provider" in
-        opencode) raw=$(opencode run --model "$model" -- "$prompt") ;;
-        claude)   raw=$(claude --print "$prompt") ;;
-        crush)    raw=$(crush "$prompt") ;;
-        copilot)  raw=$(gh copilot explain "$prompt") ;;
-      esac
-      echo "--- raw output ---"
-      echo "$raw"
-      echo "--- end ---"
-    else
-      raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c '
-        case "$1" in
-          opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
-          claude)   claude --print "$3" 2>/dev/null ;;
-          crush)    crush "$3" 2>/dev/null ;;
-          copilot)  gh copilot explain "$3" 2>/dev/null ;;
+    # Robust JSON parser/validator — written to a temp file to avoid heredoc stdin conflict
+    local parser_script
+    parser_script=$(mktemp /tmp/sgc-parser.XXXXXX.py)
+    cat > "$parser_script" << 'PYEOF'
+import json, re, sys
+
+def try_parse(text):
+    text = text.strip()
+    # Strip markdown fences
+    text = re.sub(r'^```(?:json)?\s*\n?', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\n?```\s*$', '', text, flags=re.MULTILINE)
+    text = text.strip()
+    # Find outermost JSON array
+    m = re.search(r'\[.*\]', text, re.DOTALL)
+    if not m:
+        return None
+    candidate = m.group()
+    parsed = None
+    for attempt in [candidate, candidate.replace('\\"', '"')]:
+        try:
+            parsed = json.loads(attempt)
+            break
+        except json.JSONDecodeError:
+            continue
+    if parsed is None:
+        return None
+    # Validate structure
+    if not isinstance(parsed, list) or not parsed:
+        return None
+    for item in parsed:
+        if not isinstance(item, dict):
+            return None
+        if not isinstance(item.get('message'), str) or not item['message'].strip():
+            return None
+        if not isinstance(item.get('files'), list) or not item['files']:
+            return None
+        if not all(isinstance(f, str) and f.strip() for f in item['files']):
+            return None
+    print(json.dumps(parsed))
+    return True
+
+if not try_parse(sys.stdin.read()):
+    sys.exit(1)
+PYEOF
+    trap "rm -f $tmpfile $parser_script" EXIT INT
+
+    local raw json attempt_num=0 max_attempts=3
+    local active_prompt="$prompt"
+
+    while [[ $attempt_num -lt $max_attempts ]]; do
+      attempt_num=$((attempt_num + 1))
+      printf '%s' "$active_prompt" > "$tmpfile"
+
+      if [[ "$debug" == "1" ]]; then
+        gum style --faint "debug: attempt $attempt_num/$max_attempts — provider=$provider model=$model prompt=$(wc -c < $tmpfile | tr -d ' ') bytes"
+        [[ $attempt_num -eq 1 ]] && { echo "--- prompt preview (first 500 chars) ---"; head -c 500 "$tmpfile"; echo ""; }
+        echo "--- running $provider ---"
+        case "$provider" in
+          opencode) raw=$(opencode run --model "$model" -- "$active_prompt") ;;
+          claude)   raw=$(claude --print "$active_prompt") ;;
+          crush)    raw=$(crush "$active_prompt") ;;
+          copilot)  raw=$(gh copilot explain "$active_prompt") ;;
         esac
-      ' _ "$provider" "$model" "$(< $tmpfile)")
-    fi
+        echo "--- raw output ---"; echo "$raw"; echo "---"
+      else
+        raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}… (attempt ${attempt_num}/${max_attempts})" -- sh -c '
+          case "$1" in
+            opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
+            claude)   claude --print "$3" 2>/dev/null ;;
+            crush)    crush "$3" 2>/dev/null ;;
+            copilot)  gh copilot explain "$3" 2>/dev/null ;;
+          esac
+        ' _ "$provider" "$model" "$(< $tmpfile)")
+      fi
 
-    rm -f "$tmpfile"
+      if [[ -z "$raw" ]]; then
+        gum style --faint "sgc: no response from AI (attempt ${attempt_num}/${max_attempts})"
+        [[ $attempt_num -lt $max_attempts ]] && continue || break
+      fi
+
+      json=$(python3 "$parser_script" <<< "$raw" 2>/dev/null)
+      if [[ -n "$json" ]]; then
+        break
+      fi
+
+      gum style --faint "sgc: response was not valid JSON — retrying (attempt ${attempt_num}/${max_attempts})…"
+      # Correction prompt: send bad response back with explicit fix instructions
+      active_prompt="Your previous response could not be parsed as valid JSON.
+
+Your previous response was:
+${raw}
+
+CRITICAL: Fix it. Output ONLY a raw JSON array using real double-quote characters (\"). No markdown, no fences, no explanation, no escaped quotes.
+
+Required format:
+[
+  {\"message\": \"type(scope): description\", \"files\": [\"path/to/file\"]}
+]
+
+Original task:
+${prompt}"
+    done
+
+    rm -f "$tmpfile" "$parser_script"
     trap - EXIT INT
 
-    if [[ -z "$raw" ]]; then
-      echo "sgc: failed to get response from AI" >&2
-      return 1
-    fi
-
-    # Extract JSON array robustly (strip markdown fences if present)
-    json=$(python3 -c "
-import json, re, sys
-raw = sys.stdin.read()
-m = re.search(r'\[.*\]', raw, re.DOTALL)
-if not m:
-    sys.exit(1)
-try:
-    parsed = json.loads(m.group())
-    print(json.dumps(parsed))
-except Exception:
-    sys.exit(1)
-" <<< "$raw" 2>/dev/null)
-
     if [[ -z "$json" ]]; then
-      echo "sgc: could not parse AI response as JSON" >&2
-      echo "$raw" >&2
+      echo "sgc: failed to get valid JSON from AI after ${max_attempts} attempts" >&2
+      [[ -n "$raw" ]] && echo "$raw" >&2
       return 1
     fi
 

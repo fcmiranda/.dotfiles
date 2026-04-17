@@ -1350,11 +1350,11 @@ ${prompt}"
             --prompt '  commit · ' --pointer '→' --marker '✓' \
             --preview "_sgc_preview_cmd '$json_preview_tmp' {n}" \
             --preview-window 'right:62%:wrap' \
-            --bind 'ctrl-/:toggle-preview-focus' \
+            --bind 'ctrl-/:toggle-preview' \
             --bind 'ctrl-u:preview-half-page-up' \
             --bind 'ctrl-d:preview-half-page-down' \
             --bind 'ctrl-a:select-all' \
-            --header 'tab·select  ctrl-a·all  ctrl-/·focus  ctrl-d/u·scroll  enter·confirm')
+            --header 'tab·select  ctrl-a·all  ctrl-/·toggle-preview  ctrl-d/u·scroll  enter·confirm')
 
     rm -f "$json_preview_tmp"
     trap - EXIT INT

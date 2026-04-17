@@ -375,7 +375,9 @@ PYEOF
 # Large hunks (>80 changed lines) are capped and annotated so the AI
 # knows content was omitted rather than seeing a silently incomplete diff.
 _gc_compress_diff() {
-  python3 << 'PYEOF'
+  local py_script
+  py_script=$(mktemp /tmp/gc-compress.XXXXXX.py)
+  cat > "$py_script" << 'PYEOF'
 import sys, re
 
 MAX_CHANGED_LINES = 80  # per hunk before truncating
@@ -436,6 +438,8 @@ while i < len(lines):
 
 print('\n'.join(out))
 PYEOF
+  python3 "$py_script"
+  rm -f "$py_script"
 }
 
 # _gc_load_commitlint_rules — parse commitlint config in the current repo root

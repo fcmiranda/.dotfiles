@@ -32,9 +32,13 @@ source_packages \
 source_if_exists packages fed
 
 
+# Initialize the zsh completion system before plugins
+autoload -Uz compinit && compinit
+
 #   zsh-vi-mode \
 source_plugins \
   zsh-vi-mode \
 	zsh-autosuggestions \
 	zsh-syntax-highlighting \
-	zsh-transient-prompt
+	zsh-transient-prompt \
+	fzf-tab

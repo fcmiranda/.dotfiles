@@ -10,20 +10,19 @@ bindkey '^?' backward-delete-char  # Backspace
 bindkey '^[[1;5D' backward-word  # Ctrl+Left Arrow
 bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
-# Single Tab: "j<Tab>" triggers zcd, argument position triggers file completion, otherwise autosuggest
+# Single Tab: "j<Tab>" triggers zcd, otherwise fzf-tab completion
 _smart_tab() {
     if [[ "$BUFFER" == "j" ]]; then
         BUFFER=""
         CURSOR=0
         _zcd_widget
     elif [[ "$LBUFFER" == *" "* ]]; then
-        zle expand-or-complete
+        zle fzf-tab-complete
     else
         zle autosuggest-accept
     fi
 }
 zle -N _smart_tab
-bindkey '^I' _smart_tab
 
 # Delete previous word with Ctrl+Backspace in vi insert mode
 bindkey -M viins $'\e\x7f' backward-kill-word

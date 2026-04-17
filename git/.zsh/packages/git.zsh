@@ -812,6 +812,7 @@ gc() {
   local generate=1
   local lang=""
   local emoji="${GC_EMOJI:-0}"
+  local debug=0
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -821,50 +822,30 @@ gc() {
       -g|--generate) generate="$2"; shift 2 ;;
       -l|--lang)     lang="$2";     shift 2 ;;
       -e|--emoji)    emoji=1;       shift ;;
+      -d|--debug)    debug=1;       shift ;;
       -h|--help)
-        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e]"
+        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e] [-d]"
         echo "       gc hook <install|uninstall|status>"
         echo "  -g N      generate N candidate messages to pick from (default: 1)"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "  -e        prefix commit message with a gitmoji emoji"
+        echo "  -d        debug mode: show prompt, command and raw AI output"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "gc: unknown option '$1'" >&2; return 1 ;;
     esac
   done
 
-  if git diff --staged --quiet; then
-    # No staged changes — check for unstaged/untracked files
-    local unstaged
-    unstaged=$(git -c color.status=always status --short | grep -v '^[MADRCU]')
-    if [[ -z "$unstaged" ]]; then
-      echo "gc: nothing to commit — working tree clean" >&2
-      return 1
-    fi
-
-    local choice
-    choice=$(gum choose "Add all files" "Select files")
-
-    case "$choice" in
-      "Add all files")
-        git add --all
-        ;;
-      "Select files")
-        local selected
-        selected=$(git status --short | grep -v '^[MADRCU]' | awk '{print $2}' \
-          | gum filter --no-limit --placeholder "select files to stage…")
-        if [[ -z "$selected" ]]; then
-          echo "gc: no files selected" >&2
-          return 1
-        fi
-        echo "$selected" | xargs git add
-        ;;
-      *)
-        echo "gc: aborted" >&2
-        return 1
-        ;;
-    esac
+  # Always stage all changes first
+  local has_changes
+  has_changes=$(git status --short)
+  if [[ -z "$has_changes" ]]; then
+    gum style --faint "gc: nothing to commit — working tree clean"
+    return 1
   fi
+
+  git add --all
+  gum style --faint "staged all changes (git add --all)"
 
   # Load ignore patterns and filter staged diff
   local ignore_tmpfile
@@ -926,16 +907,47 @@ ${diff}"
   printf '%s' "$prompt" > "$tmpfile"
   trap "rm -f $tmpfile" EXIT INT
 
-  # Generate message(s) with gum spinner
+  # Generate message(s)
   local raw
-  raw=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c "
-    case '$provider' in
-      opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
-      claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
-      crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
-      copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;
+  if [[ "$debug" == "1" ]]; then
+    local prompt_bytes
+    prompt_bytes=$(wc -c < "$tmpfile" | tr -d ' ')
+    gum style --faint "debug: provider=$provider model=$model"
+    gum style --faint "debug: prompt written to $tmpfile ($prompt_bytes bytes)"
+    gum style --faint "debug: diff length=${#diff}"
+    echo "--- git diff --staged (raw, first 20 lines) ---"
+    git diff --staged | head -20
+    echo "--- after _gc_filter_diff_by_ignore (first 20 lines) ---"
+    local dbg_ignore_tmp
+    dbg_ignore_tmp=$(mktemp /tmp/gc-ignore.XXXXXX)
+    _gc_load_ignore_patterns > "$dbg_ignore_tmp"
+    git diff --staged | _gc_filter_diff_by_ignore "$dbg_ignore_tmp" | head -20
+    rm -f "$dbg_ignore_tmp"
+    echo "--- after _gc_compress_diff (first 20 lines) ---"
+    echo "$diff" | head -20
+    echo "--- prompt preview (first 500 chars) ---"
+    head -c 500 "$tmpfile"
+    echo ""
+    echo "--- running opencode (raw output) ---"
+    case "$provider" in
+      opencode) raw=$(opencode run --model "$model" -- "$prompt") ;;
+      claude)   raw=$(claude --print "$prompt") ;;
+      crush)    raw=$(crush "$prompt") ;;
+      copilot)  raw=$(gh copilot explain "$prompt") ;;
     esac
-  ")
+    echo "--- raw output ---"
+    echo "$raw"
+    echo "--- end ---"
+  else
+    raw=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c '
+      case "$1" in
+        opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
+        claude)   claude --print "$3" 2>/dev/null ;;
+        crush)    crush "$3" 2>/dev/null ;;
+        copilot)  gh copilot explain "$3" 2>/dev/null ;;
+      esac
+    ' _ "$provider" "$model" "$(< $tmpfile)")
+  fi
 
   rm -f "$tmpfile"
   trap - EXIT INT
@@ -1130,7 +1142,7 @@ Output format:
     local raw
     raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c "
       case '$provider' in
-        opencode) opencode run --model '$model' -- \"\$(cat $tmpfile)\" 2>/dev/null ;;
+      opencode) opencode run --model '$model' -f '$tmpfile' 2>/dev/null ;;
         claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
         crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
         copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;

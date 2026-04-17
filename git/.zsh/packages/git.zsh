@@ -1340,23 +1340,58 @@ ${prompt}"
   local selected
   if [[ "$preview" == "1" ]]; then
     # fzf with bat diff preview
-    local json_preview_tmp
+    # Write json and a self-contained preview script to temp files.
+    # fzf --preview runs in plain sh, so zsh functions are not available.
+    local json_preview_tmp preview_script_tmp
     json_preview_tmp=$(mktemp /tmp/sgc-preview.XXXXXX.json)
+    preview_script_tmp=$(mktemp /tmp/sgc-preview-cmd.XXXXXX.zsh)
     printf '%s' "$json" > "$json_preview_tmp"
-    trap "rm -f $json_preview_tmp" EXIT INT
+    cat > "$preview_script_tmp" << 'PREVIEW_EOF'
+#!/usr/bin/env zsh
+json_file="$1"
+idx="$2"
+files=$(python3 - "$json_file" "$idx" <<'PYEOF'
+import json, sys
+data = json.loads(open(sys.argv[1]).read())
+idx = int(sys.argv[2])
+for f in data[idx]['files']:
+    print(f)
+PYEOF
+)
+if [[ -z "$files" ]]; then
+  echo "(no files)"
+  exit 0
+fi
+file_list=$(echo "$files" | tr '\n' ' ')
+printf '\033[1;34m● %s\033[0m\n' "${file_list% }"
+printf '%.0s─' {1..60}; echo
+diff_output=$(git diff -- ${(f)files} 2>/dev/null)
+if [[ -n "$diff_output" ]]; then
+  echo "$diff_output" | bat --language=diff --style=grid --color=always --paging=never 2>/dev/null \
+    || echo "$diff_output"
+else
+  echo "$files" | while IFS= read -r f; do
+    [[ -f "$f" ]] || continue
+    printf '\033[2m(new file)\033[0m %s\n' "$f"
+    bat --style=grid --color=always --paging=never "$f" 2>/dev/null || cat "$f"
+  done
+fi
+PREVIEW_EOF
+    chmod +x "$preview_script_tmp"
+    trap "rm -f $json_preview_tmp $preview_script_tmp" EXIT INT
 
     selected=$(printf '%s\n' "${display_lines[@]}" \
       | fzf --ansi --no-sort --multi \
             --prompt '  commit · ' --pointer '→' --marker '✓' \
-            --preview "_sgc_preview_cmd '$json_preview_tmp' {n}" \
+            --preview "zsh '$preview_script_tmp' '$json_preview_tmp' {n}" \
             --preview-window 'right:62%:wrap' \
             --bind 'ctrl-/:toggle-preview' \
             --bind 'ctrl-u:preview-half-page-up' \
             --bind 'ctrl-d:preview-half-page-down' \
             --bind 'ctrl-a:select-all' \
-            --header 'tab·select  ctrl-a·all  ctrl-/·toggle-preview  ctrl-d/u·scroll  enter·confirm')
+            --header 'tab·select  ctrl-a·all  ctrl-/·toggle  ctrl-d/u·scroll  enter·confirm')
 
-    rm -f "$json_preview_tmp"
+    rm -f "$json_preview_tmp" "$preview_script_tmp"
     trap - EXIT INT
   else
     # Build --selected flags to pre-check all options

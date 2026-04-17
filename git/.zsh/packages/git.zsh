@@ -1116,7 +1116,9 @@ sgc() {
     gum style --faint "↩ using cached commit plan (no changes since last run)"
     json=$(cat "$cache_json_file")
   else
-    local prompt="You are a git expert. Analyze the following unstaged and untracked changes and group them into logical, atomic conventional commits.
+    local prompt
+    prompt=$(cat <<EOF
+You are a git expert. Analyze the following unstaged and untracked changes and group them into logical, atomic conventional commits.
 
 Git status:
 ${filtered_status}
@@ -1134,16 +1136,18 @@ Rules:
 - A file must appear in exactly one commit${lang_rule}
 ${emoji_rule}
 ${commitlint_rules}
-CRITICAL OUTPUT RULES — you MUST follow these exactly:
+CRITICAL OUTPUT RULES — follow exactly:
 - Output ONLY a raw JSON array. Nothing else. No explanation, no markdown, no code fences.
-- Use real double-quote characters (") — do NOT escape them as \" in your output.
+- Use real double-quote characters in the JSON — do NOT backslash-escape them.
 - Every object must have exactly two keys: "message" (string) and "files" (array of strings).
 
 Required output format (copy this structure exactly):
 [
   {"message": "feat(scope): description", "files": ["path/to/file.ext"]},
   {"message": "fix: another change", "files": ["other/file.ts", "another.ts"]}
-]"
+]
+EOF
+)
 
     local tmpfile
     tmpfile=$(mktemp /tmp/sgc.XXXXXX)

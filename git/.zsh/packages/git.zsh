@@ -1072,24 +1072,30 @@ sgc() {
   local debug=0
   local force=0
   local preview=0
+  local granularity="medium"  # coarse | medium | fine
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p|--provider) provider="$2"; shift 2 ;;
-      -m|--model)    model="$2";    shift 2 ;;
-      -l|--lang)     lang="$2";     shift 2 ;;
-      -e|--emoji)    emoji=1;       shift ;;
-      -d|--debug)    debug=1;       shift ;;
-      -f|--force)    force=1;       shift ;;
-      --preview)     preview=1;     shift ;;
+      -p|--provider)    provider="$2";     shift 2 ;;
+      -m|--model)       model="$2";        shift 2 ;;
+      -l|--lang)        lang="$2";         shift 2 ;;
+      -e|--emoji)       emoji=1;           shift ;;
+      -d|--debug)       debug=1;           shift ;;
+      -f|--force)       force=1;           shift ;;
+      --preview)        preview=1;         shift ;;
+      -g|--granularity) granularity="$2";  shift 2 ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d] [-f] [--preview]"
-        echo "  -l LANG    output language ISO 639-1 code (e.g. es, fr, ja)"
-        echo "  -e         prefix commit messages with gitmoji emojis"
-        echo "  -d         debug mode: show prompt and raw AI output"
-        echo "  -f         force: skip cache and re-analyze changes"
-        echo "  --preview  interactive fzf diff preview before committing"
+        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d] [-f] [--preview] [-g granularity]"
+        echo "  -l LANG              output language ISO 639-1 code (e.g. es, fr, ja)"
+        echo "  -e                   prefix commit messages with gitmoji emojis"
+        echo "  -d                   debug mode: show prompt and raw AI output"
+        echo "  -f                   force: skip cache and re-analyze changes"
+        echo "  --preview            interactive fzf diff preview before committing"
+        echo "  -g coarse|medium|fine  grouping aggressiveness (default: medium)"
+        echo "    coarse  — fewest commits, group loosely related changes together"
+        echo "    medium  — balanced: group by feature/fix/concern (default)"
+        echo "    fine    — most atomic: one concern per commit, even if more commits result"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
@@ -1146,6 +1152,20 @@ sgc() {
   local emoji_rule=""
   [[ "$emoji" == "1" ]] && emoji_rule=$(_gc_emoji_rule)
 
+  # Granularity instruction
+  local granularity_rule=""
+  case "$granularity" in
+    coarse)
+      granularity_rule="- GROUPING LEVEL: coarse — use as FEW commits as possible. Aggressively bundle all loosely related changes (same feature area, same subsystem, same author intent) into a single commit. Only split if changes are clearly unrelated (e.g. a bug fix mixed with a new feature)."
+      ;;
+    fine)
+      granularity_rule="- GROUPING LEVEL: fine — maximize atomicity. Each commit must represent exactly one logical concern. Prefer more commits over larger ones. Split implementation from tests, split CSS from JS, split docs from code."
+      ;;
+    *)  # medium (default)
+      granularity_rule="- GROUPING LEVEL: medium — group by feature or concern. Files that implement the same feature (e.g. a JS module and its stylesheet, or an implementation and its tests) MUST be in the same commit. Only create separate commits for clearly distinct concerns. Do NOT create one commit per file."
+      ;;
+  esac
+
   # ── Cache: fingerprint the exact content the AI would analyse ──────────────
   local git_root cache_dir cache_hash_file cache_json_file current_hash
   git_root=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -1153,7 +1173,7 @@ sgc() {
   cache_hash_file="${cache_dir}/last.hash"
   cache_json_file="${cache_dir}/last.json"
 
-  current_hash=$(printf '%s\0%s\0%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" "$commitlint_rules" "$emoji" \
+  current_hash=$(printf '%s\0%s\0%s\0%s\0%s\0%s\0%s' "$filtered_status" "$diff_content" "$untracked_content" "$lang" "$commitlint_rules" "$emoji" "$granularity" \
     | md5sum | cut -d' ' -f1)
 
   local stored_hash=""
@@ -1181,8 +1201,11 @@ ${untracked_content}
 Rules:
 - Use conventional commits format: <type>(<optional scope>): <description>
 - Valid types: feat, fix, refactor, chore, docs, style, test, perf, ci, build
-- Group related files into the same commit — each commit must be atomic and focused
-- A file must appear in exactly one commit${lang_rule}
+- A file must appear in exactly one commit
+- NEVER create one commit per file — that defeats the purpose of atomic commits
+- Files that belong to the same feature, fix, or concern MUST be grouped together
+  (e.g. a JS module + its CSS + its docs = one commit; an impl file + its test file = one commit)
+${granularity_rule}${lang_rule}
 ${emoji_rule}
 ${commitlint_rules}
 CRITICAL OUTPUT RULES — follow exactly:
@@ -1190,10 +1213,16 @@ CRITICAL OUTPUT RULES — follow exactly:
 - Use real double-quote characters in the JSON — do NOT backslash-escape them.
 - Every object must have exactly two keys: "message" (string) and "files" (array of strings).
 
+Example of CORRECT grouping (feature + styles + docs in one commit, impl + test in another):
+[
+  {"message": "feat(dark-mode): add dark mode theme and styles", "files": ["pages/dark_theme.js", "pages/dark_mode.css", "docs/dark_mode.md"]},
+  {"message": "feat(find): add find mode shortcuts and tests", "files": ["content_scripts/find_shortcuts.js", "tests/find_shortcuts_test.js"]}
+]
+
 Required output format (copy this structure exactly):
 [
-  {"message": "feat(scope): description", "files": ["path/to/file.ext"]},
-  {"message": "fix: another change", "files": ["other/file.ts", "another.ts"]}
+  {"message": "feat(scope): description", "files": ["path/to/file.ext", "related/file.ext"]},
+  {"message": "fix: another change", "files": ["other/file.ts"]}
 ]
 EOF
 )

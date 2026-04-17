@@ -10,12 +10,14 @@ bindkey '^?' backward-delete-char  # Backspace
 bindkey '^[[1;5D' backward-word  # Ctrl+Left Arrow
 bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
-# Single Tab: "j<Tab>" triggers zcd, otherwise normal completion
+# Single Tab: "j<Tab>" triggers zcd, argument position triggers file completion, otherwise autosuggest
 _smart_tab() {
     if [[ "$BUFFER" == "j" ]]; then
         BUFFER=""
         CURSOR=0
         _zcd_widget
+    elif [[ "$LBUFFER" == *" "* ]]; then
+        zle expand-or-complete
     else
         zle autosuggest-accept
     fi

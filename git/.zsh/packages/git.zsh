@@ -1054,11 +1054,11 @@ PYEOF
 #
 # Usage:
 #   sgc                          # uses default provider (opencode)
-#   sgc -p claude                # use claude CLI
+#   sgc -P claude                # use claude CLI
 #   sgc -m github-copilot/gpt-4o # override model (opencode only)
 #   sgc -l es                    # generate messages in Spanish (ISO 639-1)
 #   sgc -e                       # prefix messages with gitmoji emojis
-#   sgc --preview                # fzf interactive diff preview before committing
+#   sgc -p                       # fzf interactive diff preview before committing
 #
 # Env overrides:
 #   GC_PROVIDER=claude sgc
@@ -1077,26 +1077,26 @@ sgc() {
   # Parse flags
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p|--provider)    provider="$2";     shift 2 ;;
+      -P|--provider)    provider="$2";     shift 2 ;;
       -m|--model)       model="$2";        shift 2 ;;
       -l|--lang)        lang="$2";         shift 2 ;;
       -e|--emoji)       emoji=1;           shift ;;
       -d|--debug)       debug=1;           shift ;;
       -f|--force)       force=1;           shift ;;
-      --preview)        preview=1;         shift ;;
+      -p|--preview)     preview=1;         shift ;;
       -g|--granularity) granularity="$2";  shift 2 ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d] [-f] [--preview] [-g granularity]"
+        echo "Usage: sgc [-P provider] [-m model] [-l lang] [-e] [-d] [-f] [-p] [-g granularity]"
+        echo "  -P PROVIDER          AI provider: opencode (default), claude, crush, copilot"
         echo "  -l LANG              output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "  -e                   prefix commit messages with gitmoji emojis"
         echo "  -d                   debug mode: show prompt and raw AI output"
         echo "  -f                   force: skip cache and re-analyze changes"
-        echo "  --preview            interactive fzf diff preview before committing"
+        echo "  -p / --preview       interactive fzf diff preview before committing"
         echo "  -g coarse|medium|fine  grouping aggressiveness (default: medium)"
         echo "    coarse  — fewest commits, group loosely related changes together"
         echo "    medium  — balanced: group by feature/fix/concern (default)"
         echo "    fine    — most atomic: one concern per commit, even if more commits result"
-        echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
     esac

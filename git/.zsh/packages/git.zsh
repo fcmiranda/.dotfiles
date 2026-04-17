@@ -1363,8 +1363,8 @@ if [[ -z "$files" ]]; then
   exit 0
 fi
 file_list=$(echo "$files" | tr '\n' ' ')
-printf '\033[1;34m● %s\033[0m\n' "${file_list% }"
-printf '%.0s─' {1..60}; echo
+printf '\033[1;34m# %s\033[0m\n' "${file_list% }"
+printf '%0.s-' {1..60}; echo
 diff_output=$(git diff -- ${(f)files} 2>/dev/null)
 if [[ -n "$diff_output" ]]; then
   echo "$diff_output" | bat --language=diff --style=grid --color=always --paging=never 2>/dev/null \

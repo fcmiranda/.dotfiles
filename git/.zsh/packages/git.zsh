@@ -1028,6 +1028,7 @@ sgc() {
   local lang=""
   local emoji="${GC_EMOJI:-0}"
   local debug=0
+  local force=0
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -1037,11 +1038,13 @@ sgc() {
       -l|--lang)     lang="$2";     shift 2 ;;
       -e|--emoji)    emoji=1;       shift ;;
       -d|--debug)    debug=1;       shift ;;
+      -f|--force)    force=1;       shift ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d]"
+        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d] [-f]"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "  -e        prefix commit messages with gitmoji emojis"
         echo "  -d        debug mode: show prompt and raw AI output"
+        echo "  -f        force: skip cache and re-analyze changes"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
@@ -1110,10 +1113,11 @@ sgc() {
 
   local stored_hash=""
   [[ -f "$cache_hash_file" ]] && stored_hash=$(cat "$cache_hash_file")
-  local json
-  if [[ -f "$cache_hash_file" && -f "$cache_json_file" ]] \
+  local json=""
+  if [[ "$force" == "0" ]] \
+      && [[ -f "$cache_hash_file" && -f "$cache_json_file" ]] \
       && [[ "$stored_hash" == "$current_hash" ]]; then
-    gum style --faint "↩ using cached commit plan (no changes since last run)"
+    gum style --faint "↩ using cached commit plan (no changes since last run) — use -f to force re-analyze"
     json=$(cat "$cache_json_file")
   else
     local prompt
@@ -1198,7 +1202,7 @@ if not try_parse(sys.stdin.read()):
 PYEOF
     trap "rm -f $tmpfile $parser_script" EXIT INT
 
-    local raw json attempt_num=0 max_attempts=3
+    local raw="" attempt_num=0 max_attempts=3
     local active_prompt="$prompt"
 
     while [[ $attempt_num -lt $max_attempts ]]; do

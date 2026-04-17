@@ -10,13 +10,14 @@ bindkey '^?' backward-delete-char  # Backspace
 bindkey '^[[1;5D' backward-word  # Ctrl+Left Arrow
 bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
-# Single Tab: "j<Tab>" triggers zcd, otherwise fzf-tab completion
+# Single Tab: "j<Tab>"→zcd, trailing space→fzf-tab, otherwise→autosuggest-accept
+# e.g. "j vim<Tab>" accepts suggestion; "git <Tab>" opens fzf-tab
 _smart_tab() {
     if [[ "$BUFFER" == "j" ]]; then
         BUFFER=""
         CURSOR=0
         _zcd_widget
-    elif [[ "$LBUFFER" == *" "* ]]; then
+    elif [[ "$LBUFFER" == *" " ]]; then
         zle fzf-tab-complete
     else
         zle autosuggest-accept

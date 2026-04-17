@@ -1,0 +1,13 @@
+customCommands:
+  - key: '<c-a>'
+    context: 'files'
+    description: 'AI atomic commits (sgc)'
+    command: 'sgc'
+    subprocess: true
+    loadingText: 'sgc: analyzing changes…'
+  - key: '<c-g>'
+    context: 'files'
+    description: 'AI single commit (gc)'
+    command: 'gc'
+    subprocess: true
+    loadingText: 'gc: generating commit message…'

@@ -1008,6 +1008,47 @@ except Exception:
   print -z "git commit -m ${(qq)msg}"
 }
 
+# _sgc_preview_cmd — fzf --preview helper for sgc --preview
+#   Usage: _sgc_preview_cmd <json_tmpfile> <0-based-index>
+#   Prints file summary + bat-rendered diff for the commit at <index>
+_sgc_preview_cmd() {
+  local json_file="$1" idx="$2"
+  local files
+  files=$(python3 - "$json_file" "$idx" <<'PYEOF'
+import json, sys
+data = json.loads(open(sys.argv[1]).read())
+idx = int(sys.argv[2])
+for f in data[idx]['files']:
+    print(f)
+PYEOF
+)
+  if [[ -z "$files" ]]; then
+    echo "(no files)"
+    return
+  fi
+
+  # Print file list header
+  local file_list
+  file_list=$(echo "$files" | tr '\n' ' ')
+  printf '\033[1;34m● %s\033[0m\n' "${file_list% }"
+  printf '%.0s─' {1..60}; echo
+
+  # Show diff for these files via bat
+  local diff_output
+  diff_output=$(git diff -- ${(f)files} 2>/dev/null)
+  if [[ -n "$diff_output" ]]; then
+    echo "$diff_output" | bat --language=diff --style=grid --color=always --paging=never 2>/dev/null \
+      || echo "$diff_output"
+  else
+    # Untracked / new files: show full content
+    echo "$files" | while IFS= read -r f; do
+      [[ -f "$f" ]] || continue
+      printf '\033[2m(new file)\033[0m %s\n' "$f"
+      bat --style=grid --color=always --paging=never "$f" 2>/dev/null || cat "$f"
+    done
+  fi
+}
+
 # sgc — smart AI commit: analyzes ALL unstaged changes, groups them into
 #        logical atomic commits, lets you pick which ones to run
 #
@@ -1017,6 +1058,7 @@ except Exception:
 #   sgc -m github-copilot/gpt-4o # override model (opencode only)
 #   sgc -l es                    # generate messages in Spanish (ISO 639-1)
 #   sgc -e                       # prefix messages with gitmoji emojis
+#   sgc --preview                # fzf interactive diff preview before committing
 #
 # Env overrides:
 #   GC_PROVIDER=claude sgc
@@ -1029,6 +1071,7 @@ sgc() {
   local emoji="${GC_EMOJI:-0}"
   local debug=0
   local force=0
+  local preview=0
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -1039,12 +1082,14 @@ sgc() {
       -e|--emoji)    emoji=1;       shift ;;
       -d|--debug)    debug=1;       shift ;;
       -f|--force)    force=1;       shift ;;
+      --preview)     preview=1;     shift ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d] [-f]"
-        echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
-        echo "  -e        prefix commit messages with gitmoji emojis"
-        echo "  -d        debug mode: show prompt and raw AI output"
-        echo "  -f        force: skip cache and re-analyze changes"
+        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d] [-f] [--preview]"
+        echo "  -l LANG    output language ISO 639-1 code (e.g. es, fr, ja)"
+        echo "  -e         prefix commit messages with gitmoji emojis"
+        echo "  -d         debug mode: show prompt and raw AI output"
+        echo "  -f         force: skip cache and re-analyze changes"
+        echo "  --preview  interactive fzf diff preview before committing"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
@@ -1291,20 +1336,43 @@ ${prompt}"
     display_lines+=("${msg}  ← ${files_str}")
   done
 
-  # Build --selected flags to pre-check all options
-  local selected_flags=()
-  for line in "${display_lines[@]}"; do
-    selected_flags+=(--selected "$line")
-  done
-
-  # Let user pick which commits to run (gum choose supports multi-select with space)
+  # Let user pick which commits to run
   local selected
-  selected=$(printf '%s\n' "${display_lines[@]}" \
-    | gum choose --no-limit \
-        "${selected_flags[@]}" \
-        --header "Space to select commits · Enter to confirm" \
-        --cursor.foreground="212" \
-        --selected.foreground="212")
+  if [[ "$preview" == "1" ]]; then
+    # fzf with bat diff preview
+    local json_preview_tmp
+    json_preview_tmp=$(mktemp /tmp/sgc-preview.XXXXXX.json)
+    printf '%s' "$json" > "$json_preview_tmp"
+    trap "rm -f $json_preview_tmp" EXIT INT
+
+    selected=$(printf '%s\n' "${display_lines[@]}" \
+      | fzf --ansi --no-sort --multi \
+            --prompt '  commit · ' --pointer '→' --marker '✓' \
+            --preview "_sgc_preview_cmd '$json_preview_tmp' {n}" \
+            --preview-window 'right:62%:wrap' \
+            --bind 'ctrl-/:toggle-preview-focus' \
+            --bind 'ctrl-u:preview-half-page-up' \
+            --bind 'ctrl-d:preview-half-page-down' \
+            --bind 'ctrl-a:select-all' \
+            --header 'tab·select  ctrl-a·all  ctrl-/·focus  ctrl-d/u·scroll  enter·confirm')
+
+    rm -f "$json_preview_tmp"
+    trap - EXIT INT
+  else
+    # Build --selected flags to pre-check all options
+    local selected_flags=()
+    for line in "${display_lines[@]}"; do
+      selected_flags+=(--selected "$line")
+    done
+
+    # gum choose (default): multi-select with space
+    selected=$(printf '%s\n' "${display_lines[@]}" \
+      | gum choose --no-limit \
+          "${selected_flags[@]}" \
+          --header "Space to select commits · Enter to confirm" \
+          --cursor.foreground="212" \
+          --selected.foreground="212")
+  fi
 
   if [[ -z "$selected" ]]; then
     echo "sgc: no commits selected — aborted" >&2

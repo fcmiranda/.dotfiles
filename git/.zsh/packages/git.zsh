@@ -1027,6 +1027,7 @@ sgc() {
   local model="${GC_MODEL:-github-copilot/gpt-4o}"
   local lang=""
   local emoji="${GC_EMOJI:-0}"
+  local debug=0
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -1035,10 +1036,12 @@ sgc() {
       -m|--model)    model="$2";    shift 2 ;;
       -l|--lang)     lang="$2";     shift 2 ;;
       -e|--emoji)    emoji=1;       shift ;;
+      -d|--debug)    debug=1;       shift ;;
       -h|--help)
-        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e]"
+        echo "Usage: sgc [-p provider] [-m model] [-l lang] [-e] [-d]"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "  -e        prefix commit messages with gitmoji emojis"
+        echo "  -d        debug mode: show prompt and raw AI output"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
       *) echo "sgc: unknown option '$1'" >&2; return 1 ;;
@@ -1144,14 +1147,34 @@ Output format:
     trap "rm -f $tmpfile" EXIT INT
 
     local raw
-    raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c "
-      case '$provider' in
-      opencode) opencode run --model '$model' -f '$tmpfile' 2>/dev/null ;;
-        claude)   claude --print \"\$(cat $tmpfile)\" 2>/dev/null ;;
-        crush)    crush \"\$(cat $tmpfile)\" 2>/dev/null ;;
-        copilot)  gh copilot explain \"\$(cat $tmpfile)\" 2>/dev/null ;;
+    if [[ "$debug" == "1" ]]; then
+      local prompt_bytes
+      prompt_bytes=$(wc -c < "$tmpfile" | tr -d ' ')
+      gum style --faint "debug: provider=$provider model=$model"
+      gum style --faint "debug: prompt written to $tmpfile ($prompt_bytes bytes)"
+      echo "--- prompt preview (first 500 chars) ---"
+      head -c 500 "$tmpfile"
+      echo ""
+      echo "--- running $provider (raw output) ---"
+      case "$provider" in
+        opencode) raw=$(opencode run --model "$model" -- "$prompt") ;;
+        claude)   raw=$(claude --print "$prompt") ;;
+        crush)    raw=$(crush "$prompt") ;;
+        copilot)  raw=$(gh copilot explain "$prompt") ;;
       esac
-    ")
+      echo "--- raw output ---"
+      echo "$raw"
+      echo "--- end ---"
+    else
+      raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}..." -- sh -c '
+        case "$1" in
+          opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
+          claude)   claude --print "$3" 2>/dev/null ;;
+          crush)    crush "$3" 2>/dev/null ;;
+          copilot)  gh copilot explain "$3" 2>/dev/null ;;
+        esac
+      ' _ "$provider" "$model" "$(< $tmpfile)")
+    fi
 
     rm -f "$tmpfile"
     trap - EXIT INT

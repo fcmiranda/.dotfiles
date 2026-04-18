@@ -10,6 +10,7 @@ source "${HOME}/.zsh/helpers.zsh"
 
 # Source Order: Utils → Packages → Plugins
 source_utils \
+	history \
 	aliases \
 	functions \
 	binds

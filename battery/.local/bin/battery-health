@@ -19,7 +19,7 @@ read_sysfs() {
   [[ -r "$file" ]] && cat "$file" 2>/dev/null || echo "N/A"
 }
 
-status=$(read_sysfs "status")
+bat_status=$(read_sysfs "status")
 capacity=$(read_sysfs "capacity")
 energy_now=$(read_sysfs "energy_now")
 energy_full=$(read_sysfs "energy_full")
@@ -32,7 +32,7 @@ voltage_now=$(read_sysfs "voltage_now")
 
 # ── Status color ──────────────────────────────────────────────────────────────
 status_color="cyan"
-case "$status" in
+case "$bat_status" in
   Charging) status_color="green" ;;
   Discharging) status_color="yellow" ;;
   Full) status_color="blue" ;;
@@ -77,7 +77,7 @@ fi
 print ""
 print -P "  %F{blue}%B Battery Health — Apple Silicon (Asahi Linux)%b%f"
 print -P "  %F{white}─────────────────────────────────────────────%f"
-print -P "  Status         %F{${status_color}}%B${status}%b%f"
+  print -P "  Status         %F{${status_color}}%B${bat_status}%b%f"
 print -P "  Charge         %F{cyan}%B${capacity}%%%b%f"
 print -P "  Threshold      %F{yellow}%B${charge_start}%% → ${charge_end}%%%b%f${threshold_hint}"
 print -P "  Battery Health %F{${health_color}}%B${health_pct}%%%b%f"
@@ -85,22 +85,24 @@ print -P "  Cycles         %F{white}%B${cycle_count}%b%f"
 print -P "  Temperature    %F{${temp_color}}%B${temp_display}%b%f"
 
 if [[ "$voltage_now" != "N/A" ]]; then
-  voltage_v=$(echo "scale=2; $voltage_now / 1000000" | bc 2>/dev/null || echo "${voltage_now} µV")
-  print -P "  Voltage        %F{white}%B${voltage_v}V%b%f"
+  voltage_v=$(awk "BEGIN {printf \"%.2f\", $voltage_now / 1000000}")
+  print -P "  Voltage        %F{white}%B${voltage_v} V%b%f"
 fi
 
 print ""
 
 # ── auto-cpufreq status hint ──────────────────────────────────────────────────
 if command -v auto-cpufreq &>/dev/null; then
-  acf_state=$(systemctl is-active auto-cpufreq 2>/dev/null || echo "inactive")
+  acf_state=$(systemctl is-active auto-cpufreq 2>&1 || true)
+  [[ -z "$acf_state" ]] && acf_state="inactive"
   acf_color="red"
   [[ "$acf_state" == "active" ]] && acf_color="green"
   print -P "  auto-cpufreq   %F{${acf_color}}%B${acf_state}%b%f"
 fi
 
 # ── charge threshold service status ──────────────────────────────────────────
-svc_state=$(systemctl is-active battery-charge-threshold 2>/dev/null || echo "inactive")
+svc_state=$(systemctl is-active battery-charge-threshold 2>&1 || true)
+[[ -z "$svc_state" ]] && svc_state="inactive"
 svc_color="red"
 [[ "$svc_state" == "active" ]] && svc_color="green"
 print -P "  threshold-svc  %F{${svc_color}}%B${svc_state}%b%f"

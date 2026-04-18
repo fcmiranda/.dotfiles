@@ -275,10 +275,15 @@ function zvm_after_init() {
     bindkey -M viins -r '^P'
     bindkey -M viins -r '^N'
 
-    bindkey -M viins '^[[A' up-line-or-history
-    bindkey -M viins '^K' up-line-or-history
-    bindkey -M viins '^J' down-line-or-history
-    bindkey -M viins '^[[B' down-line-or-history
+    # Prefix-aware history: arrows/ctrl-k/j only cycle history matching current buffer
+    autoload -U history-search-end
+    zle -N history-beginning-search-backward-end history-search-end
+    zle -N history-beginning-search-forward-end history-search-end
+
+    bindkey -M viins '^[[A' history-beginning-search-backward-end
+    bindkey -M viins '^K'   history-beginning-search-backward-end
+    bindkey -M viins '^J'   history-beginning-search-forward-end
+    bindkey -M viins '^[[B' history-beginning-search-forward-end
 
     # Bind ctrl-r to atuin-search in insert mode
     bindkey -M viins '^R' atuin-search

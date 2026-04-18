@@ -10,8 +10,8 @@ bindkey '^?' backward-delete-char  # Backspace
 bindkey '^[[1;5D' backward-word  # Ctrl+Left Arrow
 bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
-# Single Tab: "j<Tab>"→zcd, trailing space→fzf-tab, otherwise→autosuggest-accept
-# e.g. "j vim<Tab>" accepts suggestion; "git <Tab>" opens fzf-tab
+# Single Tab: "j<Tab>"→zcd, trailing space→fzf-tab,
+#             ghost text present→autosuggest-accept, else→fzf-tab
 _smart_tab() {
     if [[ "$BUFFER" == "j" ]]; then
         BUFFER=""
@@ -19,8 +19,12 @@ _smart_tab() {
         _zcd_widget
     elif [[ "$LBUFFER" == *" " ]]; then
         zle fzf-tab-complete
-    else
+    elif [[ -n "$POSTDISPLAY" ]]; then
+        # Ghost text visible → accept it
         zle autosuggest-accept
+    else
+        # No ghost text, no trailing space → open completion
+        zle fzf-tab-complete
     fi
 }
 zle -N _smart_tab

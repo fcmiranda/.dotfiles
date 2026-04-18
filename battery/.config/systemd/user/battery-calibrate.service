@@ -1,0 +1,10 @@
+[Unit]
+Description=Monthly battery calibration cycle (Apple Silicon / Asahi Linux)
+Documentation=man:battery-calibrate-auto
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/battery-calibrate-auto
+# Keep logs visible via: journalctl --user -u battery-calibrate
+StandardOutput=journal
+StandardError=journal

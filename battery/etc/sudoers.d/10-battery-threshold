@@ -1,0 +1,9 @@
+# Allow members of the wheel group to set Apple Silicon battery charge thresholds
+# without a password. Required by the battery-calibrate-auto systemd user service.
+# Installed by ~/.dotfiles/.shell/install/packages/battery.zsh
+
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/class/power_supply/macsmc-battery/charge_control_start_threshold
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/class/power_supply/macsmc-battery/charge_control_end_threshold
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop battery-charge-threshold
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl start battery-charge-threshold
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart battery-charge-threshold

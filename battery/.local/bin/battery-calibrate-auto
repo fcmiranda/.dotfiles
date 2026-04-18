@@ -1,0 +1,114 @@
+#!/usr/bin/env zsh
+# battery-calibrate-auto — automated monthly calibration for Apple Silicon battery
+#
+# Called by the battery-calibrate systemd user timer (monthly).
+#
+# Workflow:
+#   1. Skip if calibrated within 30 days
+#   2. Check AC power; if on battery, send notification and exit (timer retries next month)
+#   3. Lift charge threshold to 100%
+#   4. Poll until battery reports Full
+#   5. Wait 1 hour at full charge (lets sysfs re-measure energy_full accurately)
+#   6. Restore previous threshold
+#   7. Record today's date in ~/.local/share/battery/last-calibration
+#
+# Requires NOPASSWD sudo for the two sysfs threshold writes.
+# See /etc/sudoers.d/10-battery-threshold (installed by battery.zsh).
+
+set -euo pipefail
+
+BATTERY_PATH="/sys/class/power_supply/macsmc-battery"
+STATE_DIR="$HOME/.local/share/battery"
+STATE_FILE="$STATE_DIR/last-calibration"
+CONF_FILE="/etc/battery-charge-threshold.conf"
+CALIBRATION_INTERVAL_DAYS=30
+POLL_INTERVAL=300   # seconds between battery status checks while waiting for Full
+
+_notify() {
+  local msg="$1"
+  local urgency="${2:-normal}"
+  notify-send -u "$urgency" -a "Battery Calibration" "$msg" 2>/dev/null || true
+}
+
+_read_sysfs() {
+  cat "$BATTERY_PATH/$1" 2>/dev/null || echo "N/A"
+}
+
+# ── Guard: battery sysfs present ─────────────────────────────────────────────
+if [[ ! -d "$BATTERY_PATH" ]]; then
+  print -P "  %F{red}✗%f Battery sysfs not found. Skipping calibration."
+  exit 0
+fi
+
+# ── Guard: interval check ─────────────────────────────────────────────────────
+if [[ -f "$STATE_FILE" ]]; then
+  last=$(cat "$STATE_FILE" | tr -d '[:space:]')
+  last_epoch=$(date -d "$last" +%s 2>/dev/null || echo 0)
+  now_epoch=$(date +%s)
+  days_since=$(( (now_epoch - last_epoch) / 86400 ))
+
+  if (( days_since < CALIBRATION_INTERVAL_DAYS )); then
+    days_left=$(( CALIBRATION_INTERVAL_DAYS - days_since ))
+    print -P "  %F{cyan}ℹ%f Last calibration ${days_since}d ago. Next in ${days_left}d — nothing to do."
+    exit 0
+  fi
+fi
+
+# ── Guard: must be on AC power ────────────────────────────────────────────────
+ac_online=0
+for ac_path in /sys/class/power_supply/*/online; do
+  [[ -r "$ac_path" ]] && (( $(cat "$ac_path") )) && ac_online=1 && break
+done
+
+if (( ! ac_online )); then
+  print -P "  %F{yellow}⚠%f Not on AC power. Plug in to start calibration."
+  _notify "Plug in your charger to start the monthly battery calibration." "normal"
+  # Exit 0 so the timer does not enter a failed state; it will fire again next month.
+  exit 0
+fi
+
+# ── Save previous threshold ───────────────────────────────────────────────────
+prev_end=80
+if [[ -f "$CONF_FILE" ]]; then
+  prev_end=$(grep '^CHARGE_END=' "$CONF_FILE" 2>/dev/null | cut -d= -f2 || echo 80)
+fi
+prev_start=$(( prev_end - 5 ))
+(( prev_start < 10 )) && prev_start=10
+
+# ── Lift threshold to 100% ────────────────────────────────────────────────────
+print -P "  %F{blue}→%f Calibration: lifting limit to 100%..."
+echo 95 | sudo tee "$BATTERY_PATH/charge_control_start_threshold" > /dev/null
+echo 100 | sudo tee "$BATTERY_PATH/charge_control_end_threshold" > /dev/null
+# Stop the boot-time service so it does not fight us (CONF_FILE unchanged)
+sudo systemctl stop battery-charge-threshold 2>/dev/null || true
+
+_notify "Calibration started — charging to 100%. Limit will restore automatically." "normal"
+
+# ── Wait for Full ─────────────────────────────────────────────────────────────
+print -P "  %F{blue}→%f Waiting for battery to reach Full (polling every ${POLL_INTERVAL}s)..."
+while true; do
+  bat_status=$(_read_sysfs "status")
+  capacity=$(_read_sysfs "capacity")
+  if [[ "$bat_status" == "Full" ]] || \
+     { [[ "$bat_status" == "Not charging" ]] && [[ "$capacity" != "N/A" ]] && (( capacity >= 99 )); }; then
+    break
+  fi
+  sleep "$POLL_INTERVAL"
+done
+
+print -P "  %F{green}✓%f Battery full. Holding for 1 hour to let sysfs re-measure capacity..."
+_notify "Battery at 100%. Holding 1 hour to recalibrate capacity reading." "low"
+sleep 3600
+
+# ── Restore threshold ─────────────────────────────────────────────────────────
+print -P "  %F{blue}→%f Restoring charge threshold to ${prev_start}%% → ${prev_end}%%..."
+echo "$prev_start" | sudo tee "$BATTERY_PATH/charge_control_start_threshold" > /dev/null
+echo "$prev_end"   | sudo tee "$BATTERY_PATH/charge_control_end_threshold"   > /dev/null
+sudo systemctl start battery-charge-threshold 2>/dev/null || true
+
+# ── Record date ───────────────────────────────────────────────────────────────
+mkdir -p "$STATE_DIR"
+date +%Y-%m-%d > "$STATE_FILE"
+
+print -P "  %F{green}✓%f Calibration complete. Threshold restored to ${prev_end}%%. Date recorded."
+_notify "Calibration complete — charge limit restored to ${prev_end}%." "low"

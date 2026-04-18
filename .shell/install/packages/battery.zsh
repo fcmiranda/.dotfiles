@@ -142,4 +142,38 @@ else
   print -P "    This is expected if you are not on Asahi Linux."
 fi
 
+# ══════════════════════════════════════════════════════════════════════════════
+# 3. Sudoers drop-in — passwordless sysfs threshold writes
+# ══════════════════════════════════════════════════════════════════════════════
+# Required by battery-calibrate-auto running as a systemd user service (no TTY).
+SUDOERS_SRC="${0:A:h}/../../battery/etc/sudoers.d/10-battery-threshold"
+SUDOERS_DEST="/etc/sudoers.d/10-battery-threshold"
+
+if [[ ! -f "$SUDOERS_DEST" ]]; then
+  print -P "  %F{blue}→%f Installing sudoers drop-in for battery threshold writes..."
+  # visudo -c validates syntax before writing; fail loudly if the file is broken
+  if sudo visudo -c -f "$SUDOERS_SRC" &>/dev/null; then
+    sudo install -m 0440 -o root -g root "$SUDOERS_SRC" "$SUDOERS_DEST"
+    print -P "  %F{green}✓%f Sudoers drop-in installed at %B${SUDOERS_DEST}%b"
+  else
+    print -P "  %F{red}✗%f Sudoers syntax check failed — skipping install"
+  fi
+else
+  print -P "  %F{cyan}✓%f Sudoers drop-in already present"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 4. Monthly calibration systemd user timer
+# ══════════════════════════════════════════════════════════════════════════════
+# The timer calls battery-calibrate-auto on the 1st of each month.
+# Persistent=true means it fires at next boot if the machine was off on the due date.
+if ! systemctl --user is-enabled battery-calibrate.timer &>/dev/null; then
+  print -P "  %F{blue}→%f Enabling battery-calibrate user timer..."
+  systemctl --user daemon-reload
+  systemctl --user enable --now battery-calibrate.timer
+  print -P "  %F{green}✓%f battery-calibrate.timer enabled"
+else
+  print -P "  %F{cyan}✓%f battery-calibrate.timer already enabled"
+fi
+
 print -P "  %F{green}  ✓%f Battery management setup complete"

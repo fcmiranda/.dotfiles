@@ -107,4 +107,35 @@ svc_color="red"
 [[ "$svc_state" == "active" ]] && svc_color="green"
 print -P "  threshold-svc  %F{${svc_color}}%B${svc_state}%b%f"
 
+# ── calibration status ────────────────────────────────────────────────────────
+state_file="$HOME/.local/share/battery/last-calibration"
+if [[ -f "$state_file" ]]; then
+  last_cal=$(cat "$state_file" | tr -d '[:space:]')
+  last_epoch=$(date -d "$last_cal" +%s 2>/dev/null || echo 0)
+  now_epoch=$(date +%s)
+  days_since=$(( (now_epoch - last_epoch) / 86400 ))
+  days_left=$(( 30 - days_since ))
+
+  cal_color="green"
+  (( days_since > 30 )) && cal_color="yellow"
+  (( days_since > 60 )) && cal_color="red"
+
+  if (( days_left > 0 )); then
+    cal_hint=" %F{white}(next in ${days_left}d)%f"
+  else
+    cal_hint=" %F{yellow}[due — run: battery-calibrate-auto]%f"
+  fi
+
+  print -P "  Last calibration %F{${cal_color}}%B${last_cal}%b%f (${days_since}d ago)${cal_hint}"
+else
+  print -P "  Last calibration %F{yellow}%Bnever recorded%b%f — run: %Bbattery-calibrate-auto%b"
+fi
+
+# ── calibration timer status ──────────────────────────────────────────────────
+timer_state=$(systemctl --user is-active battery-calibrate.timer 2>&1 || true)
+[[ -z "$timer_state" ]] && timer_state="inactive"
+timer_color="red"
+[[ "$timer_state" == "active" ]] && timer_color="green"
+print -P "  calibrate-timer %F{${timer_color}}%B${timer_state}%b%f"
+
 print ""

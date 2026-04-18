@@ -1,0 +1,13 @@
+[Unit]
+Description=Monthly battery calibration check timer
+
+[Timer]
+# Fire on the first day of each month
+OnCalendar=monthly
+# If the machine was off when the timer was due, fire shortly after next boot
+Persistent=true
+# Spread load: allow up to 1 hour of random delay so all units don't fire simultaneously
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

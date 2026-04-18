@@ -7,6 +7,9 @@
 #   battery-threshold reset        # restore to 100% (remove limits)
 #   battery-threshold calibrate    # temporarily lift limit for a calibration full charge
 #
+# Calibration state is tracked in ~/.local/share/battery/last-calibration.
+# The battery-calibrate systemd user timer runs this workflow automatically each month.
+#
 # Requires the battery-charge-threshold systemd service to persist across reboots.
 # The service reads /etc/battery-charge-threshold.conf on start.
 
@@ -43,6 +46,11 @@ case "$cmd" in
     start=$(( target - 5 ))
     (( start < 10 )) && start=10
 
+    # Detect if we are restoring from a calibration (previous end was 100%)
+    prev_end=$(cat "$BATTERY_PATH/charge_control_end_threshold" 2>/dev/null || echo 0)
+    coming_from_calibration=0
+    (( prev_end >= 99 )) && coming_from_calibration=1
+
     print -P "  %F{blue}→%f Setting charge thresholds: start=%B${start}%%%b end=%B${target}%%%b"
 
     # Apply immediately
@@ -58,6 +66,14 @@ case "$cmd" in
     fi
 
     print -P "  %F{green}✓%f Thresholds applied and persisted."
+
+    # If restoring from calibration, record the date
+    if (( coming_from_calibration )); then
+      local state_dir="$HOME/.local/share/battery"
+      mkdir -p "$state_dir"
+      date +%Y-%m-%d > "$state_dir/last-calibration"
+      print -P "  %F{green}✓%f Calibration date recorded: %B$(date +%Y-%m-%d)%b"
+    fi
     ;;
 
   reset)

@@ -38,6 +38,7 @@ zcd() {
     local _sourcefile="$_tmpdir/source"
     local _togglescript="$_tmpdir/toggle.sh"
     local _relscript="$_tmpdir/rel.awk"
+    local _treescript="$_tmpdir/tree.awk"
     local _leftaction="$_tmpdir/leftaction"
     local _rightaction="$_tmpdir/rightaction"
     local _leftscript="$_tmpdir/left.sh"
@@ -67,6 +68,27 @@ BEGIN { n = split(cwd, C, "/") }
     print p "\t" rel
 }
 RELEOF
+    # awk program: stdin sorted full-paths → stdout "fullpath\ttree-indented-basename"
+    # depth is computed relative to `base` (the browse root or cwd)
+    cat > "$_treescript" <<'TREEEOF'
+BEGIN {
+    n = split(base, B, "/")
+    while (n > 0 && B[n] == "") n--
+}
+{
+    p = $0
+    isdir = (substr(p, length(p), 1) == "/")
+    if (isdir) p = substr(p, 1, length(p)-1)
+    m = split(p, P, "/")
+    while (m > 0 && P[m] == "") m--
+    depth = m - n - 1
+    if (depth < 0) depth = 0
+    indent = ""
+    for (i = 0; i < depth; i++) indent = indent "  "
+    suffix = isdir ? "/" : ""
+    print p "\t" indent P[m] suffix
+}
+TREEEOF
     echo "dirsfirst" > "$_sortfile"
     echo "filter"    > "$_modefile"
     if (( zoxide_only )); then
@@ -98,7 +120,7 @@ RELEOF
     local _fd_ex="${(j: :)${_ignore_dirs[@]/#/-E }}"
     local _init_all_rel="( zoxide query -l; fd -td -H -E.git ${_fd_ex} --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | awk -v cwd='$_cwd' -f '$_relscript'"
     local _init_zo_rel="zoxide query -l | awk -v cwd='$_cwd' -f '$_relscript'"
-    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd'; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd'; } 2>/dev/null | awk -v cwd='$_cwd' -f '$_relscript'"
+    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd' | sed 's|$|/|'; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd'; } 2>/dev/null | sort | awk -v base='$_cwd' -f '$_treescript'"
     # smart: wave 1 = all zoxide dirs (frecency order, appear at top)
     #        wave 2 = contents of each zoxide dir clustered in frecency order
     #        wave 3 = rest of $HOME (entries already seen are skipped by awk)
@@ -123,10 +145,8 @@ if [ -z \"\$d\" ]; then \\
   else \\
     $_init_all_rel; \\
   fi; \\
-elif [ \"\$s\" = 'sorted' ]; then \
-  fd -H -E.git ${_fd_ex} -a . \"\$d\" 2>/dev/null | sort | awk -v cwd='$_cwd' -f '$_relscript'; \
 else \
-  { fd -td -H -E.git ${_fd_ex} -a . \"\$d\"; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | awk -v cwd='$_cwd' -f '$_relscript'; \
+  { fd -td -H -E.git ${_fd_ex} -a . \"\$d\" | sed 's|$|/|'; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | sort | awk -v base=\"\$d\" -f '$_treescript'; \
 fi"
 
     # ── Theme ─────────────────────────────────────────────────────────────────

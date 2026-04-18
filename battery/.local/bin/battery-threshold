@@ -5,6 +5,7 @@
 #   battery-threshold              # show current thresholds
 #   battery-threshold set <N>      # set charge end threshold to N% (also sets start to N-5)
 #   battery-threshold reset        # restore to 100% (remove limits)
+#   battery-threshold calibrate    # temporarily lift limit for a calibration full charge
 #
 # Requires the battery-charge-threshold systemd service to persist across reboots.
 # The service reads /etc/battery-charge-threshold.conf on start.
@@ -68,9 +69,47 @@ case "$cmd" in
     print -P "  %F{cyan}✓%f Charge limit removed."
     ;;
 
+  calibrate)
+    # Lift the limit temporarily so the battery can charge to 100%.
+    # A full charge lets the kernel re-measure energy_full (the "design capacity"
+    # denominator used by battery-health), keeping the health% reading accurate.
+    # macOS does this automatically via Optimized Battery Charging; on Linux you
+    # need to trigger it manually — roughly once every 1–3 months is sufficient.
+    #
+    # After the battery reaches 100% and the laptop has been idle for a few hours,
+    # run: battery-threshold set 80   (or reboot — the systemd service will restore it)
+
+    # Save the current configured end threshold so we can remind the user
+    prev_end=80
+    if [[ -f "$CONF_FILE" ]]; then
+      prev_end=$(grep '^CHARGE_END=' "$CONF_FILE" | cut -d= -f2 || echo 80)
+    fi
+
+    print -P ""
+    print -P "  %F{blue}%B Calibration cycle — Apple Silicon battery%b%f"
+    print -P "  %F{white}────────────────────────────────────────────%f"
+    print -P "  Temporarily lifting the charge limit to 100% so the"
+    print -P "  kernel can re-measure %Benergy_full%b (real capacity)."
+    print -P ""
+    print -P "  %F{yellow}⚠  Do this roughly once every 1–3 months.%f"
+    print -P ""
+
+    echo 95 | sudo tee "$BATTERY_PATH/charge_control_start_threshold" > /dev/null
+    echo 100 | sudo tee "$BATTERY_PATH/charge_control_end_threshold" > /dev/null
+    # Do NOT update CONF_FILE — the service will restore the real limit on next boot
+    sudo systemctl stop battery-charge-threshold 2>/dev/null || true
+
+    print -P "  %F{green}✓%f Limit lifted. Plug in the charger and let the battery reach 100%."
+    print -P ""
+    print -P "  When full + idle for ~1 hour, restore your limit with:"
+    print -P "  %F{cyan}  battery-threshold set ${prev_end}%f"
+    print -P ""
+    ;;
+
+
   *)
     print -P "%F{red}✗%f Unknown command: %B${cmd}%b"
-    print "Usage: battery-threshold [show|set <N>|reset]"
+    print "Usage: battery-threshold [show|set <N>|reset|calibrate]"
     exit 1
     ;;
 esac

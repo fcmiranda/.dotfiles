@@ -11,6 +11,7 @@ echo "Starting installation..."
 
 install_packages \
     kanshi \
+    battery \
     atuin \
     ghostty \
     keyd \

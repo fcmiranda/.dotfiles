@@ -1,0 +1,108 @@
+#!/usr/bin/env zsh
+# battery-health — show battery status for Asahi Linux on Apple Silicon (M1/M2/M3)
+#
+# Reads from sysfs at /sys/class/power_supply/macsmc-battery/
+# Displays: charge level, threshold limits, health/capacity, temperature, status
+
+set -euo pipefail
+
+BATTERY_PATH="/sys/class/power_supply/macsmc-battery"
+
+if [[ ! -d "$BATTERY_PATH" ]]; then
+  print -P "%F{red}✗%f Battery not found at %B${BATTERY_PATH}%b"
+  print -P "  Are you running Asahi Linux on Apple Silicon?"
+  exit 1
+fi
+
+read_sysfs() {
+  local file="$BATTERY_PATH/$1"
+  [[ -r "$file" ]] && cat "$file" 2>/dev/null || echo "N/A"
+}
+
+status=$(read_sysfs "status")
+capacity=$(read_sysfs "capacity")
+energy_now=$(read_sysfs "energy_now")
+energy_full=$(read_sysfs "energy_full")
+energy_full_design=$(read_sysfs "energy_full_design")
+charge_start=$(read_sysfs "charge_control_start_threshold")
+charge_end=$(read_sysfs "charge_control_end_threshold")
+cycle_count=$(read_sysfs "cycle_count")
+temp_raw=$(read_sysfs "temp")
+voltage_now=$(read_sysfs "voltage_now")
+
+# ── Status color ──────────────────────────────────────────────────────────────
+status_color="cyan"
+case "$status" in
+  Charging) status_color="green" ;;
+  Discharging) status_color="yellow" ;;
+  Full) status_color="blue" ;;
+  "Not charging") status_color="magenta" ;;
+esac
+
+# ── Health percentage ─────────────────────────────────────────────────────────
+health_pct="N/A"
+if [[ "$energy_full" != "N/A" && "$energy_full_design" != "N/A" && "$energy_full_design" -gt 0 ]]; then
+  health_pct=$(( energy_full * 100 / energy_full_design ))
+fi
+
+health_color="green"
+if [[ "$health_pct" != "N/A" ]]; then
+  (( health_pct < 80 )) && health_color="yellow"
+  (( health_pct < 60 )) && health_color="red"
+fi
+
+# ── Temperature ───────────────────────────────────────────────────────────────
+temp_display="N/A"
+if [[ "$temp_raw" != "N/A" ]]; then
+  temp_c=$(( temp_raw / 10 ))
+  temp_display="${temp_c}°C"
+fi
+
+temp_color="green"
+if [[ "$temp_raw" != "N/A" ]]; then
+  (( temp_raw > 400 )) && temp_color="yellow"  # > 40°C
+  (( temp_raw > 500 )) && temp_color="red"     # > 50°C
+fi
+
+# ── Threshold health hint ─────────────────────────────────────────────────────
+threshold_hint=""
+if [[ "$charge_end" != "N/A" ]]; then
+  if (( charge_end > 85 )); then
+    threshold_hint=" %F{red}[WARNING: charge limit above 85% — battery at risk]%f"
+  elif (( charge_end <= 80 )); then
+    threshold_hint=" %F{green}[optimal]%f"
+  fi
+fi
+
+print ""
+print -P "  %F{blue}%B Battery Health — Apple Silicon (Asahi Linux)%b%f"
+print -P "  %F{white}─────────────────────────────────────────────%f"
+print -P "  Status         %F{${status_color}}%B${status}%b%f"
+print -P "  Charge         %F{cyan}%B${capacity}%%%b%f"
+print -P "  Threshold      %F{yellow}%B${charge_start}%% → ${charge_end}%%%b%f${threshold_hint}"
+print -P "  Battery Health %F{${health_color}}%B${health_pct}%%%b%f"
+print -P "  Cycles         %F{white}%B${cycle_count}%b%f"
+print -P "  Temperature    %F{${temp_color}}%B${temp_display}%b%f"
+
+if [[ "$voltage_now" != "N/A" ]]; then
+  voltage_v=$(echo "scale=2; $voltage_now / 1000000" | bc 2>/dev/null || echo "${voltage_now} µV")
+  print -P "  Voltage        %F{white}%B${voltage_v}V%b%f"
+fi
+
+print ""
+
+# ── auto-cpufreq status hint ──────────────────────────────────────────────────
+if command -v auto-cpufreq &>/dev/null; then
+  acf_state=$(systemctl is-active auto-cpufreq 2>/dev/null || echo "inactive")
+  acf_color="red"
+  [[ "$acf_state" == "active" ]] && acf_color="green"
+  print -P "  auto-cpufreq   %F{${acf_color}}%B${acf_state}%b%f"
+fi
+
+# ── charge threshold service status ──────────────────────────────────────────
+svc_state=$(systemctl is-active battery-charge-threshold 2>/dev/null || echo "inactive")
+svc_color="red"
+[[ "$svc_state" == "active" ]] && svc_color="green"
+print -P "  threshold-svc  %F{${svc_color}}%B${svc_state}%b%f"
+
+print ""

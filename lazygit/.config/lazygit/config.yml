@@ -2,12 +2,12 @@ customCommands:
   - key: '<c-a>'
     context: 'files'
     description: 'AI atomic commits (sgc)'
-    command: 'sgc'
-    subprocess: true
+    command: 'zsh -i -c "sgc"'
     loadingText: 'sgc: analyzing changes…'
+    output: terminal
   - key: '<c-g>'
     context: 'files'
     description: 'AI single commit (gc)'
-    command: 'gc'
-    subprocess: true
+    command: 'zsh -i -c "msg=\$(gc) && [[ -n \"\$msg\" ]] && git commit -m \"\$msg\""'
     loadingText: 'gc: generating commit message…'
+    output: terminal

@@ -1,0 +1,72 @@
+#!/usr/bin/env zsh
+# battery-menu — fuzzel dmenu launcher for battery management tools
+#
+# Shows a fuzzel picker with all battery actions.
+# Selected action is executed in a new terminal window.
+#
+# Bind this script to a key in Hyprland, e.g.:
+#   bind = $mod, B, exec, battery-menu
+
+set -euo pipefail
+
+TERM_CMD="xdg-terminal-exec"
+# Fallback terminal detection
+if ! command -v xdg-terminal-exec &>/dev/null; then
+  for t in ghostty kitty alacritty foot; do
+    if command -v "$t" &>/dev/null; then
+      TERM_CMD="$t"
+      break
+    fi
+  done
+fi
+
+# ── Menu entries: "icon  Label | shell command" ───────────────────────────────
+# Format: display text left of | — command right of |
+declare -A actions
+declare -a order
+
+_add() {
+  local label="$1"
+  local cmd="$2"
+  order+=("$label")
+  actions[$label]="$cmd"
+}
+
+_add "  Battery Health"        "battery-health; echo; read -sk1 '?Press any key to close...'"
+_add "  Set Limit → 80%"       "battery-threshold set 80; echo; read -sk1 '?Press any key to close...'"
+_add "  Set Limit → 90%"       "battery-threshold set 90; echo; read -sk1 '?Press any key to close...'"
+_add "  Remove Limit (100%)"   "battery-threshold reset; echo; read -sk1 '?Press any key to close...'"
+_add "  Show Threshold"        "battery-threshold; echo; read -sk1 '?Press any key to close...'"
+_add "  Calibrate (manual)"    "battery-threshold calibrate; echo; read -sk1 '?Press any key to close...'"
+_add "  Auto-Calibrate Now"    "battery-calibrate-auto; echo; read -sk1 '?Press any key to close...'"
+_add "  Calibration Timer"     "systemctl --user status battery-calibrate.timer --no-pager; echo; read -sk1 '?Press any key to close...'"
+
+# ── Pipe labels into fuzzel dmenu ─────────────────────────────────────────────
+selected=$(printf '%s\n' "${order[@]}" | \
+  fuzzel --dmenu \
+    --prompt "  " \
+    --placeholder "battery action..." \
+    --lines "${#order[@]}" \
+    --width 40 \
+  2>/dev/null) || exit 0
+
+[[ -z "$selected" ]] && exit 0
+
+cmd="${actions[$selected]:-}"
+[[ -z "$cmd" ]] && exit 0
+
+# ── Run in terminal ───────────────────────────────────────────────────────────
+case "$TERM_CMD" in
+  ghostty)
+    uwsm app -- ghostty -e zsh -c "$cmd" ;;
+  kitty)
+    uwsm app -- kitty zsh -c "$cmd" ;;
+  alacritty)
+    uwsm app -- alacritty -e zsh -c "$cmd" ;;
+  foot)
+    uwsm app -- foot zsh -c "$cmd" ;;
+  xdg-terminal-exec)
+    uwsm app -- xdg-terminal-exec zsh -c "$cmd" ;;
+  *)
+    uwsm app -- "$TERM_CMD" zsh -c "$cmd" ;;
+esac

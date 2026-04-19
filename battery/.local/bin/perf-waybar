@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# perf-waybar.sh — waybar output script for custom/perf module
+# Shows current ACPI platform profile as an icon in the waybar.
+# Empty output when balanced (default) to avoid noise.
+
+p=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
+case "$p" in
+  performance) printf '󰓅 PERF' ;;
+  low-power)   printf '󰌪 ECO'  ;;
+  balanced|"") printf ''       ;;
+  *)           printf '%s' "$p" ;;
+esac

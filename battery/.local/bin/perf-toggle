@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# perf-toggle.sh — toggle ACPI platform profile on click (bound to custom/perf in waybar)
+#
+# Cycles: balanced → performance → balanced
+# On battery, forces balanced regardless (performance on battery wastes energy).
+# Sends a mako notification with the new state.
+
+set -euo pipefail
+
+current=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo balanced)
+on_ac=$(cat /sys/class/power_supply/*/online 2>/dev/null | head -1 || echo 0)
+
+if [[ "$current" == "performance" ]]; then
+  if [[ "$on_ac" == "1" ]]; then
+    new_profile="balanced"
+    label="Balanced — AC profile"
+    icon="󰌪"
+  else
+    new_profile="balanced"
+    label="On battery — forced balanced"
+    icon="󰌪"
+  fi
+else
+  if [[ "$on_ac" == "1" ]]; then
+    new_profile="performance"
+    label="Performance — AC only"
+    icon="󰓅"
+  else
+    new_profile="balanced"
+    label="On battery — balanced only"
+    icon="󰌪"
+  fi
+fi
+
+echo "$new_profile" | sudo tee /sys/firmware/acpi/platform_profile > /dev/null
+notify-send -t 2000 "${icon} Power profile" "$label" 2>/dev/null || true
+
+# Signal waybar to refresh the custom/perf module (signal 12)
+pkill -RTMIN+12 waybar 2>/dev/null || true

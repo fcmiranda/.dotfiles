@@ -20,6 +20,7 @@
     "network",
     "pulseaudio",
     "cpu",
+    "custom/perf",
     "battery"
   ],
   "group/pill#left": {
@@ -198,6 +199,14 @@
       "custom/expand-icon",
       "tray"
     ]
+  },
+  "custom/perf": {
+    "exec": "$HOME/.local/bin/perf-waybar",
+    "interval": 3,
+    "format": "{}",
+    "tooltip": false,
+    "on-click": "$HOME/.local/bin/perf-toggle",
+    "signal": 12
   },
   "custom/expand-icon": {
     "exec": "echo",

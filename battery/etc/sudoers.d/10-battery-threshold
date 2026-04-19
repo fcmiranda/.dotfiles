@@ -7,3 +7,4 @@
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop battery-charge-threshold
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl start battery-charge-threshold
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart battery-charge-threshold
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/firmware/acpi/platform_profile

@@ -34,15 +34,21 @@ _add() {
   actions[$label]="$cmd"
 }
 
-_add "  Battery Health"        "$BIN/battery-health; echo; read -sk1 '?Press any key to close...'"
-_add "  Set Limit → 60/85% (plugged-in)" "$BIN/battery-threshold set-custom 60 85; echo; read -sk1 '?Press any key to close...'"
-_add "  Set Limit → 80% (mixed use)"     "$BIN/battery-threshold set 80; echo; read -sk1 '?Press any key to close...'"
-_add "  Set Limit → 90%"                 "$BIN/battery-threshold set 90; echo; read -sk1 '?Press any key to close...'"
-_add "  Remove Limit (100%)"   "$BIN/battery-threshold reset; echo; read -sk1 '?Press any key to close...'"
-_add "  Show Threshold"        "$BIN/battery-threshold; echo; read -sk1 '?Press any key to close...'"
-_add "  Calibrate (manual)"    "$BIN/battery-threshold calibrate; echo; read -sk1 '?Press any key to close...'"
-_add "  Auto-Calibrate Now"    "$BIN/battery-calibrate-auto; echo; read -sk1 '?Press any key to close...'"
-_add "  Calibration Timer"     "systemctl --user status battery-calibrate.timer --no-pager; echo; read -sk1 '?Press any key to close...'"
+_add "  Battery Health"                      "$BIN/battery-health; echo; read -sk1 '?Press any key to close...'"
+_add "── Power Profile ───────────────────"   ":"
+_add "  󰓅  Performance (AC only)"             "$BIN/perf-toggle performance"
+_add "     Balanced (default)"                "$BIN/perf-toggle balanced"
+_add "  󰌪  Eco / low-power"                    "$BIN/perf-toggle low-power"
+_add "── Charge Threshold ────────────────"   ":"
+_add "  Set Limit → 60/85% (plugged-in)"      "$BIN/battery-threshold set-custom 60 85; echo; read -sk1 '?Press any key to close...'"
+_add "  Set Limit → 80% (mixed use)"          "$BIN/battery-threshold set 80; echo; read -sk1 '?Press any key to close...'"
+_add "  Set Limit → 90%"                      "$BIN/battery-threshold set 90; echo; read -sk1 '?Press any key to close...'"
+_add "  Remove Limit (100%)"                  "$BIN/battery-threshold reset; echo; read -sk1 '?Press any key to close...'"
+_add "  Show Threshold"                       "$BIN/battery-threshold; echo; read -sk1 '?Press any key to close...'"
+_add "── Calibration ─────────────────────"   ":"
+_add "  Calibrate (manual)"                   "$BIN/battery-threshold calibrate; echo; read -sk1 '?Press any key to close...'"
+_add "  Auto-Calibrate Now"                   "$BIN/battery-calibrate-auto; echo; read -sk1 '?Press any key to close...'"
+_add "  Calibration Timer"                    "systemctl --user status battery-calibrate.timer --no-pager; echo; read -sk1 '?Press any key to close...'"
 
 # ── Pipe labels into fuzzel dmenu ─────────────────────────────────────────────
 selected=$(printf '%s\n' "${order[@]}" | \
@@ -50,13 +56,14 @@ selected=$(printf '%s\n' "${order[@]}" | \
     --prompt "  " \
     --placeholder "battery action..." \
     --lines "${#order[@]}" \
-    --width 40 \
+    --width 45 \
   2>/dev/null) || exit 0
 
 [[ -z "$selected" ]] && exit 0
 
+# Skip separator entries (their command is ":")
 cmd="${actions[$selected]:-}"
-[[ -z "$cmd" ]] && exit 0
+[[ -z "$cmd" || "$cmd" == ":" ]] && exit 0
 
 # ── Run in terminal ───────────────────────────────────────────────────────────
 case "$TERM_CMD" in

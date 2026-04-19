@@ -1,39 +1,55 @@
 #!/usr/bin/env bash
-# perf-toggle.sh — toggle ACPI platform profile on click (bound to custom/perf in waybar)
+# perf-toggle — set or toggle the ACPI platform profile
 #
-# Cycles: balanced → performance → balanced
-# On battery, forces balanced regardless (performance on battery wastes energy).
-# Sends a mako notification with the new state.
+# Usage:
+#   perf-toggle                  # toggle: balanced ↔ performance (waybar click)
+#   perf-toggle balanced         # set balanced
+#   perf-toggle performance      # set performance (AC only)
+#   perf-toggle low-power        # set eco / low-power
+#
+# Sends a mako notification and signals waybar (signal 12) on change.
 
 set -euo pipefail
 
-current=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo balanced)
+PROFILE_PATH="/sys/firmware/acpi/platform_profile"
+
+current=$(cat "$PROFILE_PATH" 2>/dev/null || echo balanced)
 on_ac=$(cat /sys/class/power_supply/*/online 2>/dev/null | head -1 || echo 0)
 
-if [[ "$current" == "performance" ]]; then
-  if [[ "$on_ac" == "1" ]]; then
-    new_profile="balanced"
-    label="Balanced — AC profile"
-    icon="󰌪"
-  else
-    new_profile="balanced"
-    label="On battery — forced balanced"
-    icon="󰌪"
+_set_profile() {
+  local profile="$1"
+  local icon label
+
+  case "$profile" in
+    performance) icon="󰓅" ; label="Performance mode" ;;
+    low-power)   icon="󰌪" ; label="Eco / low-power mode" ;;
+    balanced)    icon="󰌪" ; label="Balanced mode" ;;
+    *)           icon=""   ; label="$profile" ;;
+  esac
+
+  echo "$profile" | sudo tee "$PROFILE_PATH" > /dev/null
+  notify-send -t 2000 "${icon} Power profile" "$label" 2>/dev/null || true
+  pkill -RTMIN+12 waybar 2>/dev/null || true
+}
+
+# ── Explicit profile argument ─────────────────────────────────────────────────
+if [[ $# -ge 1 ]]; then
+  requested="$1"
+  if [[ "$requested" == "performance" && "$on_ac" != "1" ]]; then
+    notify-send -t 3000 "󱐋 Power profile" "Performance on battery drains quickly" 2>/dev/null || true
   fi
-else
-  if [[ "$on_ac" == "1" ]]; then
-    new_profile="performance"
-    label="Performance — AC only"
-    icon="󰓅"
-  else
-    new_profile="balanced"
-    label="On battery — balanced only"
-    icon="󰌪"
-  fi
+  _set_profile "$requested"
+  exit 0
 fi
 
-echo "$new_profile" | sudo tee /sys/firmware/acpi/platform_profile > /dev/null
-notify-send -t 2000 "${icon} Power profile" "$label" 2>/dev/null || true
-
-# Signal waybar to refresh the custom/perf module (signal 12)
-pkill -RTMIN+12 waybar 2>/dev/null || true
+# ── No argument: toggle balanced ↔ performance (waybar click) ─────────────────
+if [[ "$current" == "performance" ]]; then
+  _set_profile "balanced"
+else
+  if [[ "$on_ac" == "1" ]]; then
+    _set_profile "performance"
+  else
+    notify-send -t 2000 "󰤇 Power profile" "On battery — switching to balanced" 2>/dev/null || true
+    _set_profile "balanced"
+  fi
+fi

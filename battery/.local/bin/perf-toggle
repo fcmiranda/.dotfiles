@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# perf-toggle — set or toggle the ACPI platform profile
+# perf-toggle — set or toggle the CPU governor (Apple Silicon / Asahi Linux)
+#
+# Profile → governor mapping:
+#   performance  →  performance
+#   balanced     →  schedutil   (default)
+#   low-power    →  powersave
 #
 # Usage:
 #   perf-toggle                  # toggle: balanced ↔ performance (waybar click)
@@ -11,23 +16,50 @@
 
 set -euo pipefail
 
-PROFILE_PATH="/sys/firmware/acpi/platform_profile"
+CPUFREQ_POLICIES=(
+  /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+  /sys/devices/system/cpu/cpufreq/policy2/scaling_governor
+  /sys/devices/system/cpu/cpufreq/policy5/scaling_governor
+)
 
-current=$(cat "$PROFILE_PATH" 2>/dev/null || echo balanced)
+_current_governor() {
+  cat "${CPUFREQ_POLICIES[0]}" 2>/dev/null || echo schedutil
+}
+
+_governor_for_profile() {
+  case "$1" in
+    performance) echo performance ;;
+    low-power)   echo powersave   ;;
+    balanced|*)  echo schedutil   ;;
+  esac
+}
+
+_profile_for_governor() {
+  case "$1" in
+    performance)            echo performance ;;
+    powersave|conservative) echo low-power   ;;
+    *)                      echo balanced    ;;
+  esac
+}
+
+current=$(_profile_for_governor "$(_current_governor)")
 on_ac=$(cat /sys/class/power_supply/*/online 2>/dev/null | head -1 || echo 0)
 
 _set_profile() {
   local profile="$1"
-  local icon label
+  local icon label gov
 
   case "$profile" in
     performance) icon="󰓅" ; label="Performance mode" ;;
     low-power)   icon="󰌪" ; label="Eco / low-power mode" ;;
-    balanced)    icon="󰌪" ; label="Balanced mode" ;;
+    balanced)    icon="" ; label="Balanced mode" ;;
     *)           icon=""   ; label="$profile" ;;
   esac
 
-  echo "$profile" | sudo tee "$PROFILE_PATH" > /dev/null
+  gov=$(_governor_for_profile "$profile")
+  for policy_path in "${CPUFREQ_POLICIES[@]}"; do
+    echo "$gov" | sudo tee "$policy_path" > /dev/null
+  done
   notify-send -t 2000 "${icon} Power profile" "$label" 2>/dev/null || true
   pkill -RTMIN+12 waybar 2>/dev/null || true
 }

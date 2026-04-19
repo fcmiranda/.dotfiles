@@ -7,4 +7,6 @@
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop battery-charge-threshold
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl start battery-charge-threshold
 %wheel ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart battery-charge-threshold
-%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/firmware/acpi/platform_profile
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/devices/system/cpu/cpufreq/policy2/scaling_governor
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/devices/system/cpu/cpufreq/policy5/scaling_governor

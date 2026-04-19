@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# perf-waybar.sh — waybar output script for custom/perf module
-# Shows current ACPI platform profile as an icon in the waybar.
-# Empty output when balanced (default) to avoid noise.
+# perf-waybar — waybar output script for custom/perf module
+# Reads the cpufreq scaling_governor (Apple Silicon / Asahi Linux).
+# Empty output when on the default balanced governor (schedutil).
 
-p=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
-case "$p" in
-  performance) printf '󰓅 PERF' ;;
-  low-power)   printf '󰌪 ECO'  ;;
-  balanced|"") printf ''       ;;
-  *)           printf '%s' "$p" ;;
+# Read governor from any available policy
+gov=$(cat /sys/devices/system/cpu/cpufreq/policy5/scaling_governor \
+         /sys/devices/system/cpu/cpufreq/policy0/scaling_governor \
+      2>/dev/null | head -1)
+
+case "$gov" in
+  performance)                printf '󰓅 PERF' ;;
+  powersave|conservative)     printf '󰌪 ECO'  ;;
+  schedutil|ondemand|userspace|"") printf ''  ;;
+  *)                          printf '%s' "$gov" ;;
 esac

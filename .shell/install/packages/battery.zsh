@@ -91,10 +91,16 @@ if [[ "$ARCH" == "aarch64" ]] && [[ -d "$BATTERY_PATH" ]]; then
 '# Battery charge threshold configuration for Apple Silicon (Asahi Linux)
 # Charging starts when battery drops below CHARGE_START%
 # Charging stops when battery reaches CHARGE_END%
-# Keeping CHARGE_END at 80 significantly slows long-term Li-ion degradation.
-# Change with: battery-threshold set <N>
-CHARGE_START=20
-CHARGE_END=80
+#
+# Profile: plugged-in desk use (recommended when AC most of the time)
+#   CHARGE_START=60 / CHARGE_END=85  — battery stays in the 60-85% sweet spot
+#
+# Profile: mixed use (frequent battery operation)
+#   CHARGE_START=20 / CHARGE_END=80  — wider range for longer unplugged sessions
+#
+# Change with: battery-threshold set-custom <start> <end>
+CHARGE_START=60
+CHARGE_END=85
 '
     print -P "  %F{green}✓%f Charge threshold config written (20%% → 80%%)"
   else

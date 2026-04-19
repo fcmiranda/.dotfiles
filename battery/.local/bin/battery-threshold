@@ -2,10 +2,15 @@
 # battery-threshold — get or set the charge threshold for Apple Silicon (Asahi Linux)
 #
 # Usage:
-#   battery-threshold              # show current thresholds
-#   battery-threshold set <N>      # set charge end threshold to N% (also sets start to N-5)
-#   battery-threshold reset        # restore to 100% (remove limits)
-#   battery-threshold calibrate    # temporarily lift limit for a calibration full charge
+#   battery-threshold                      # show current thresholds
+#   battery-threshold set <N>              # set end to N%, start to N-5 (quick)
+#   battery-threshold set-custom <S> <E>   # set start and end independently
+#   battery-threshold reset                # restore to 100% (remove limits)
+#   battery-threshold calibrate            # temporarily lift limit for a calibration full charge
+#
+# Recommended profiles:
+#   Mostly plugged in (desk use):  battery-threshold set-custom 60 85
+#   Mixed use (on battery often):  battery-threshold set 80
 #
 # Calibration state is tracked in ~/.local/share/battery/last-calibration.
 # The battery-calibrate systemd user timer runs this workflow automatically each month.
@@ -30,35 +35,58 @@ case "$cmd" in
     start=$(cat "$BATTERY_PATH/charge_control_start_threshold" 2>/dev/null || echo "N/A")
     end=$(cat "$BATTERY_PATH/charge_control_end_threshold" 2>/dev/null || echo "N/A")
     print -P "  Charge threshold: %F{yellow}%B${start}%% – ${end}%%%b%f"
-    if [[ "$end" != "N/A" && "$end" -le 80 ]]; then
+    if [[ "$end" != "N/A" && "$end" -le 85 && "$start" -ge 55 ]]; then
+      print -P "  %F{green}✓ Plugged-in profile active (start ≥60%, end ≤85%)%f"
+    elif [[ "$end" != "N/A" && "$end" -le 80 ]]; then
       print -P "  %F{green}✓ Battery protection active (limit ≤ 80%)%f"
     else
       print -P "  %F{red}⚠ No charge limit set — battery health at risk%f"
     fi
     ;;
 
-  set)
-    target="${2:-80}"
-    if ! [[ "$target" =~ ^[0-9]+$ ]] || (( target < 20 || target > 100 )); then
-      print -P "%F{red}✗%f Invalid threshold. Must be a number between 20 and 100."
-      exit 1
+  # ── _apply_thresholds: shared logic for set and set-custom ────────────────
+  set|set-custom)
+    local t_start t_end
+
+    if [[ "$cmd" == "set" ]]; then
+      t_end="${2:-85}"
+      if ! [[ "$t_end" =~ ^[0-9]+$ ]] || (( t_end < 20 || t_end > 100 )); then
+        print -P "%F{red}✗%f Invalid threshold. Must be a number between 20 and 100."
+        exit 1
+      fi
+      t_start=$(( t_end - 5 ))
+      (( t_start < 10 )) && t_start=10
+    else
+      # set-custom <start> <end>
+      t_start="${2:-60}"
+      t_end="${3:-85}"
+      if ! [[ "$t_start" =~ ^[0-9]+$ && "$t_end" =~ ^[0-9]+$ ]]; then
+        print -P "%F{red}✗%f Usage: battery-threshold set-custom <start> <end>"
+        exit 1
+      fi
+      if (( t_start < 10 || t_start > 99 || t_end < 11 || t_end > 100 )); then
+        print -P "%F{red}✗%f start must be 10–99, end must be 11–100."
+        exit 1
+      fi
+      if (( t_start >= t_end )); then
+        print -P "%F{red}✗%f start (%B${t_start}%%%b) must be less than end (%B${t_end}%%%b)."
+        exit 1
+      fi
     fi
-    start=$(( target - 5 ))
-    (( start < 10 )) && start=10
 
     # Detect if we are restoring from a calibration (previous end was 100%)
     prev_end=$(cat "$BATTERY_PATH/charge_control_end_threshold" 2>/dev/null || echo 0)
     coming_from_calibration=0
     (( prev_end >= 99 )) && coming_from_calibration=1
 
-    print -P "  %F{blue}→%f Setting charge thresholds: start=%B${start}%%%b end=%B${target}%%%b"
+    print -P "  %F{blue}→%f Setting charge thresholds: start=%B${t_start}%%%b end=%B${t_end}%%%b"
 
     # Apply immediately
-    echo "$start" | sudo tee "$BATTERY_PATH/charge_control_start_threshold" > /dev/null
-    echo "$target" | sudo tee "$BATTERY_PATH/charge_control_end_threshold" > /dev/null
+    echo "$t_start" | sudo tee "$BATTERY_PATH/charge_control_start_threshold" > /dev/null
+    echo "$t_end"   | sudo tee "$BATTERY_PATH/charge_control_end_threshold"   > /dev/null
 
     # Persist in conf file for the systemd service
-    printf 'CHARGE_START=%d\nCHARGE_END=%d\n' "$start" "$target" | sudo tee "$CONF_FILE" > /dev/null
+    printf 'CHARGE_START=%d\nCHARGE_END=%d\n' "$t_start" "$t_end" | sudo tee "$CONF_FILE" > /dev/null
 
     # Restart the service so it reflects new values
     if systemctl is-active battery-charge-threshold &>/dev/null; then
@@ -125,7 +153,7 @@ case "$cmd" in
 
   *)
     print -P "%F{red}✗%f Unknown command: %B${cmd}%b"
-    print "Usage: battery-threshold [show|set <N>|reset|calibrate]"
+    print "Usage: battery-threshold [show|set <N>|set-custom <S> <E>|reset|calibrate]"
     exit 1
     ;;
 esac

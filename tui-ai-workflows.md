@@ -58,6 +58,10 @@ The stack currently spans **4 navigation layers**, each with its own reach:
 │  prefix+G ............ lazygit (90x90%)                         │
 │  prefix+Y ............ yazi (90x90%)                            │
 │  prefix+N ............ nvim (90x90%)                            │
+├─────────────────────────────────────────────────────────────────┤
+│ FLOAX (AI OVERLAY)                                              │
+│  Alt+o ............... Toggle opencode float (45%w, 90%h, R)    │
+│  (session: opencode-float, follows project CWD)                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -130,7 +134,7 @@ Session: dotfiles          Session: webapp          Session: api
 
 ---
 
-### B. Floating Panes (FloaX)
+### B. Floating Panes (FloaX) ✅ Implemented
 
 **Model**: AI session floats on top of current work. Toggle with one key. Overlay, not a window.
 

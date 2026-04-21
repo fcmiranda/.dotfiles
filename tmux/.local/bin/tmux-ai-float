@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# Per-session AI float wrapper for FloaX
+# Creates a dedicated float session per tmux session: float-<session_name>
+# Binds C-M-s/b/f/r/e/d resize controls while float is open.
+
+FLOAX_DIR="$HOME/.tmux/plugins/tmux-floax/scripts"
+
+# FloaX env vars (read from plugin config)
+floax_opt() { tmux show-option -gqv "$1"; }
+envvar()    { tmux showenv -g "$1" 2>/dev/null | cut -d'=' -f2-; }
+
+FLOAX_WIDTH="${FLOAX_WIDTH:-$(envvar FLOAX_WIDTH)}"
+FLOAX_WIDTH="${FLOAX_WIDTH:-45%}"
+FLOAX_HEIGHT="${FLOAX_HEIGHT:-$(envvar FLOAX_HEIGHT)}"
+FLOAX_HEIGHT="${FLOAX_HEIGHT:-90%}"
+FLOAX_BORDER_COLOR="${FLOAX_BORDER_COLOR:-$(envvar FLOAX_BORDER_COLOR)}"
+FLOAX_BORDER_COLOR="${FLOAX_BORDER_COLOR:-magenta}"
+FLOAX_TEXT_COLOR="${FLOAX_TEXT_COLOR:-$(envvar FLOAX_TEXT_COLOR)}"
+FLOAX_TEXT_COLOR="${FLOAX_TEXT_COLOR:-blue}"
+FLOAX_CHANGE_PATH="$(floax_opt '@floax-change-path')"
+FLOAX_CHANGE_PATH="${FLO
+about prefix i (go to notification) is possible let popup the AX_CHANGE_PATH:-true}"
+
+# Per-session float session name
+CURRENT_SESSION="$(tmux display -p '#{session_name}')"
+FLOAT_SESSION="float-${CURRENT_SESSION}"
+
+TITLE=" opencode  │  C-M-s 󰘕   C-M-b 󰁌   C-M-f 󰊓   C-M-r 󰑓"
+
+set_bindings() {
+    tmux bind -n C-M-s run "$FLOAX_DIR/zoom-options.sh in"
+    tmux bind -n C-M-b run "$FLOAX_DIR/zoom-options.sh out"
+    tmux bind -n C-M-f run "$FLOAX_DIR/zoom-options.sh full"
+    tmux bind -n C-M-r run "$FLOAX_DIR/zoom-options.sh reset"
+    tmux bind -n C-M-e run "$FLOAX_DIR/embed.sh embed"
+    tmux bind -n C-M-d run "$FLOAX_DIR/zoom-options.sh lock"
+    tmux bind -n C-M-u run "$FLOAX_DIR/zoom-options.sh unlock"
+}
+
+unset_bindings() {
+    tmux unbind -n C-M-s 2>/dev/null
+    tmux unbind -n C-M-b 2>/dev/null
+    tmux unbind -n C-M-f 2>/dev/null
+    tmux unbind -n C-M-r 2>/dev/null
+    tmux unbind -n C-M-e 2>/dev/null
+    tmux unbind -n C-M-d 2>/dev/null
+    tmux unbind -n C-M-u 2>/dev/null
+}
+
+pop() {
+    tmux set-option -t "$FLOAT_SESSION" detach-on-destroy on 2>/dev/null
+    tmux setenv -g FLOAX_SESSION_NAME "$FLOAT_SESSION"
+    tmux popup \
+        -S "fg=$FLOAX_BORDER_COLOR" \
+        -s "fg=$FLOAX_TEXT_COLOR" \
+        -T "$TITLE" \
+        -w "$FLOAX_WIDTH" \
+        -h "$FLOAX_HEIGHT" \
+        -b rounded \
+        -E \
+        "tmux attach-session -t \"$FLOAT_SESSION\""
+}
+
+# If we're already inside this session's float → dismiss
+if [ "$CURRENT_SESSION" = "$FLOAT_SESSION" ]; then
+    unset_bindings
+    tmux detach-client
+    exit 0
+fi
+
+set_bindings
+
+# Sync CWD into float session if requested
+CURRENT_PATH="$(tmux display -p '#{pane_current_path}')"
+if tmux has-session -t "$FLOAT_SESSION" 2>/dev/null; then
+    if [ "$FLOAX_CHANGE_PATH" = "true" ]; then
+        FLOAT_PATH="$(tmux display -t "$FLOAT_SESSION" -p '#{pane_current_path}' 2>/dev/null)"
+        if [ "$FLOAT_PATH" != "$CURRENT_PATH" ]; then
+            tmux send-keys -R -t "$FLOAT_SESSION" " cd \"$CURRENT_PATH\"" C-m
+        fi
+    fi
+    pop
+else
+    tmux new-session -d -c "$CURRENT_PATH" -s "$FLOAT_SESSION"
+    tmux set-option -t "$FLOAT_SESSION" status off
+    pop
+fi

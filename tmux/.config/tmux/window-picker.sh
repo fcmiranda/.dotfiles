@@ -70,7 +70,11 @@ chosen=$(fzf \
   --padding="0,1" \
   --info=hidden \
   --color="bg+:#3c3836,border:#504945,label:#7daea3,pointer:#d8a657,hl:#d8a657,hl+:#d8a657,header:#928374,separator:#3c3836,gutter:#1d2021" \
-  --bind='enter:transform([ -n "{2}" ] && echo "accept" || echo "down")' \
+  --bind='start:transform([ -z "{2}" ] && echo "down" || echo "ignore")' \
+  --bind='enter:transform([ -n "{2}" ] && echo "accept" || echo "ignore")' \
+  --bind='down:down+transform([ -z "{2}" ] && echo "down" || echo "ignore")' \
+  --bind='up:up+transform([ -z "{2}" ] && echo "up" || echo "ignore")' \
+  --bind='focus:transform([ -z "{2}" ] && { [[ $FZF_ACTION =~ up ]] && echo "up" || echo "down"; } || echo "ignore")' \
   --preview='
     sess={1}; idx={2}
     [ -z "$idx" ] && {

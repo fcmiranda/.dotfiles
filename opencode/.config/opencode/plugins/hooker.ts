@@ -26,16 +26,19 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     const { spawn } = require("node:child_process")
     const watchdog = spawn("sh", [
       "-c",
-      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux refresh-client -S 2>/dev/null`,
+      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @opencode_state_raw 2>/dev/null; tmux refresh-client -S 2>/dev/null`,
     ], { detached: true, stdio: "ignore" })
     watchdog.unref()
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  const setWindowState = (value: string) => {
+  const setWindowState = (value: string, raw: string) => {
     if (!tmuxPane) return
     // set-option + refresh-client in a single tmux process via ";" separator
+    // @opencode_state      — styled tmux format string for the status bar
+    // @opencode_state_raw  — plain word (busy/idle/question/permission) for scripts
     tmux("set-option", "-w", "-t", tmuxPane, "@opencode_state", value,
+         ";", "set-option", "-w", "-t", tmuxPane, "@opencode_state_raw", raw,
          ";", "refresh-client", "-S")
   }
 
@@ -63,7 +66,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Or in config file:      ~/.config/opencode/hooker-config.json
   //   { "spinner": "moon" }
   //   { "spinner": "minidot", "interval": 80 }
-  const DEFAULT_SPINNER = "pulse"
+  const DEFAULT_SPINNER = "arc"
   let spinnerName = process.env.OPENCODE_SPINNER ?? DEFAULT_SPINNER
   let intervalOverride: number | null = null
 
@@ -88,7 +91,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     if (spinnerTimer) return
     spinnerTimer = setInterval(() => {
       const frame = SPINNER[spinnerFrame++ % SPINNER.length]
-      setWindowState(`#[fg=yellow]${frame} #[fg=default]`)
+      setWindowState(`#[fg=yellow]${frame} #[fg=default]`, "busy")
     }, SPINNER_INTERVAL)
   }
 
@@ -111,7 +114,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       startSpinner()
     } else {
       stopSpinner()
-      setWindowState(STATES[state] ?? "")
+      setWindowState(STATES[state] ?? "", state)
     }
   }
 
@@ -160,6 +163,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     stopSpinner()
     if (!tmuxPane) return
     tmux("set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state",
+         ";", "set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state_raw",
          ";", "refresh-client", "-S")
   }
   process.on("exit",   clearTmuxState)
@@ -195,7 +199,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       if (msg) {
         try {
           // Note: do NOT wrap template expressions in quotes — bun's $ handles escaping
-          await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
+         // await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
         } catch (err) {
           try {
             const fs = await import("node:fs")
@@ -212,7 +216,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
         setAppState("question")
         bell("󱜻 question")
         try {
-          await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
+         // await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
           console.error("NotifyIdlePlugin: notify-send for question failed", err)
         }
@@ -227,7 +231,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       setAppState("permission")
       bell("󱅭 permission")
       try {
-        await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
+        // await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
       } catch (err) {
         console.error("NotifyIdlePlugin: notify-send for permission failed", err)
       }

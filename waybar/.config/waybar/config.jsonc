@@ -49,6 +49,7 @@
       "class<vesktop>": "",
       "class<discord>": "",
       "class<code>": "",
+      "class<antigravity>": "󰲇",
       "class<com.mitchellh.ghostty>": "",
       "class<org.kde.dolphin>": "",
       "class<org.gnome.Nautilus>": "",
@@ -66,7 +67,6 @@
       "title<.* is sharing your screen.*>": "<span color=\"red\">󰹑</span>"
     },
     "format-icons": {},
-
     "persistent-workspaces": {
       "*": [
         "0",

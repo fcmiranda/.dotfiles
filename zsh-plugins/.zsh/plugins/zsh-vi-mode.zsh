@@ -21,8 +21,8 @@ if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh" ]; then
     source "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh"
 elif [ -f "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
     source "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
-elif [ -f "${HOME}/.dotfiles/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
-    source "${HOME}/.dotfiles/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
+elif [ -f "${HOME}/dotfiles/main/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/dotfiles/main/zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"
 fi
 
 # Custom zle-line-init to always start in insert mode with proper prompt reset

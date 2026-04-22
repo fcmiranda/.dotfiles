@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Aether
+Comment=Extract colors from wallpapers and apply desktop themes
+Exec=aether
+Icon=aether
+Terminal=false
+Categories=Utility;Settings;DesktopSettings;
+Keywords=theme;colors;wallpaper;customization;

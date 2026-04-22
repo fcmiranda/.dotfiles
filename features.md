@@ -1,4 +1,11 @@
-
+create agenta, skill, based on akita articles (how to make good questions)
+-----------------------------------------------------------
+try some sidebar
+-----------------------------------------------------------
+create tui change sessions/windows like sesh (the same of fzf alt O)
+-----------------------------------------------------------
+separete sgc into an package
+-----------------------------------------------------------
 
 create tui omarchy wallpaper tool
 using walker or fuzzel?

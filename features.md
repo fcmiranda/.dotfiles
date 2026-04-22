@@ -1,4 +1,4 @@
-create agenta, skill, based on akita articles (how to make good questions)
+create agent, skill, based on akita articles (how to make good questions)
 -----------------------------------------------------------
 try some sidebar
 -----------------------------------------------------------

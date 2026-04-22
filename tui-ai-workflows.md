@@ -6,6 +6,8 @@
 
 - [Current Setup Overview](#current-setup-overview)
 - [Navigation Layers](#navigation-layers)
+- [OpenCode Bell Notification](#opencode-bell-notification)
+- [Window Picker](#window-picker)
 - [Workflow Comparison](#workflow-comparison)
   - [A. Sesh + Tmux Windows (Current)](#a-sesh--tmux-windows-current)
   - [B. Floating Panes (FloaX)](#b-floating-panes-floax)
@@ -51,9 +53,10 @@ The stack currently spans **4 navigation layers**, each with its own reach:
 │  Ctrl+0-9 ........... Jump to window 0-9 (NO prefix)            │
 │  prefix+l / h ........ Next / prev window                       │
 │  prefix+Tab .......... Last window                              │
-│  prefix+i ............ Jump to OpenCode notification window     │
 ├─────────────────────────────────────────────────────────────────┤
 │ TMUX POPUP                                                      │
+│  prefix+i ............ OpenCode bell popup (attach notif window)│
+│  prefix+O ............ Window picker (all sessions, fzf+preview)│
 │  prefix+B ............ btop (90x90%)                            │
 │  prefix+G ............ lazygit (90x90%)                         │
 │  prefix+Y ............ yazi (90x90%)                            │
@@ -90,6 +93,89 @@ The stack currently spans **4 navigation layers**, each with its own reach:
  │  └──────────────────────────────────────────────┘    │
  └──────────────────────────────────────────────────────┘
 ```
+
+---
+
+## OpenCode Bell Notification
+
+**Binding**: `prefix+i` → `opencode-bell-popup.sh`
+
+When OpenCode finishes, needs a question answered, or requires permission, `hooker.ts` fires a bell and sets `@opencode_last_bell` to the pane reference. The bell message appears in the tmux status-right and clears after 7 seconds.
+
+`prefix+i` opens a **90×90% rounded popup** that attaches directly to the notifying OpenCode window — no window hunting needed.
+
+```
+┌─ dotfiles › opencode  │  prefix+q close ──────────────────────┐
+│                                                                │
+│  [the actual opencode terminal window, fully interactive]      │
+│                                                                │
+│  ✓ Task complete. What would you like to do next?             │
+│  >                                                             │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Flow**:
+
+```
+hooker.ts detects idle/question/permission
+  │
+  ├─ sets @opencode_last_bell = pane reference
+  ├─ sets @opencode_bell = styled status-right message
+  └─ clears bell after 7s
+
+User sees bell in status bar → presses prefix+i
+  │
+  └─ opencode-bell-popup.sh
+       ├─ reads @opencode_last_bell to find pane
+       ├─ resolves session + window index
+       └─ opens 90×90% popup → tmux attach-session
+
+User responds to AI, then presses prefix+q to close
+```
+
+**State icons shown in tmux window tabs**:
+
+| Icon | State | Meaning |
+|------|-------|---------|
+| `⣾` (spinning) | busy | AI is processing |
+| `󱥂` | idle | finished, response ready |
+| `󱜻` | question | AI needs your input |
+| `󰨄` | retry | retrying after error |
+| `󱅭` | permission | needs tool permission |
+
+---
+
+## Window Picker
+
+**Binding**: `prefix+O` → `window-picker.sh`
+
+A cross-session window picker that lists **all sessions and all their windows** in a single fzf popup (80×50%, rounded magenta border). Each window row shows:
+- AI state icon on the left (color-coded, matches status bar)
+- Current/inactive dot marker
+- Window index and name
+- Live preview of the pane on the right (50%)
+
+```
+┌─ 󰧞  windows ──────────────────────────────────────────────────┐
+│                                          ┆                     │
+│   dotfiles                               ┆  [pane preview]     │
+│   ⣾ ● 2  opencode                        ┆                     │
+│   · 1  nvim                              ┆  > analyzing...     │
+│   · 0  zsh                               ┆                     │
+│                                          ┆                     │
+│   webapp                                 ┆                     │
+│   󱥂 · 2  opencode                        ┆                     │
+│   · 1  nvim                              ┆                     │
+│                                          ┆                     │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Behaviour**:
+- Session headers are **visible but not selectable** — navigation skips over them automatically (uses `focus` event + `$FZF_ACTION` to skip in the correct direction)
+- Selecting a window runs `tmux switch-client -t session:index`
+- Preview shows the live pane for windows, and a window list summary for session headers
+- Works across all sessions — one picker to rule them all
 
 ---
 

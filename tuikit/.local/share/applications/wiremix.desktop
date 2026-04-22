@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Audio
+Name=Wiremix
 Comment=Manage audio devices and volumes
 Exec=omarchy-launch-audio
 Icon=wiremix

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Wi-Fi
+Name=Impala
 Comment=Manage wireless network connections
 Exec=omarchy-launch-wifi
 Icon=impala

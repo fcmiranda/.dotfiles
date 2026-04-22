@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=btop
+Name=Btop
 Comment=Monitor system resources and processes
 Exec=omarchy-launch-tui btop
 Icon=btop

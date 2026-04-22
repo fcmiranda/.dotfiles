@@ -1,6 +1,6 @@
 [[session]]
-name = "dotfiles/main"
-path = "~/dotfiles/main"
+name = ".dotfiles/main"
+path = "~/.dotfiles/main"
 startup_command = "nvim ."
 
 [[session]]

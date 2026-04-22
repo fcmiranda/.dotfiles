@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "git-commit-guide",
+			"type": "shell",
+			"command": "git -C /home/fecavmi/..dotfiles/main add git-worktree-guide.md && git -C /home/fecavmi/..dotfiles/main commit -m 'docs: update guide to reflect ~/..dotfiles/main sibling-worktree structure' && echo DONE"
+		}
+	]
+}

@@ -12,7 +12,7 @@
 #   dotadd zsh ~/.zshrc                       # Copy specific file from anywhere
 #
 dotadd() {
-    local dotfiles_dir="${DOTFILES_DIR:-$HOME/dotfiles/main}"
+    local dotfiles_dir="${DOTFILES_DIR:-$HOME/.dotfiles/main}"
     local package="$1"
     shift
 

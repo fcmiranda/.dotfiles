@@ -1,6 +1,6 @@
 # Dotfiles with Git Worktrees — A Complete Guide
 
-> How this repository was migrated to a bare-repo + worktree layout, integrated with GNU Stow symlinks and `sesh` for instant tmux context-switching.
+> How this repository is structured as a bare-repo + worktree layout, integrated with GNU Stow symlinks and `sesh` for instant tmux context-switching.
 
 ---
 
@@ -25,26 +25,25 @@ In a standard dotfiles repo, you have one working directory — `~/.dotfiles` �
 
 ```
 git stash              # save your current uncommitted changes
-git checkout feature   # lose your current symlinked files
+git checkout feature   # the files those symlinks point to CHANGE live
 git stash pop          # restore — hoping stash doesn't conflict
 ```
 
-While symbolic links created by GNU Stow still point to `~/.dotfiles/<package>/...`, checking out a different branch **changes the files those symlinks point to live**. You cannot have two branches active at once and cannot compare live configs across branches without stashing constantly.
+While symbolic links created by GNU Stow still point to `~/.dotfiles/<package>/...`, checking out a different branch **changes the files those symlinks resolve to immediately**. You cannot have two branches active at once and cannot compare live configs across branches without stashing constantly.
 
 ---
 
 ## 2. What Is a Bare Repository?
 
-A **bare repository** stores only the git object database (`.git/` contents) — without a working tree. Normally you use bare repos only as a remote server. But here we repurpose this concept: we keep the bare data in a hidden folder (`.bare/`) inside the repo directory and let the repo directory itself serve as the primary worktree.
+A **bare repository** stores only the git object database — without a working tree. Here we use a bare repo (`~/dotfiles/.bare/`) as the single source of truth, with explicit worktrees added as peer directories.
 
-The key files:
+Setting `core.bare = true` tells git there is no implicit main working directory; all working trees are registered explicitly via `git worktree add`. This is the key that makes the sibling-directory layout possible.
 
 | Path | Role |
 |---|---|
-| `~/.dotfiles/.bare/` | The actual git object database (was `.git/`) |
-| `~/.dotfiles/.git` | A **file** (not a folder) containing `gitdir: ./.bare` — the worktree pointer |
-
-Git reads `.git` as a file, resolves the path, and correctly treats `~/.dotfiles` as the working tree. All existing tools (`git`, `lazygit`, IDE integrations) continue to work without any changes.
+| `~/dotfiles/.bare/` | Git object database: history, refs, objects |
+| `~/dotfiles/main/` | Primary worktree — the only one stowed to `~/` |
+| `~/dotfiles/<feature>/` | Feature worktrees — isolated sandboxes, never stowed |
 
 ---
 
@@ -52,43 +51,42 @@ Git reads `.git` as a file, resolves the path, and correctly treats `~/.dotfiles
 
 A **git worktree** is an additional working directory linked to the same repository. Unlike cloning, worktrees share the same `.bare/` object store — no redundant history or objects are duplicated.
 
-- One repository → many simultaneous checked-out branches
+- One `.bare/` → many simultaneous checked-out branches
 - Each worktree is a separate directory with its own `HEAD`
 - Changes in one worktree do not affect another
-- You can have `nvim` open in two worktrees editing different configs at the same time
+- You can have `nvim` open in `main` and `feature/hypr-rework` at the same time
 
 ---
 
 ## 4. How This Repo Is Structured
 
 ```
-~/.dotfiles/
-├── .bare/           ← Git object database (was .git/)
-│   ├── config       ← Includes core.worktree = /home/fecavmi/.dotfiles
+~/dotfiles/
+├── .bare/                   ← Git object database (bare = true)
+│   ├── config               ← core.bare = true
 │   ├── HEAD
 │   ├── objects/
-│   └── refs/
-├── .git             ← File (not folder): "gitdir: ./.bare"
-├── .gitignore       ← Includes .bare
-├── stow.sh          ← .bare is in IGNORE_DIRS, never stowed
-├── nvim/
-├── hypr/
-├── tmux/
-├── sesh/
-│   └── .config/
-│       └── sesh/
-│           └── sesh.toml   ← dotfiles session registered here
-└── ...              ← All other stow packages
+│   ├── refs/
+│   └── worktrees/
+│       └── main/            ← Tracking info for the main worktree
+│
+├── main/                    ← PRIMARY worktree (branch: main)
+│   ├── .git                 ← file: "gitdir: ../../dotfiles/.bare/worktrees/main"
+│   ├── stow.sh              ← DOTFILES_DIR auto-detects to ~/dotfiles/main/
+│   ├── nvim/
+│   ├── hypr/
+│   ├── tmux/
+│   ├── sesh/
+│   │   └── .config/sesh/sesh.toml
+│   └── ...                  ← All stow packages live here
+│
+└── feature-hypr/            ← FEATURE worktree (branch: feature/hypr-rework)
+    ├── .git                 ← file pointing to .bare/worktrees/feature-hypr
+    ├── nvim/
+    └── hypr/                ← edit freely, zero system impact
 ```
 
-When a new worktree is added (e.g. for branch `feature/hypr-overhaul`), git creates a sibling directory:
-
-```
-~/.dotfiles/                 ← main worktree (branch: popup)
-~/.dotfiles-hypr-overhaul/   ← worktree (branch: feature/hypr-overhaul)
-```
-
-Each directory has its own `.git` file pointing back to `~/.dotfiles/.bare/`.
+Stow reads from `~/dotfiles/main/` only. Feature worktrees are invisible to stow — they live outside the `~/dotfiles/main/` tree and `stow.sh` never traverses them.
 
 ---
 
@@ -98,42 +96,42 @@ Each directory has its own `.git` file pointing back to `~/.dotfiles/.bare/`.
 
 ```mermaid
 flowchart TD
-    A[Single ~/.dotfiles] --> B{Want to experiment?}
+    A["Single ~/.dotfiles\n(one branch at a time)"] --> B{Want to experiment?}
     B --> C[git stash]
     C --> D[git checkout feature-branch]
-    D --> E[Symlinks now point to feature files]
+    D --> E["Symlinks resolve to new files\n⚠️ live system changed"]
     E --> F[Test configs... done]
     F --> G[git stash pop]
     G --> H{Conflict?}
     H -- No --> I[Back to normal]
-    H -- Yes --> J[Manual conflict resolution 😱]
+    H -- Yes --> J["Manual conflict resolution 😱"]
     J --> I
 ```
 
-### New Workflow (Bare Repo + Worktrees)
+### New Workflow (Bare Repo + Sibling Worktrees)
 
 ```mermaid
 flowchart TD
-    BARE[".bare/ — shared git object store"]
+    BARE["~/dotfiles/.bare/\nshared git object store\ncore.bare = true"]
 
-    BARE --> WT1["~/.dotfiles/\n(branch: popup)\nSymlinks → system"]
-    BARE --> WT2["~/.dotfiles-hypr/\n(branch: feature/hypr-overhaul)\nNo symlinks — safe sandbox"]
-    BARE --> WT3["~/.dotfiles-tmux/\n(branch: feature/tmux-rework)\nNo symlinks — safe sandbox"]
+    BARE --> WT1["~/dotfiles/main/\n(branch: main)\n✅ stowed → live system"]
+    BARE --> WT2["~/dotfiles/hypr-rework/\n(branch: feature/hypr-rework)\n🔒 NOT stowed — safe sandbox"]
+    BARE --> WT3["~/dotfiles/tmux-v2/\n(branch: feature/tmux-v2)\n🔒 NOT stowed — safe sandbox"]
 
-    WT1 -->|stow.sh| SYS["~/.config/, ~/.zshrc, etc.\n(live system files)"]
-    WT2 -->|edit & test| TEST1["Review changes\nbefore merging"]
-    WT3 -->|edit & test| TEST2["Review changes\nbefore merging"]
+    WT1 -->|stow.sh| SYS["~/.config/, ~/.zshrc, ...\n(live system files via symlinks)"]
+    WT2 -->|edit & test| TEST1["Verify changes\nin isolation"]
+    WT3 -->|edit & test| TEST2["Verify changes\nin isolation"]
 
     TEST1 -->|git merge| WT1
     TEST2 -->|git merge| WT1
-    WT1 -->|stow.sh -r| SYS
+    WT1 -.->|symlinks already live| SYS
 ```
 
 ### Stow Symlink Architecture
 
 ```mermaid
 flowchart LR
-    subgraph dotfiles ["~/.dotfiles/ (main worktree)"]
+    subgraph main ["~/dotfiles/main/ (stow source — only this)"]
         N["nvim/.config/nvim/init.lua"]
         H["hypr/.config/hypr/hyprland.conf"]
         Z["zsh/.zshrc"]
@@ -149,159 +147,142 @@ flowchart LR
     H -- symlink --> LH
     Z -- symlink --> LZ
 
-    subgraph worktree ["~/.dotfiles-feature/ (worktree)"]
+    subgraph worktree ["~/dotfiles/feature-hypr/ (sandbox — never stowed)"]
         FH["hypr/.config/hypr/hyprland.conf"]
     end
 
-    FH -. "NOT symlinked\n(safe to edit)" .-> WT_NOTE["Isolated sandbox\nno live impact"]
+    FH -. "NOT symlinked\nno live system impact" .-> WT_NOTE["Edit freely\nuntil ready to merge"]
 ```
 
 ---
 
 ## 6. Adding a New Worktree
 
-### Create a worktree from an existing branch
+### Create a worktree from an existing remote branch
 
 ```bash
-git -C ~/.dotfiles worktree add ~/dotfiles-hypr feature/hypr-overhaul
+git -C ~/dotfiles/.bare worktree add ~/dotfiles/hypr-rework feature/hypr-rework
 ```
 
-### Create a worktree with a **new** branch
+### Create a worktree with a brand-new branch
 
 ```bash
-git -C ~/.dotfiles worktree add -b feature/tmux-rework ~/dotfiles-tmux
+git -C ~/dotfiles/.bare worktree add -b feature/tmux-v2 ~/dotfiles/tmux-v2
 ```
 
-This creates `~/dotfiles-tmux/` checked out on the new `feature/tmux-rework` branch, sharing the `.bare/` object store. You can now edit files there freely without touching any stow symlinks.
+This creates `~/dotfiles/tmux-v2/` checked out on `feature/tmux-v2`, sharing the `.bare/` store. Edit freely — no symlinks are created, the live system is untouched.
 
 ### List all active worktrees
 
 ```bash
-git -C ~/.dotfiles worktree list
+git -C ~/dotfiles/.bare worktree list
+# ~/dotfiles/.bare  (bare)
+# ~/dotfiles/main   abc1234 [main]
+# ~/dotfiles/tmux-v2  def5678 [feature/tmux-v2]
 ```
 
 ### Remove a worktree when done
 
 ```bash
-git -C ~/.dotfiles worktree remove ~/dotfiles-tmux
-# Or force-remove if there are untracked files
-git -C ~/.dotfiles worktree remove --force ~/dotfiles-tmux
+git -C ~/dotfiles/.bare worktree remove ~/dotfiles/tmux-v2
+# Force-remove if there are untracked files
+git -C ~/dotfiles/.bare worktree remove --force ~/dotfiles/tmux-v2
+# Then delete the branch if no longer needed
+git -C ~/dotfiles/.bare branch -d feature/tmux-v2
 ```
 
-> **Note:** Worktree directories placed outside `~/.dotfiles/` (like `~/dotfiles-hypr`) are never seen by stow.sh because `get_packages()` only iterates `~/.dotfiles/*/`. They are completely isolated.
+> **Isolation guarantee:** `stow.sh` derives `DOTFILES_DIR` from `$(dirname "${BASH_SOURCE[0]}")`, which is always `~/dotfiles/main/`. No matter how many sibling worktrees exist, only `main/` is ever stowed.
 
 ---
 
 ## 7. Merging a Worktree Back
 
-Once you're satisfied with changes in a feature worktree, merge them into the main worktree.
+Once you're satisfied with changes in a feature worktree, merge into `main/`.
 
 ### Fast-forward merge (clean linear history)
 
 ```bash
-# From the main worktree
-cd ~/.dotfiles
-git merge feature/hypr-overhaul --ff-only
+cd ~/dotfiles/main
+git merge feature/tmux-v2 --ff-only
 ```
 
-### Merge with a commit (to preserve context)
+### Merge with a commit (preserves branch context)
 
 ```bash
-cd ~/.dotfiles
-git merge feature/hypr-overhaul --no-ff -m "feat: merge hypr overhaul"
+cd ~/dotfiles/main
+git merge feature/tmux-v2 --no-ff -m "feat: tmux v2 layout"
 ```
 
-### Rebase instead (clean history, no merge commits)
+### Rebase first (cleanest history)
 
 ```bash
-cd ~/dotfiles-hypr
-git rebase popup          # rebase feature branch on top of popup
-cd ~/.dotfiles
-git merge feature/hypr-overhaul --ff-only
+# From inside the feature worktree
+cd ~/dotfiles/tmux-v2
+git rebase main
+
+# Back in main, now it's a clean fast-forward
+cd ~/dotfiles/main
+git merge feature/tmux-v2 --ff-only
 ```
 
 ### Resolving merge conflicts
 
-Conflicts will appear in the main worktree (`~/.dotfiles/`). Since this is your working tree, you can resolve them normally:
-
 ```bash
-cd ~/.dotfiles
-git merge feature/hypr-overhaul
-# Edit conflicted files...
+cd ~/dotfiles/main
+git merge feature/hypr-rework
+# Edit conflicted files in ~/dotfiles/main/...
 git add <resolved-files>
 git merge --continue
 ```
 
-After a successful merge, the files in `~/.dotfiles/` are updated. Stow symlinks already point here, so **most config changes are live immediately** — no restow needed for files that already had symlinks.
+After merge, files in `~/dotfiles/main/` update immediately. All existing symlinks already point here, so **config changes are live the moment merge completes** — no restow needed for existing files.
 
 ---
 
 ## 8. Stow After a Merge
 
-GNU Stow symlinks already point to `~/.dotfiles/<package>/...`, so editing and merging tracked files requires **no stow action** — the symlinks are live.
+GNU Stow symlinks point to `~/dotfiles/main/<package>/...`, so editing and merging tracked files requires **no stow action** — changes are live the instant git writes to disk.
 
-However, you do need to restow in these specific situations:
+You only need to restow in these situations:
 
-### New files were added to a package
-
-If the merged branch added new config files to an existing package:
+### New files added to an existing package
 
 ```bash
-cd ~/.dotfiles
-./stow.sh nvim         # restow the specific package
+cd ~/dotfiles/main
+./stow.sh nvim          # restow the specific package
+./stow.sh -r nvim       # or restow (refresh) to be safe
 ```
 
-Or restow everything:
+### New stow package directory added
 
 ```bash
-./stow.sh              # stow all unstowed packages
-./stow.sh -r           # restow all (refreshes all symlinks)
+cd ~/dotfiles/main
+./stow.sh newapp        # stow the new package
 ```
 
-### New package directory was added
-
-If the merged branch introduced an entirely new stow package (e.g. a new `opencode/` directory):
+### Post-merge checklist
 
 ```bash
-cd ~/.dotfiles
-./stow.sh opencode
-```
-
-### How to check what changed after a merge
-
-```bash
-# See what files the merge touched
-git show --stat HEAD
-
-# Dry-run stow to see what new symlinks would be created
-./stow.sh -n
-
-# Show currently stowed packages via lock file
-./stow.sh -s
-```
-
-### The complete post-merge checklist
-
-```bash
-cd ~/.dotfiles
+cd ~/dotfiles/main
 git merge feature/my-branch
-git show --stat HEAD           # review changed files
-./stow.sh -n                   # dry-run: any new symlinks needed?
-./stow.sh -r <package>         # restow if new files were added
+
+git show --stat HEAD    # review what changed
+./stow.sh -n            # dry-run: any new symlinks needed?
+./stow.sh -r <pkg>      # restow only if new files were added
 ```
 
 ---
 
 ## 9. Using sesh with Worktrees
 
-`sesh` is configured in [sesh/.config/sesh/sesh.toml](sesh/.config/sesh/sesh.toml) (stowed to `~/.config/sesh/sesh.toml`).
+`sesh` is configured at [sesh/.config/sesh/sesh.toml](sesh/.config/sesh/sesh.toml) (stowed to `~/.config/sesh/sesh.toml`).
 
 ### Current sesh configuration
 
 ```toml
 [[session]]
-name = "dotfiles"
-path = "~/.dotfiles"
+name = "dotfiles/main"
+path = "~/dotfiles/main"
 startup_command = "nvim ."
 
 [[session]]
@@ -310,42 +291,36 @@ path = "~/Downloads"
 startup_command = "yazi"
 ```
 
-### Connecting to the dotfiles session
+### Jump to the primary dotfiles session
 
 ```bash
-sesh connect dotfiles
+sesh connect dotfiles/main
 ```
 
-This opens `~/.dotfiles` in a dedicated tmux session with `nvim .` running, ready to browse all packages.
+Opens `~/dotfiles/main` in a dedicated tmux session with `nvim .` ready.
 
-### Registering a feature worktree as a sesh session
+### Register a feature worktree as a sesh session
 
-When you create a long-lived worktree, add it to `sesh.toml`:
+Add to `sesh.toml` (in `~/dotfiles/main/sesh/.config/sesh/sesh.toml`):
 
 ```toml
 [[session]]
-name = "dotfiles/hypr-overhaul"
-path = "~/dotfiles-hypr"
+name = "dotfiles/tmux-v2"
+path = "~/dotfiles/tmux-v2"
 startup_command = "nvim ."
 ```
 
 Then connect directly:
 
 ```bash
-sesh connect dotfiles/hypr-overhaul
+sesh connect dotfiles/tmux-v2
 ```
 
-### Using the sesh fuzzy picker (zellij / tmux)
+### The fuzzy picker
 
-The sesh plugin in [sesh/config.toml](sesh/config.toml) is bound to `;s ` and lists all sessions with:
+The sesh plugin (bound to `;s `) lists all sessions. Your worktrees registered in `sesh.toml` appear alongside tmux sessions and zoxide directories — type the branch name to jump.
 
-```toml
-src_once = "sesh list -d -c -t -T"
-```
-
-This lists directories (`-d`), zoxide (`-z`), tmux sessions (`-t`), and tmux windows (`-T`) — your worktrees registered in `sesh.toml` appear alongside all regular sessions.
-
-### The complete worktree + sesh flow
+### Complete worktree + sesh flow
 
 ```mermaid
 sequenceDiagram
@@ -355,74 +330,87 @@ sequenceDiagram
     participant git
     participant stow
 
-    You->>sesh: ;s  → type "hypr-overhaul" → Enter
-    sesh->>tmux: create session "dotfiles/hypr-overhaul"
-    tmux->>You: open ~/dotfiles-hypr in nvim
+    You->>sesh: ;s  → "tmux-v2" → Enter
+    sesh->>tmux: create session "dotfiles/tmux-v2"
+    tmux->>You: ~/dotfiles/tmux-v2 in nvim
 
-    You->>git: edit hypr configs, commit
-    You->>sesh: ;s  → type "dotfiles" → Enter
-    sesh->>tmux: switch to existing "dotfiles" session
-    You->>git: git merge feature/hypr-overhaul
-    You->>stow: ./stow.sh -r hypr
-    stow->>You: ~/.config/hypr/ symlinks refreshed ✓
+    You->>git: edit tmux configs, commit
+    You->>sesh: ;s  → "dotfiles/main" → Enter
+    sesh->>tmux: switch to existing "dotfiles/main" session
+    You->>git: git merge feature/tmux-v2 --ff-only
+    Note over git,stow: Merge writes to ~/dotfiles/main/tmux/
+    Note over stow: Symlinks are already live ✓
+    You->>stow: ./stow.sh -r tmux  (only if new files added)
 ```
 
 ---
 
 ## 10. Advantages of This Workflow
 
-### vs. classic single-checkout dotfiles
+### vs. classic single-checkout `~/.dotfiles`
 
-| | Classic | Bare + Worktrees |
+| | Classic | Bare + Sibling Worktrees |
 |---|---|---|
 | Work on two configs simultaneously | ❌ | ✅ |
-| Risk of breaking live system while experimenting | ✅ High | ✅ Low (worktrees not stowed) |
+| Live system modified when switching branches | ✅ Always | ❌ Never |
 | stash/pop cycles | ✅ Required | ❌ Never needed |
 | tmux session per branch | ❌ | ✅ via sesh |
-| History comparison across branches | ❌ Manual | ✅ `git diff popup..feature/x` |
-| Merge conflicts risk | Higher (stash conflicts) | Lower (clean merge base) |
+| Compare branches live | ❌ Manual | ✅ Two nvim windows, two `~/dotfiles/<branch>/` dirs |
+| Risk of stash conflicts | ✅ High | ❌ Zero |
 
-### vs. maintaining separate clones
+### vs. keeping sibling clones
 
 | | Multiple Clones | Bare + Worktrees |
 |---|---|---|
-| Disk space | ❌ Duplicated objects | ✅ Shared `.bare/` |
-| Branch sync | ❌ Manual `git fetch` per clone | ✅ Automatic |
-| Stow compatibility | ❌ Multiple stow sources | ✅ One source of truth |
+| Disk usage | ❌ Full history per clone | ✅ One shared `.bare/` |
+| Branch sync | ❌ `git fetch` per clone | ✅ Automatic via shared object store |
+| Stow source of truth | ❌ Ambiguous | ✅ Always `~/dotfiles/main/` |
+| `git log` history | ❌ Diverges | ✅ Unified |
 
 ### Key practical benefits
 
-1. **Zero-risk experimentation** — Worktrees created outside `~/.dotfiles/` have no stow symlinks. Your live system is unchanged while you experiment in a sandbox.
+1. **Zero-risk experimentation** — Feature worktrees are never stowed. Your live system (`~/.config/`, `~/.zshrc`, etc.) is backed by `~/dotfiles/main/` exclusively. A half-finished experiment in `~/dotfiles/tmux-v2/` cannot affect it at all.
 
-2. **Instant context switching** — `sesh connect dotfiles/feature-x` puts you in a tmux session with `nvim` open at the exact branch you need, with no checkout penalty.
+2. **Instant context switching** — `sesh connect dotfiles/feature-x` puts you in a tmux session with `nvim` open in the exact branch you need. No checkout, no stash.
 
-3. **Parallel development** — You can have `popup` branch powering your symlinks while simultaneously editing `feature/hypr-overhaul` in another tmux session. Both are visible. No juggling.
+3. **Parallel development** — `main` runs your live system while you simultaneously edit `feature/hypr-rework` in another session. Both are visible, fully functional, no overlap.
 
-4. **Clean merge history** — Because each feature lives in its own directory, you can rebase and clean up commits before merging — then fast-forward merge with a linear history.
+4. **Changes land immediately** — Because symlinks already point into `~/dotfiles/main/`, merging a feature branch makes those config changes live the instant git writes the file. No manual symlink refresh needed for existing files.
 
-5. **stow stays predictable** — The symlink source is always `~/.dotfiles/`. No matter how many worktrees exist, the system only reads files from the main worktree. Running `./stow.sh -r` is always safe and idempotent.
+5. **stow stays predictable** — `stow.sh` resolves its `DOTFILES_DIR` from its own location (the script is in `~/dotfiles/main/`). It always stows from `~/dotfiles/main/` regardless of how many worktrees exist. Running `./stow.sh -r` is always safe and idempotent.
 
 ---
 
 ## Quick Reference
 
 ```bash
-# Create a new worktree for experimentation
-git -C ~/.dotfiles worktree add -b feature/my-config ~/dotfiles-my-config
+# ── Worktrees ──────────────────────────────────────────────
+# Create a new feature worktree
+git -C ~/dotfiles/.bare worktree add -b feature/my-thing ~/dotfiles/my-thing
 
-# Jump to it with sesh (after adding to sesh.toml)
-sesh connect dotfiles/my-config
+# List all worktrees
+git -C ~/dotfiles/.bare worktree list
 
-# List all active worktrees
-git -C ~/.dotfiles worktree list
+# Remove when done
+git -C ~/dotfiles/.bare worktree remove ~/dotfiles/my-thing
+git -C ~/dotfiles/.bare branch -d feature/my-thing
 
-# Merge a feature back into main worktree
-cd ~/.dotfiles && git merge feature/my-config --no-ff
+# ── sesh ──────────────────────────────────────────────────
+# Jump to main
+sesh connect dotfiles/main
 
-# Restow affected packages after merge
+# Jump to a feature worktree (after registering in sesh.toml)
+sesh connect dotfiles/my-thing
+
+# ── Merge & Stow ──────────────────────────────────────────
+# Merge feature back into main
+cd ~/dotfiles/main
+git merge feature/my-thing --ff-only
+
+# Check if new symlinks are needed
+git show --stat HEAD
+./stow.sh -n
+
+# Restow a package if new files were added
 ./stow.sh -r <package-name>
-
-# Remove the worktree when done
-git -C ~/.dotfiles worktree remove ~/dotfiles-my-config
-git -C ~/.dotfiles branch -d feature/my-config
 ```

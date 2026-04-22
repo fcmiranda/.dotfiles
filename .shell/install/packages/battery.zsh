@@ -30,18 +30,11 @@ _write_system_file() {
 # ══════════════════════════════════════════════════════════════════════════════
 # 1. auto-cpufreq
 # ══════════════════════════════════════════════════════════════════════════════
-if command -v auto-cpufreq &>/dev/null; then
+if pkg_is_installed auto-cpufreq; then
   print -P "  %F{cyan}✓%f %Bauto-cpufreq%b already installed"
 else
   print -P "  %F{blue}→%f Installing %Bauto-cpufreq%b..."
-  if command -v yay &>/dev/null; then
-    yay -S --noconfirm auto-cpufreq
-  elif command -v pacman &>/dev/null; then
-    sudo pacman -S --noconfirm auto-cpufreq
-  else
-    print -P "  %F{red}✗%f No package manager found. Install auto-cpufreq manually."
-    return 1
-  fi
+  pkg_install auto-cpufreq || return 1
 fi
 
 # ── auto-cpufreq config ───────────────────────────────────────────────────────

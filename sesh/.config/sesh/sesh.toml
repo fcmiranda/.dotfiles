@@ -1,4 +1,9 @@
 [[session]]
+name = "dotfiles"
+path = "~/.dotfiles"
+startup_command = "nvim ."
+
+[[session]]
 name = "Downloads 📥"
 path = "~/Downloads"
 startup_command = "yazi"

@@ -2,6 +2,51 @@
 # Dotfiles Helper Functions
 # ─────────────────────────────────────────────────────────────────────────────
 
+# killport - Kill whatever process (or Docker container) is listening on a port
+# Usage: killport <port>
+# Examples:
+#   killport 1313   # kill the hugo dev server
+#   killport 3000   # kill a node server
+#   killport 5432   # free up postgres
+#
+killport() {
+    local port="$1"
+    if [[ -z "$port" ]]; then
+        echo "Usage: killport <port>"
+        return 1
+    fi
+
+    # ── Docker containers exposing the port ──────────────────────────────────
+    local containers
+    containers=$(docker ps --format '{{.ID}} {{.Names}} {{.Ports}}' 2>/dev/null \
+        | grep -E "0\.0\.0\.0:${port}->|:::${port}->" \
+        | awk '{print $1}')
+    if [[ -n "$containers" ]]; then
+        echo "$containers" | while read -r cid; do
+            local name
+            name=$(docker inspect --format '{{.Name}}' "$cid" 2>/dev/null | sed 's|^/||')
+            echo "  Stopping Docker container: $name ($cid)"
+            docker stop "$cid"
+        done
+        return 0
+    fi
+
+    # ── Regular OS process ───────────────────────────────────────────────────
+    local pids
+    pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+    if [[ -z "$pids" ]]; then
+        echo "  Nothing is listening on port $port"
+        return 0
+    fi
+
+    echo "$pids" | while read -r pid; do
+        local cmd
+        cmd=$(ps -p "$pid" -o comm= 2>/dev/null)
+        echo "  Killing PID $pid ($cmd) on port $port"
+        kill -9 "$pid"
+    done
+}
+
 # dotadd - Copy current directory contents to dotfiles with proper stow structure
 # Usage: dotadd <package-name> [files...]
 #   If no files specified, copies all files in current directory

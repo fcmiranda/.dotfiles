@@ -107,6 +107,16 @@ For zsh/tmux plugins. Also sourced by `install_plugins`.
 
 `stow-lock.json` tracks every stowed package and its symlinks. Do not edit manually.
 
+### Restow rule after file changes
+
+When creating or updating files inside a stow package, always consider running:
+
+```bash
+./stow.sh -r <package>
+```
+
+Use this to refresh symlinks and ensure the live file in `~/` points to the updated dotfiles-managed path.
+
 ## Common Tasks
 
 ### Add a new package installable via pacman/AUR

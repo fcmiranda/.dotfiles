@@ -1,6 +1,6 @@
 ---
 description: Generate a commit message from staged changes
-model: github-copilot/gpt-4o
+model: opencode/minimax-m2.5-free
 ---
 
 Analyze the following staged git diff and generate a concise, conventional commit message.

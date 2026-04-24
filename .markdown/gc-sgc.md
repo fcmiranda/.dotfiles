@@ -16,7 +16,7 @@ gc                        # generate a message with the default provider
 gc -p claude              # use the claude CLI
 gc -p crush               # use the crush CLI
 gc -p copilot             # use gh copilot
-gc -m github-copilot/gpt-4.1  # override the model (opencode only)
+gc -m opencode/minimax-m2.5-free  # override the model (opencode only)
 gc -g 3                   # generate 3 candidates and pick one
 gc -l es                  # generate the message in Spanish
 gc -e                     # prefix the message with a gitmoji emoji
@@ -39,7 +39,8 @@ gc hook status            # check whether the hook is active
 
 ```bash
 GC_PROVIDER=claude gc
-GC_MODEL=github-copilot/gpt-4.1 gc
+GC_MODEL=opencode/minimax-m2.5-free gc
+GC_FALLBACK_MODELS=opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free gc
 GC_EMOJI=1 gc        # always use emojis without passing -e
 ```
 
@@ -63,7 +64,7 @@ Analyzes **all unstaged changes and untracked files** at once, groups them into 
 ```bash
 sgc                       # analyze everything and suggest commits
 sgc -p claude             # use the claude CLI
-sgc -m github-copilot/gpt-4.1  # override the model
+sgc -m opencode/minimax-m2.5-free  # override the model
 sgc -l pt                 # generate commit messages in Portuguese
 sgc -e                    # prefix all commit messages with gitmoji emojis
 ```
@@ -220,7 +221,7 @@ gc                        # generate a message with the default provider
 gc -p claude              # use the claude CLI
 gc -p crush               # use the crush CLI
 gc -p copilot             # use gh copilot
-gc -m github-copilot/gpt-4.1  # override the model (opencode only)
+gc -m opencode/minimax-m2.5-free  # override the model (opencode only)
 gc -g 3                   # generate 3 candidates and pick one
 gc -l es                  # generate the message in Spanish
 gc hook install           # install the prepare-commit-msg hook in this repo
@@ -241,7 +242,8 @@ gc hook status            # check whether the hook is active
 
 ```bash
 GC_PROVIDER=claude gc
-GC_MODEL=github-copilot/gpt-4.1 gc
+GC_MODEL=opencode/minimax-m2.5-free gc
+GC_FALLBACK_MODELS=opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free gc
 ```
 
 ### How it works
@@ -264,7 +266,7 @@ Analyzes **all unstaged changes and untracked files** at once, groups them into 
 ```bash
 sgc                       # analyze everything and suggest commits
 sgc -p claude             # use the claude CLI
-sgc -m github-copilot/gpt-4.1  # override the model
+sgc -m opencode/minimax-m2.5-free  # override the model
 sgc -l pt                 # generate commit messages in Portuguese
 ```
 

@@ -13,7 +13,7 @@ customCommands:
         title: 'AI commit message (edit before commit)'
         key: 'CommitMessage'
         initialValue: >-
-          {{ runCommand "zsh -ic 'gc --message-only --no-loading --staged-only -p opencode -m github-copilot/gpt-4o'" }}
+          {{ runCommand "zsh -ic 'gc --message-only --no-loading --staged-only -p opencode -m opencode/minimax-m2.5-free'" }}
       - type: 'confirm'
         title: 'Create commit?'
         body: '{{.Form.CommitMessage}}'

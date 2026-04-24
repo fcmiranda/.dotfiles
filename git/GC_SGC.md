@@ -40,7 +40,7 @@ gc                          # default provider (opencode), single message
 gc -p claude                # use claude CLI
 gc -p crush                 # use crush CLI
 gc -p copilot               # use gh copilot CLI
-gc -m github-copilot/gpt-4o # override model (opencode only)
+gc -m opencode/minimax-m2.5-free  # override model (opencode only)
 gc -g 3                     # generate 3 candidates, pick one interactively
 gc -l es                    # commit message in Spanish
 gc -e                       # prepend a gitmoji emoji
@@ -54,7 +54,7 @@ gc hook status              # show hook installation status
 | Flag | Description |
 |---|---|
 | `-p / --provider` | AI backend: `opencode` (default), `claude`, `crush`, `copilot` |
-| `-m / --model` | Model ID passed to opencode (e.g. `github-copilot/gpt-4o`) |
+| `-m / --model` | Model ID passed to opencode (e.g. `opencode/minimax-m2.5-free`) |
 | `-g N / --generate N` | Generate N distinct candidates; presents a `gum choose` picker |
 | `-l / --lang` | ISO 639-1 language code for the output message |
 | `-e / --emoji` | Prepend a gitmoji matching the commit type |
@@ -64,6 +64,7 @@ gc hook status              # show hook installation status
 ```zsh
 GC_PROVIDER=claude gc
 GC_MODEL=github-copilot/gpt-5 gc
+GC_FALLBACK_MODELS=opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free gc
 GC_EMOJI=1 gc
 ```
 
@@ -96,7 +97,7 @@ Analyses **all unstaged and untracked changes** at once and asks the AI to group
 ```zsh
 sgc                          # default provider
 sgc -p claude                # use claude CLI
-sgc -m github-copilot/gpt-4o # override model
+sgc -m opencode/minimax-m2.5-free  # override model
 sgc -l es                    # messages in Spanish
 sgc -e                       # gitmoji prefixes
 ```

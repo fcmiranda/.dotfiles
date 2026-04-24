@@ -789,13 +789,14 @@ EOF
 #   gc -p claude                # use claude CLI
 #   gc -p crush                 # use crush CLI
 #   gc -p copilot               # use gh copilot CLI
-#   gc -m github-copilot/gpt-4o # override model (opencode only)
+#   gc -m opencode/minimax-m2.5-free  # override model (opencode only)
 #   gc -g 3                     # generate 3 candidates to pick from
 #   gc -l es                    # generate message in Spanish (ISO 639-1)
 #   gc -e                       # prefix message with a gitmoji emoji
 #   gc -o                       # print only the generated message
 #   gc -q                       # disable loading spinner/title output
 #   gc -s                       # use only already staged files (no git add --all)
+#   gc -n                       # stay silent when there are no changes to process
 #   gc hook install             # install prepare-commit-msg hook in current repo
 #   gc hook uninstall           # remove the gc-managed hook
 #   gc hook status              # show hook installation status
@@ -803,6 +804,7 @@ EOF
 # Env overrides:
 #   GC_PROVIDER=claude gc
 #   GC_MODEL=github-copilot/gpt-5 gc
+#   GC_FALLBACK_MODELS=opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free gc
 #   GC_EMOJI=1 gc
 #
 # Pre-fills the zsh readline buffer with: git commit -m "<message>"
@@ -815,7 +817,8 @@ gc() {
   fi
 
   local provider="${GC_PROVIDER:-opencode}"
-  local model="${GC_MODEL:-github-copilot/gpt-4o}"
+  local model="${GC_MODEL:-opencode/minimax-m2.5-free}"
+  local fallback_models="${GC_FALLBACK_MODELS:-opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free,opencode/hy3-preview-free,opencode/nemotron-3-super-free}"
   local generate=1
   local lang=""
   local emoji="${GC_EMOJI:-0}"
@@ -823,6 +826,7 @@ gc() {
   local message_only=0
   local no_loading=0
   local staged_only=0
+  local silent_empty=0
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -835,9 +839,10 @@ gc() {
       -o|--message-only) message_only=1; shift ;;
       -q|--no-loading) no_loading=1; shift ;;
       -s|--staged-only) staged_only=1; shift ;;
+      -n|--silent-empty) silent_empty=1; shift ;;
       -d|--debug)    debug=1;       shift ;;
       -h|--help)
-        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e] [-o] [-q] [-s] [-d]"
+        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e] [-o] [-q] [-s] [-n] [-d]"
         echo "       gc hook <install|uninstall|status>"
         echo "  -g N      generate N candidate messages to pick from (default: 1)"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
@@ -845,6 +850,7 @@ gc() {
         echo "  -o        output only the generated commit message"
         echo "  -q        disable loading spinner/title output"
         echo "  -s        use only staged files (skip git add --all)"
+        echo "  -n        stay silent when there are no changes to process"
         echo "  -d        debug mode: show prompt, command and raw AI output"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
@@ -854,10 +860,12 @@ gc() {
 
   if [[ "$staged_only" == "1" ]]; then
     if git diff --staged --quiet; then
-      if [[ "$message_only" == "1" ]]; then
-        echo "gc: no staged changes" >&2
-      else
-        gum style --faint "gc: no staged changes"
+      if [[ "$silent_empty" != "1" ]]; then
+        if [[ "$message_only" == "1" ]]; then
+          echo "gc: no staged changes" >&2
+        else
+          gum style --faint "gc: no staged changes"
+        fi
       fi
       return 1
     fi
@@ -866,10 +874,12 @@ gc() {
     local has_changes
     has_changes=$(git status --short)
     if [[ -z "$has_changes" ]]; then
-      if [[ "$message_only" == "1" ]]; then
-        echo "gc: nothing to commit - working tree clean" >&2
-      else
-        gum style --faint "gc: nothing to commit — working tree clean"
+      if [[ "$silent_empty" != "1" ]]; then
+        if [[ "$message_only" == "1" ]]; then
+          echo "gc: nothing to commit - working tree clean" >&2
+        else
+          gum style --faint "gc: nothing to commit — working tree clean"
+        fi
       fi
       return 1
     fi
@@ -940,6 +950,23 @@ ${diff}"
 
   # Generate message(s)
   local raw
+  local provider_status=0
+  local selected_model="$model"
+  local -a model_candidates
+
+  if [[ "$provider" == "opencode" ]]; then
+    model_candidates=("$model")
+    local candidate
+    for candidate in ${(s:,:)fallback_models}; do
+      candidate="${candidate##[[:space:]]}"
+      candidate="${candidate%%[[:space:]]}"
+      [[ -z "$candidate" || "$candidate" == "$model" ]] && continue
+      model_candidates+=("$candidate")
+    done
+  else
+    model_candidates=("$model")
+  fi
+
   if [[ "$debug" == "1" ]]; then
     local prompt_bytes
     prompt_bytes=$(wc -c < "$tmpfile" | tr -d ' ')
@@ -959,41 +986,77 @@ ${diff}"
     echo "--- prompt preview (first 500 chars) ---"
     head -c 500 "$tmpfile"
     echo ""
-    echo "--- running opencode (raw output) ---"
-    case "$provider" in
-      opencode) raw=$(opencode run --model "$model" -- "$prompt") ;;
-      claude)   raw=$(claude --print "$prompt") ;;
-      crush)    raw=$(crush "$prompt") ;;
-      copilot)  raw=$(gh copilot explain "$prompt") ;;
-    esac
+    local candidate_model
+    provider_status=1
+    for candidate_model in "${model_candidates[@]}"; do
+      selected_model="$candidate_model"
+      echo "--- running $provider (model: $selected_model) ---"
+      case "$provider" in
+        opencode) raw=$(opencode run --model "$selected_model" -- "$prompt") ;;
+        claude)   raw=$(claude --print "$prompt") ;;
+        crush)    raw=$(crush "$prompt") ;;
+        copilot)  raw=$(gh copilot explain "$prompt") ;;
+      esac
+      provider_status=$?
+      [[ "$provider_status" -eq 0 && -n "$raw" ]] && break
+      [[ "$provider" == "opencode" ]] && gum style --faint "gc: model '$selected_model' failed, trying fallback..."
+    done
     echo "--- raw output ---"
     echo "$raw"
     echo "--- end ---"
   else
-    if [[ "$no_loading" == "1" ]]; then
-      case "$provider" in
-        opencode) raw=$(opencode run --model "$model" -- "$(< $tmpfile)" 2>/dev/null) ;;
-        claude)   raw=$(claude --print "$(< $tmpfile)" 2>/dev/null) ;;
-        crush)    raw=$(crush "$(< $tmpfile)" 2>/dev/null) ;;
-        copilot)  raw=$(gh copilot explain "$(< $tmpfile)" 2>/dev/null) ;;
-      esac
-    else
-      raw=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c '
-        case "$1" in
-          opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
-          claude)   claude --print "$3" 2>/dev/null ;;
-          crush)    crush "$3" 2>/dev/null ;;
-          copilot)  gh copilot explain "$3" 2>/dev/null ;;
+    local candidate_model
+    provider_status=1
+    for candidate_model in "${model_candidates[@]}"; do
+      selected_model="$candidate_model"
+      if [[ "$no_loading" == "1" ]]; then
+        case "$provider" in
+          opencode) raw=$(opencode run --model "$selected_model" -- "$(< $tmpfile)" 2>/dev/null) ;;
+          claude)   raw=$(claude --print "$(< $tmpfile)" 2>/dev/null) ;;
+          crush)    raw=$(crush "$(< $tmpfile)" 2>/dev/null) ;;
+          copilot)  raw=$(gh copilot explain "$(< $tmpfile)" 2>/dev/null) ;;
         esac
-      ' _ "$provider" "$model" "$(< $tmpfile)")
-    fi
+        provider_status=$?
+      else
+        raw=$(gum spin --spinner dot --title "generating commit message via ${provider} (${selected_model})..." -- sh -c '
+          case "$1" in
+            opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
+            claude)   claude --print "$3" 2>/dev/null ;;
+            crush)    crush "$3" 2>/dev/null ;;
+            copilot)  gh copilot explain "$3" 2>/dev/null ;;
+          esac
+        ' _ "$provider" "$selected_model" "$(< $tmpfile)")
+        provider_status=$?
+      fi
+
+      [[ "$provider_status" -eq 0 && -n "$raw" ]] && break
+      if [[ "$provider" == "opencode" && "$message_only" != "1" ]]; then
+        gum style --faint "gc: model '$selected_model' failed, trying fallback..."
+      fi
+    done
   fi
 
   rm -f "$tmpfile"
   trap - EXIT INT
 
+  if [[ "$provider_status" -ne 0 ]]; then
+    if [[ "$debug" == "1" ]]; then
+      echo "gc: provider command exited with status ${provider_status}" >&2
+    else
+      if [[ "$provider" == "opencode" ]]; then
+        echo "gc: provider command failed for model '${selected_model}' (exit ${provider_status}) — retry with -d for debug output" >&2
+      else
+        echo "gc: provider command failed (exit ${provider_status}) — retry with -d for debug output" >&2
+      fi
+    fi
+  fi
+
   if [[ -z "$raw" ]]; then
-    echo "gc: failed to generate commit message" >&2
+    if [[ "$debug" == "1" ]]; then
+      echo "gc: failed to generate commit message" >&2
+    else
+      echo "gc: failed to generate commit message — retry with -d for debug output" >&2
+    fi
     return 1
   fi
 
@@ -1093,7 +1156,7 @@ PYEOF
 # Usage:
 #   sgc                          # uses default provider (opencode)
 #   sgc -P claude                # use claude CLI
-#   sgc -m github-copilot/gpt-4o # override model (opencode only)
+#   sgc -m opencode/minimax-m2.5-free  # override model (opencode only)
 #   sgc -l es                    # generate messages in Spanish (ISO 639-1)
 #   sgc -e                       # prefix messages with gitmoji emojis
 #   sgc -p                       # fzf interactive diff preview before committing
@@ -1101,10 +1164,12 @@ PYEOF
 # Env overrides:
 #   GC_PROVIDER=claude sgc
 #   GC_MODEL=github-copilot/gpt-5 sgc
+#   GC_FALLBACK_MODELS=opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free sgc
 #   GC_EMOJI=1 sgc
 sgc() {
   local provider="${GC_PROVIDER:-opencode}"
-  local model="${GC_MODEL:-github-copilot/gpt-4o}"
+  local model="${GC_MODEL:-opencode/minimax-m2.5-free}"
+  local fallback_models="${GC_FALLBACK_MODELS:-opencode/minimax-m2.5-free,opencode/ling-2.6-flash-free,opencode/hy3-preview-free,opencode/nemotron-3-super-free}"
   local lang=""
   local emoji="${GC_EMOJI:-0}"
   local debug=0
@@ -1316,6 +1381,21 @@ PYEOF
 
     local raw="" attempt_num=0 max_attempts=3
     local active_prompt="$prompt"
+    local selected_model="$model"
+    local -a model_candidates
+
+    if [[ "$provider" == "opencode" ]]; then
+      model_candidates=("$model")
+      local candidate
+      for candidate in ${(s:,:)fallback_models}; do
+        candidate="${candidate##[[:space:]]}"
+        candidate="${candidate%%[[:space:]]}"
+        [[ -z "$candidate" || "$candidate" == "$model" ]] && continue
+        model_candidates+=("$candidate")
+      done
+    else
+      model_candidates=("$model")
+    fi
 
     while [[ $attempt_num -lt $max_attempts ]]; do
       attempt_num=$((attempt_num + 1))
@@ -1324,23 +1404,39 @@ PYEOF
       if [[ "$debug" == "1" ]]; then
         gum style --faint "debug: attempt $attempt_num/$max_attempts — provider=$provider model=$model prompt=$(wc -c < $tmpfile | tr -d ' ') bytes"
         [[ $attempt_num -eq 1 ]] && { echo "--- prompt preview (first 500 chars) ---"; head -c 500 "$tmpfile"; echo ""; }
-        echo "--- running $provider ---"
-        case "$provider" in
-          opencode) raw=$(opencode run --model "$model" -- "$active_prompt") ;;
-          claude)   raw=$(claude --print "$active_prompt") ;;
-          crush)    raw=$(crush "$active_prompt") ;;
-          copilot)  raw=$(gh copilot explain "$active_prompt") ;;
-        esac
+        local provider_status=1
+        local candidate_model
+        for candidate_model in "${model_candidates[@]}"; do
+          selected_model="$candidate_model"
+          echo "--- running $provider (model: $selected_model) ---"
+          case "$provider" in
+            opencode) raw=$(opencode run --model "$selected_model" -- "$active_prompt") ;;
+            claude)   raw=$(claude --print "$active_prompt") ;;
+            crush)    raw=$(crush "$active_prompt") ;;
+            copilot)  raw=$(gh copilot explain "$active_prompt") ;;
+          esac
+          provider_status=$?
+          [[ "$provider_status" -eq 0 && -n "$raw" ]] && break
+          [[ "$provider" == "opencode" ]] && gum style --faint "sgc: model '$selected_model' failed, trying fallback..."
+        done
         echo "--- raw output ---"; echo "$raw"; echo "---"
       else
-        raw=$(gum spin --spinner dot --title "analyzing changes via ${provider}… (attempt ${attempt_num}/${max_attempts})" -- sh -c '
-          case "$1" in
-            opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
-            claude)   claude --print "$3" 2>/dev/null ;;
-            crush)    crush "$3" 2>/dev/null ;;
-            copilot)  gh copilot explain "$3" 2>/dev/null ;;
-          esac
-        ' _ "$provider" "$model" "$(< $tmpfile)")
+        local provider_status=1
+        local candidate_model
+        for candidate_model in "${model_candidates[@]}"; do
+          selected_model="$candidate_model"
+          raw=$(gum spin --spinner dot --title "analyzing changes via ${provider} (${selected_model})... (attempt ${attempt_num}/${max_attempts})" -- sh -c '
+            case "$1" in
+              opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
+              claude)   claude --print "$3" 2>/dev/null ;;
+              crush)    crush "$3" 2>/dev/null ;;
+              copilot)  gh copilot explain "$3" 2>/dev/null ;;
+            esac
+          ' _ "$provider" "$selected_model" "$(< $tmpfile)")
+          provider_status=$?
+          [[ "$provider_status" -eq 0 && -n "$raw" ]] && break
+          [[ "$provider" == "opencode" ]] && gum style --faint "sgc: model '$selected_model' failed, trying fallback..."
+        done
       fi
 
       if [[ -z "$raw" ]]; then

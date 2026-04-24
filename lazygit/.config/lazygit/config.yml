@@ -7,7 +7,15 @@ customCommands:
     output: terminal
   - key: '<c-g>'
     context: 'files'
-    description: 'AI single commit (gc)'
-    command: 'zsh -i -c "msg=\$(gc) && [[ -n \"\$msg\" ]] && git commit -m \"\$msg\""'
-    loadingText: 'gc: generating commit message…'
+    description: 'AI single commit (gc) with confirm'
+    prompts:
+      - type: 'input'
+        title: 'AI commit message (gc)'
+        key: 'CommitMessage'
+        initialValue: '{{ runCommand "zsh -i -c gc" }}'
+      - type: 'confirm'
+        title: 'Create commit?'
+        body: '{{.Form.CommitMessage}}'
+    command: 'git commit -m {{.Form.CommitMessage | quote}}'
+    loadingText: 'gc: creating commit…'
     output: terminal

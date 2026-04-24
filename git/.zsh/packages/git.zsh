@@ -793,6 +793,9 @@ EOF
 #   gc -g 3                     # generate 3 candidates to pick from
 #   gc -l es                    # generate message in Spanish (ISO 639-1)
 #   gc -e                       # prefix message with a gitmoji emoji
+#   gc -o                       # print only the generated message
+#   gc -q                       # disable loading spinner/title output
+#   gc -s                       # use only already staged files (no git add --all)
 #   gc hook install             # install prepare-commit-msg hook in current repo
 #   gc hook uninstall           # remove the gc-managed hook
 #   gc hook status              # show hook installation status
@@ -817,6 +820,9 @@ gc() {
   local lang=""
   local emoji="${GC_EMOJI:-0}"
   local debug=0
+  local message_only=0
+  local no_loading=0
+  local staged_only=0
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
@@ -826,13 +832,19 @@ gc() {
       -g|--generate) generate="$2"; shift 2 ;;
       -l|--lang)     lang="$2";     shift 2 ;;
       -e|--emoji)    emoji=1;       shift ;;
+      -o|--message-only) message_only=1; shift ;;
+      -q|--no-loading) no_loading=1; shift ;;
+      -s|--staged-only) staged_only=1; shift ;;
       -d|--debug)    debug=1;       shift ;;
       -h|--help)
-        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e] [-d]"
+        echo "Usage: gc [-p provider] [-m model] [-g N] [-l lang] [-e] [-o] [-q] [-s] [-d]"
         echo "       gc hook <install|uninstall|status>"
         echo "  -g N      generate N candidate messages to pick from (default: 1)"
         echo "  -l LANG   output language ISO 639-1 code (e.g. es, fr, ja)"
         echo "  -e        prefix commit message with a gitmoji emoji"
+        echo "  -o        output only the generated commit message"
+        echo "  -q        disable loading spinner/title output"
+        echo "  -s        use only staged files (skip git add --all)"
         echo "  -d        debug mode: show prompt, command and raw AI output"
         echo "Providers: opencode (default), claude, crush, copilot"
         return 0 ;;
@@ -840,16 +852,31 @@ gc() {
     esac
   done
 
-  # Always stage all changes first
-  local has_changes
-  has_changes=$(git status --short)
-  if [[ -z "$has_changes" ]]; then
-    gum style --faint "gc: nothing to commit — working tree clean"
-    return 1
-  fi
+  if [[ "$staged_only" == "1" ]]; then
+    if git diff --staged --quiet; then
+      if [[ "$message_only" == "1" ]]; then
+        echo "gc: no staged changes" >&2
+      else
+        gum style --faint "gc: no staged changes"
+      fi
+      return 1
+    fi
+  else
+    # Always stage all changes first
+    local has_changes
+    has_changes=$(git status --short)
+    if [[ -z "$has_changes" ]]; then
+      if [[ "$message_only" == "1" ]]; then
+        echo "gc: nothing to commit - working tree clean" >&2
+      else
+        gum style --faint "gc: nothing to commit — working tree clean"
+      fi
+      return 1
+    fi
 
-  git add --all
-  gum style --faint "staged all changes (git add --all)"
+    git add --all
+    [[ "$message_only" != "1" ]] && gum style --faint "staged all changes (git add --all)"
+  fi
 
   # Load ignore patterns and filter staged diff
   local ignore_tmpfile
@@ -943,14 +970,23 @@ ${diff}"
     echo "$raw"
     echo "--- end ---"
   else
-    raw=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c '
-      case "$1" in
-        opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
-        claude)   claude --print "$3" 2>/dev/null ;;
-        crush)    crush "$3" 2>/dev/null ;;
-        copilot)  gh copilot explain "$3" 2>/dev/null ;;
+    if [[ "$no_loading" == "1" ]]; then
+      case "$provider" in
+        opencode) raw=$(opencode run --model "$model" -- "$(< $tmpfile)" 2>/dev/null) ;;
+        claude)   raw=$(claude --print "$(< $tmpfile)" 2>/dev/null) ;;
+        crush)    raw=$(crush "$(< $tmpfile)" 2>/dev/null) ;;
+        copilot)  raw=$(gh copilot explain "$(< $tmpfile)" 2>/dev/null) ;;
       esac
-    ' _ "$provider" "$model" "$(< $tmpfile)")
+    else
+      raw=$(gum spin --spinner dot --title "generating commit message via ${provider}..." -- sh -c '
+        case "$1" in
+          opencode) opencode run --model "$2" -- "$3" 2>/dev/null ;;
+          claude)   claude --print "$3" 2>/dev/null ;;
+          crush)    crush "$3" 2>/dev/null ;;
+          copilot)  gh copilot explain "$3" 2>/dev/null ;;
+        esac
+      ' _ "$provider" "$model" "$(< $tmpfile)")
+    fi
   fi
 
   rm -f "$tmpfile"
@@ -1005,6 +1041,8 @@ except Exception:
   fi
 
   echo "$msg"
+  [[ "$message_only" == "1" ]] && return 0
+
   print -z "git commit -m ${(qq)msg}"
 }
 

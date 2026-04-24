@@ -16,3 +16,4 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # . "$HOME/.local/share/../bin/env"
+export PATH=~/.npm-global/bin:$PATH

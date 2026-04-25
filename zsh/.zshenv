@@ -1,5 +1,6 @@
 # ~/.zshenv - Always loaded (even for non-interactive shells)
 # Put environment variables here that should be available everywhere
+export PATH="$HOME/go/bin:$PATH"
 
 # FZF environment variables (so subshells like yazi's shell inherit them)
 export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'

@@ -31,3 +31,8 @@ customCommands:
     command: 'sleep 5'
     context: 'global'
     loadingText: 'Sleeping for 5 seconds...'
+
+
+git:
+  commit:
+    generateCommand: "lazycommit commit --message-only --no-loading --staged-only --silent-empty"

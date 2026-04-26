@@ -1,0 +1,18 @@
+git:
+  commit:
+    generateCommand: "lazycommit commit --message-only --no-loading --staged-only --silent-empty"
+
+gui:
+  theme:
+    borderType: rounded
+    borderSides: [all]
+
+keybinding:
+  files:
+    generateAICommit: "G"
+  commitMessage:
+    commitMenu: "<c-o>"
+    aiGenerate: "<c-g>"
+  overrides:
+    files.commitChanges: "C"
+    universal.refresh: "r"

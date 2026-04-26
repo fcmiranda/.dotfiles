@@ -127,3 +127,37 @@ dotadd() {
         (cd "$dotfiles_dir" && ./stow.sh -a "$package")
     fi
 }
+# rebuild_lazygirts - Build and reinstall lazygitrs + lazygirts alias
+# Usage: rebuild_lazygirts [repo_path]
+rebuild_lazygirts() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: rebuild_lazygirts [repo_path]"
+        echo "Default repo_path: $HOME/dev/github/lazygitrs"
+        return 0
+    fi
+
+    local repo_path="${1:-$HOME/dev/github/lazygitrs}"
+    local cargo_bin="$HOME/.cargo/bin/cargo"
+    local install_dir="$HOME/.local/bin"
+
+    if [[ ! -d "$repo_path" ]]; then
+        echo "Error: repo not found: $repo_path"
+        return 1
+    fi
+
+    if [[ ! -x "$cargo_bin" ]]; then
+        echo "Error: cargo not found at $cargo_bin"
+        return 1
+    fi
+
+    echo "Building lazygitrs from: $repo_path"
+    (cd "$repo_path" && "$cargo_bin" build --release) || return 1
+
+    mkdir -p "$install_dir" || return 1
+    install -m 755 "$repo_path/target/release/lazygitrs" "$install_dir/lazygitrs" || return 1
+    ln -sf "$install_dir/lazygitrs" "$install_dir/lazygirts" || return 1
+
+    echo "Installed: $install_dir/lazygitrs"
+    echo "Alias:     $install_dir/lazygirts"
+    "$install_dir/lazygirts" --version
+}

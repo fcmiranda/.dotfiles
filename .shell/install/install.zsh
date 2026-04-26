@@ -38,7 +38,8 @@ install_packages \
     mpv-wallpaper \
     bibata-cursor-theme-bin \
     upscayl-bin \
-    aether
+    aether \
+    cargo
 
 install_plugins \
     zsh-plugins \

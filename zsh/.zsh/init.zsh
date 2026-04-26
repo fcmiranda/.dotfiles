@@ -30,7 +30,7 @@ source_packages \
 	sesh \
 	tmux
 
-source_if_exists packages fed
+source_if_exists packages fed cargo
 
 
 # Initialize the zsh completion system before plugins

@@ -61,6 +61,29 @@ rm "$sed_script"
 # Merge theme override colors into the active theme so subsequent tools see them
 [[ -f $THEME_OVERRIDES_COLORS ]] && cp "$THEME_OVERRIDES_COLORS" "$CURRENT_THEME_DIR/colors.toml"
 
+# Write nvim colorscheme name so neovim picks it up on next launch
+declare -A NVIM_THEME_MAP=(
+  ["tokyo-night"]="tokyonight"
+  ["catppuccin"]="catppuccin"
+  ["catppuccin-latte"]="catppuccin-latte"
+  ["gruvbox"]="gruvbox"
+  ["osaka-jade"]="solarized-osaka"
+  ["kanagawa"]="kanagawa"
+  ["everforest"]="everforest"
+  ["rose-pine"]="rose-pine"
+  ["nord"]="nord"
+  ["ethereal"]="tokyonight"
+  ["flexoki-light"]="catppuccin-latte"
+  ["hackerman"]="tokyonight-night"
+  ["matte-black"]="tokyonight-night"
+  ["miasma"]="kanagawa-dragon"
+  ["ristretto"]="rose-pine-moon"
+  ["vantablack"]="tokyonight-night"
+  ["white"]="catppuccin-latte"
+)
+nvim_colorscheme="${NVIM_THEME_MAP[$THEME_NAME]:-tokyonight}"
+echo "$nvim_colorscheme" >"$CURRENT_THEME_DIR/nvim-colorscheme"
+
 # Restart services to apply re-rendered configs
 omarchy-restart-hyprctl
 omarchy-restart-terminal

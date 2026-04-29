@@ -128,15 +128,27 @@ dotadd() {
     fi
 }
 # rebuild_lazygirts - Build and reinstall lazygitrs + lazygirts alias
-# Usage: rebuild_lazygirts [repo_path]
+# Usage: rebuild_lazygirts [-b <branch>] [repo_path]
+#   -b <branch>  Build from a worktree branch (e.g. -b ai-commit-shortcut)
+#   repo_path    Explicit path to repo (overrides -b)
 rebuild_lazygirts() {
-    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: rebuild_lazygirts [repo_path]"
-        echo "Default repo_path: $HOME/dev/github/lazygitrs"
-        return 0
-    fi
+    local branch=""
+    while [[ "$1" == -* ]]; do
+        case "$1" in
+            -b|--branch) branch="$2"; shift 2 ;;
+            -h|--help)
+                echo "Usage: rebuild_lazygirts [-b <branch>] [repo_path]"
+                echo "  -b <branch>  Build from a worktree branch folder"
+                echo "Default repo_path: $HOME/dev/github/lazygitrs/main"
+                return 0
+                ;;
+            *) echo "Unknown option: $1"; return 1 ;;
+        esac
+    done
 
-    local repo_path="${1:-$HOME/dev/github/lazygitrs}"
+    local base_dir="$HOME/dev/github/lazygitrs"
+    local default_path="${branch:+$base_dir/$branch}"
+    local repo_path="${1:-${default_path:-$base_dir/main}}"
     local cargo_bin="$HOME/.cargo/bin/cargo"
     local install_dir="$HOME/.local/bin"
 

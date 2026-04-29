@@ -30,4 +30,4 @@ tmux popup \
   -h "$HEIGHT" \
   -b rounded \
   -E \
-  "tmux attach-session -t '${sess}:${win_idx}'"
+  "tmux set-option -t \"$sess\" status off >/dev/null 2>&1; tmux attach-session -t \"$sess:$win_idx\"; tmux set-option -t \"$sess\" status on >/dev/null 2>&1"

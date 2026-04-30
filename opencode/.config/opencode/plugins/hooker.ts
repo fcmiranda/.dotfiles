@@ -86,6 +86,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // ─────────────────────────────────────────────────────────────────────────
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null
+  let waitingPermission = false
 
   const startSpinner = () => {
     if (spinnerTimer) return
@@ -136,15 +137,17 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Stores the source pane in @opencode_last_bell so prefix+i can jump to it.
   // Clears automatically after 7 seconds via a detached background process.
   // Only fires for clients NOT already viewing the opencode window.
-  const bell = (action: string) => {
+  const bell = (action: string, force = false) => {
     if (!tmuxPane) return
-    const anyOtherClient = (spawnSync("tmux", ["list-clients", "-F", "#{client_session} #{window_id}"], { encoding: "utf8" }).stdout ?? "")
-      .trim().split("\n").filter(Boolean)
-      .some(line => {
-        const [cs, wid] = line.split(" ")
-        return !(cs === tmuxSession && wid === tmuxWindowId)
-      })
-    if (!anyOtherClient) return
+    if (!force) {
+      const anyOtherClient = (spawnSync("tmux", ["list-clients", "-F", "#{client_session} #{window_id}"], { encoding: "utf8" }).stdout ?? "")
+        .trim().split("\n").filter(Boolean)
+        .some(line => {
+          const [cs, wid] = line.split(" ")
+          return !(cs === tmuxSession && wid === tmuxWindowId)
+        })
+      if (!anyOtherClient) return
+    }
 
     // Store the source pane so prefix+i can navigate to it
     tmux("set", "-g", "@opencode_last_bell", tmuxPane)
@@ -173,7 +176,32 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
   return {
     "event": async ({ event }) => {
-      if ((event as any).type !== "session.status") return
+      // Debug: capture all event types and key fields so we can map permission prompts reliably.
+      try {
+        const fs = await import("node:fs")
+        const evtType = (event as any)?.type ?? "unknown"
+        const statusType = (event as any)?.properties?.status?.type ?? ""
+        fs.appendFileSync(
+          "/tmp/opencode-plugin-debug.log",
+          `event: ${evtType}${statusType ? ` status=${statusType}` : ""}\n`,
+        )
+      } catch {}
+
+      const evtType = (event as any)?.type ?? "unknown"
+
+      if (evtType === "permission.asked") {
+        waitingPermission = true
+        setAppState("permission")
+        bell("󱅭 permission", true)
+        return
+      }
+
+      if (evtType === "permission.replied") {
+        waitingPermission = false
+        return
+      }
+
+      if (evtType !== "session.status") return
 
       const properties = (event as any)?.properties
       const statusType: string = properties?.status?.type ?? "unknown"
@@ -185,6 +213,8 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       } catch {}
 
       // Reflect state in tmux status bar
+      // Keep permission indicator visible while waiting for user reply.
+      if (waitingPermission && statusType === "busy") return
       setAppState(statusType)
 
       if (statusType === "idle") bell("󱥂 finished")
@@ -211,10 +241,14 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
     "tool.execute.before": async (input) => {
       const toolName = (input as Record<string, any>)?.tool ?? "tool"
+      try {
+        const fs = await import("node:fs")
+        fs.appendFileSync("/tmp/opencode-plugin-debug.log", `tool.execute.before: ${toolName}\n`)
+      } catch {}
       if (toolName === "question") {
         // Switch to the question icon so the tab signals it needs attention
         setAppState("question")
-        bell("󱜻 question")
+        bell("󱜻 question", true)
         try {
          // await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
@@ -227,9 +261,30 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
     "permission.ask": async (input) => {
       const tool = (input as Record<string, any>)?.tool ?? "unknown tool"
+      try {
+        const fs = await import("node:fs")
+        fs.appendFileSync("/tmp/opencode-plugin-debug.log", `permission.ask: ${tool}\n`)
+      } catch {}
       // Use the permission style (red alert) so it's visible in the status bar
       setAppState("permission")
-      bell("󱅭 permission")
+      bell("󱅭 permission", true)
+      try {
+        // await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
+      } catch (err) {
+        console.error("NotifyIdlePlugin: notify-send for permission failed", err)
+      }
+    },
+
+    // Newer OpenCode builds emit permission.asked (not permission.ask)
+    "permission.asked": async (input) => {
+      const tool = (input as Record<string, any>)?.tool ?? "unknown tool"
+      try {
+        const fs = await import("node:fs")
+        fs.appendFileSync("/tmp/opencode-plugin-debug.log", `permission.asked: ${tool}\n`)
+      } catch {}
+      // Use the permission style (red alert) so it's visible in the status bar
+      setAppState("permission")
+      bell("󱅭 permission", true)
       try {
         // await $`notify-send "OpenCode Needs Attention" ${`Permission needed for tool: ${tool}`} -u critical`
       } catch (err) {

@@ -22,6 +22,14 @@ win_name=$(tmux display-message -t "$pane" -p '#W' 2>/dev/null)
 
 TITLE=" $sess › $win_name  │  prefix+q close"
 
+# If current client is already on the same session, jump directly to the window.
+current_sess=$(tmux display-message -p '#S' 2>/dev/null)
+if [ "$current_sess" = "$sess" ]; then
+  tmux select-window -t "$sess:$win_idx"
+  tmux select-pane -t "$pane" 2>/dev/null
+  exit 0
+fi
+
 tmux popup \
   -S "fg=$BORDER_COLOR" \
   -s "fg=$TEXT_COLOR" \

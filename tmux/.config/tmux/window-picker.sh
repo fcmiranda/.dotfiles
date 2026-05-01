@@ -16,6 +16,9 @@ C_PERM='\033[38;2;234;105;98m'         # #ea6962  red
 C_IDX='\033[38;2;146;131;116m'         # #928374  mid-gray index
 C_NAME='\033[38;2;212;190;152m'        # #d4be98  foreground name
 C_SEP='\033[38;2;60;56;54m'            # #3c3836  dim separator rule
+# Spinner prefix sentinel — lines starting with this are animated by bfzf.
+# Must not appear in any other line content.
+SPIN_PFX='@SPIN@'
 # ─────────────────────────────────────────────────────────────────────────────
 
 cur_session=$(tmux display-message -p '#S')
@@ -24,25 +27,16 @@ cur_window=$(tmux display-message -p '#I')
 tmpfile=$(mktemp)
 
 tmux list-sessions -F '#S' | while IFS= read -r session; do
-  # ── Session header ─────────────────────────────────────────────────────────
-  # Fields: SESSION <TAB> (empty index) <TAB> display
-  # We pad the session name into a full-width rule so it reads like a section title.
-  header_display="${C_SESSION}${BOLD}  ${session}${R}"
-  printf '%s\t\t%b\n' "$session" "$header_display" >> "$tmpfile"
+  # ── Session header (bfzf group-prefix '#') ──────────────────────────────────
+  printf '#%b%b  %s%b\n' "$C_SESSION" "$BOLD" "$session" "$R" >> "$tmpfile"
 
   # ── Windows in this session ────────────────────────────────────────────────
+  # Format: SESSION<TAB>IDX<TAB>DISPLAY
+  # bfzf --with-nth 3  shows only the DISPLAY column in the list.
+  # Preview uses {1}=SESSION, {2}=IDX via tab-field expansion.
   tmux list-windows -t "$session" \
       -F '#{window_index}	#{window_name}	#{@opencode_state_raw}' \
     | while IFS='	' read -r idx name state; do
-
-    case "$state" in
-      busy)       si="${C_BUSY}⣾ ${R}"  ;;
-      idle)       si="${C_IDLE}󱥂 ${R}"  ;;
-      question)   si="${C_QUESTION}󱜻 ${R}"  ;;
-      retry)      si="${C_RETRY}󰨄 ${R}"  ;;
-      permission) si="${C_PERM}󱅭 ${R}"   ;;
-      *)          si="   "               ;;
-    esac
 
     if [ "$session" = "$cur_session" ] && [ "$idx" = "$cur_window" ]; then
       mark="${C_CURMARK}●${R}"
@@ -50,41 +44,57 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
       mark="${C_DIMMARK}·${R}"
     fi
 
-    display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} ${si}"
-    printf '%s\t%s\t%b\n' "$session" "$idx" "$display" >> "$tmpfile"
+    case "$state" in
+      busy)
+        # Embed \001 (SpinnerPlaceholder) at the si position (right of name),
+        # matching where idle/question/etc icons appear. Restore the mark too.
+        display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} $(printf '\001')"
+        printf '%s%s\t%s\t%b\n' "$SPIN_PFX" "$session" "$idx" "$display" >> "$tmpfile"
+        ;;
+      idle)       si="${C_IDLE}󱥂 ${R}"
+        display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} ${si}"
+        printf '%s\t%s\t%b\n' "$session" "$idx" "$display" >> "$tmpfile"
+        ;;
+      question)   si="${C_QUESTION}󱜻 ${R}"
+        display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} ${si}"
+        printf '%s\t%s\t%b\n' "$session" "$idx" "$display" >> "$tmpfile"
+        ;;
+      retry)      si="${C_RETRY}󰨄 ${R}"
+        display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} ${si}"
+        printf '%s\t%s\t%b\n' "$session" "$idx" "$display" >> "$tmpfile"
+        ;;
+      permission) si="${C_PERM}󱅭 ${R}"
+        display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} ${si}"
+        printf '%s\t%s\t%b\n' "$session" "$idx" "$display" >> "$tmpfile"
+        ;;
+      *)
+        display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R}    "
+        printf '%s\t%s\t%b\n' "$session" "$idx" "$display" >> "$tmpfile"
+        ;;
+    esac
   done
 
 done
 
-chosen=$(fzf \
-  --ansi \
-  --no-sort \
-  --delimiter='	' \
-  --with-nth=3 \
-  --no-input \
-  --pointer="▸ " \
-  --no-separator \
-  --no-scrollbar \
-  --layout=reverse \
-  --no-border \
-  --padding="0,1" \
-  --info=hidden \
-  --color="bg+:#3c3836,border:#504945,label:#7daea3,pointer:#d8a657,hl:#d8a657,hl+:#d8a657,header:#928374,separator:#3c3836,gutter:#1d2021" \
-  --bind='start:transform([ -z "{2}" ] && echo "down" || echo "ignore")' \
-  --bind='enter:transform([ -n "{2}" ] && echo "accept" || echo "ignore")' \
-  --bind='down:down+transform([ -z "{2}" ] && echo "down" || echo "ignore")' \
-  --bind='up:up+transform([ -z "{2}" ] && echo "up" || echo "ignore")' \
-  --bind='focus:transform([ -z "{2}" ] && { [[ $FZF_ACTION =~ up ]] && echo "up" || echo "down"; } || echo "ignore")' \
-  --preview='
+chosen=$(/home/fecavmi/go/bin/bfzf \
+  -popup center,80%,55% \
+  -group-prefix '#' \
+  -spinner-prefix "$SPIN_PFX" \
+  -with-nth 3 \
+  -no-sort \
+  -no-input \
+  --height 90% \
+  -header='↑↓ navigate  •  Enter switch  •  Esc cancel' \
+  -cursor="▸ " \
+  -no-info \
+  -color="border:239,header:245,cursor:214,fg+:223" \
+  -preview='
     sess={1}; idx={2}
-    [ -z "$idx" ] && {
-      printf "\n  \033[1;38;2;125;174;163m%s\033[0m\n\n" "$sess"
-      tmux list-windows -t "$sess" -F "  #{window_index}  #{window_name}  #{@opencode_state_raw}" 2>/dev/null
-      exit 0
-    }
-    tmux capture-pane -ep -t "${sess}:${idx}" 2>/dev/null || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"
+    tmux capture-pane -ep -t "${sess}:${idx}" 2>/dev/null \
+      || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"
   ' \
-  --preview-window='right:50%:wrap:border-left' \
+  -preview-position='right' \
+  -preview-size=50 \
   < "$tmpfile")
 
 rm -f "$tmpfile"
@@ -94,7 +104,6 @@ rm -f "$tmpfile"
 session=$(printf '%s' "$chosen" | cut -f1)
 idx=$(printf '%s' "$chosen" | cut -f2)
 
-# Skip header/separator lines (empty index)
 [ -z "$idx" ] && exit 0
 
 tmux switch-client -t "${session}:${idx}"

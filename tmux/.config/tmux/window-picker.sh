@@ -5,34 +5,36 @@
 SCRIPT_DIR=$(dirname "$0")
 ITEMS_SCRIPT="${SCRIPT_DIR}/window-picker-items.sh"
 
-chosen=$("$ITEMS_SCRIPT" | /home/fecavmi/go/bin/bfzf \
-  -popup center,80%,55% \
-  -group-prefix '#' \
-  -spinner-prefix '@SPIN@' \
-  -with-nth 3 \
-  -no-sort \
-  -no-input \
-  --height 90% \
-  -header='↑↓ navigate  •  Enter switch  •  Esc cancel' \
-  -cursor="▸ " \
-  -no-info \
-  -color="border:239,header:245,cursor:214,fg+:223" \
-  -reload-cmd="$ITEMS_SCRIPT" \
-  -reload-interval=1000 \
-  -preview='
-    sess={1}; idx={2}
-    tmux capture-pane -ep -t "${sess}:${idx}" 2>/dev/null \
-      || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"
-  ' \
-  -preview-position='right' \
-  -preview-size=50)
+BORDER_COLOR="magenta"
 
-[ -z "$chosen" ] && exit 0
-
-# Extract session and window index from tab-delimited fields
-session=$(printf '%s' "$chosen" | cut -f1)
-idx=$(printf '%s' "$chosen" | cut -f2)
-
-[ -z "$idx" ] && exit 0
-
-tmux switch-client -t "${session}:${idx}"
+tmux display-popup \
+  -b rounded \
+  -S "fg=$BORDER_COLOR" \
+  -w 80% \
+  -h 55% \
+  -E \
+  "$ITEMS_SCRIPT | /home/fecavmi/go/bin/bfzf \
+    -group-prefix '#' \
+    -spinner-prefix '@SPIN@' \
+    -with-nth 3 \
+    -no-sort \
+    -no-input \
+    --height 100% \
+    -header='↑↓ navigate  •  Enter switch  •  Esc cancel' \
+    -cursor='▸ ' \
+    -no-info \
+    -color='border:239,header:245,cursor:214,fg+:223' \
+    -reload-cmd='$ITEMS_SCRIPT' \
+    -reload-interval=1000 \
+    -preview='
+      sess={1}; idx={2}
+      tmux capture-pane -ep -t \"\${sess}:\${idx}\" 2>/dev/null \
+        || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"
+    ' \
+    -preview-position=right \
+    -preview-size=50 \
+  | (read chosen && [ -n \"\$chosen\" ] && \
+      session=\$(printf '%s' \"\$chosen\" | cut -f1) && \
+      idx=\$(printf '%s' \"\$chosen\" | cut -f2) && \
+      [ -n \"\$idx\" ] && \
+      tmux switch-client -t \"\${session}:\${idx}\")"

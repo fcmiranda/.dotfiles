@@ -37,4 +37,4 @@ tmux display-popup \
       session=\$(printf '%s' \"\$chosen\" | cut -f1) && \
       idx=\$(printf '%s' \"\$chosen\" | cut -f2) && \
       [ -n \"\$idx\" ] && \
-      tmux switch-client -t \"\${session}:\${idx}\")"
+      tmux switch-client -t \"\${session}:\${idx}\"); true"

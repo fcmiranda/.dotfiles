@@ -27,7 +27,7 @@ tmux display-popup \
     -no-info \
     -color='border:239,header:245,cursor:214,fg+:223' \
     -reload-cmd='$ITEMS_SCRIPT' \
-    -reload-interval=1000 \
+    -reload-interval=1800 \
     -preview='
       sess={1}; idx={2}
       tmux capture-pane -ep -t \"\${sess}:\${idx}\" 2>/dev/null \

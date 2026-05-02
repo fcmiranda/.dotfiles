@@ -7,6 +7,6 @@ OPENCODE_POPUP_WIDTH="90%"
 OPENCODE_POPUP_HEIGHT="90%"
 
 # Spinner name — same presets as hooker.ts and bfzf -spinner flag:
-# dot, minidot, line, jump, pulse, points, meter, hamburger,
+# dot, minidot, line, jump, , points, meter, hamburger,
 # ellipsis, globe, moon, monkey, arc, nerd, nerdarc
-OPENCODE_SPINNER_NAME="dot"
+OPENCODE_SPINNER_NAME="arc"

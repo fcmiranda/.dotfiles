@@ -17,6 +17,7 @@ tmux display-popup \
     -group-prefix '#' \
     -spinner-prefix '@SPIN@' \
     -spinner '$OPENCODE_SPINNER_NAME' \
+    -spinner-color='$OPENCODE_SPINNER_COLOR' \
     -with-nth 3 \
     -no-sort \
     -no-input \

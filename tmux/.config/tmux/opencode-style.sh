@@ -10,3 +10,6 @@ OPENCODE_POPUP_HEIGHT="90%"
 # dot, minidot, line, jump, , points, meter, hamburger,
 # ellipsis, globe, moon, monkey, arc, nerd, nerdarc
 OPENCODE_SPINNER_NAME="arc"
+
+# Spinner color — 0-255 ANSI index, #RRGGBB hex, or named color
+OPENCODE_SPINNER_COLOR="214"

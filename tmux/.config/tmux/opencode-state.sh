@@ -6,8 +6,11 @@
 # so the animation is driven entirely by tmux — zero plugin overhead.
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+_tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
+[ -f "$_tmux_style" ] || _tmux_style="$SCRIPT_DIR/tmux-style.sh"
 # shellcheck source=/dev/null
-. "$SCRIPT_DIR/opencode-style.sh"
+. "$_tmux_style"
+unset _tmux_style
 
 f="/tmp/opencode-state-$1"
 [ -f "$f" ] || exit 0
@@ -16,7 +19,7 @@ s=$(cat "$f")
 
 case "$s" in
   busy)
-    case "$OPENCODE_SPINNER_NAME" in
+    case "$TMUX_SPINNER_NAME" in
       minidot)   frames='⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏'; fps=83  ;;
       line)      frames='| / - \';                fps=100 ;;
       jump)      frames='⢄ ⢂ ⢁ ⡁ ⡈ ⡐ ⡠';        fps=100 ;;
@@ -37,7 +40,7 @@ case "$s" in
     now_ms=$(date +%s%3N)
     idx=$(( (now_ms / fps) % n ))
     p=$(printf '%s' "$frames" | tr ' ' '\n' | sed -n "$((idx + 1))p")
-    printf ' #[fg=yellow]%s#[fg=default]' "$p"
+    printf " #[fg=%s]%s#[fg=default]" "$TMUX_SPINNER_COLOR" "$p"
     ;;
   idle)       printf ' #[fg=green]#[fg=default]'         ;;
   retry)      printf ' #[fg=colour208]#[fg=default]'     ;;

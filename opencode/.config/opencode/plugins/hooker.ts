@@ -69,6 +69,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const DEFAULT_SPINNER = "arc"
   let spinnerName = process.env.OPENCODE_SPINNER ?? DEFAULT_SPINNER
   let intervalOverride: number | null = null
+  let spinnerColorOverride: string | null = null
 
   try {
     const fs = require("node:fs")
@@ -77,12 +78,19 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       const cfg = JSON.parse(fs.readFileSync(configPath, "utf8"))
       if (!process.env.OPENCODE_SPINNER && cfg.spinner) spinnerName = cfg.spinner
       if (typeof cfg.interval === "number") intervalOverride = cfg.interval
+      if (typeof cfg.color === "string" && cfg.color) spinnerColorOverride = cfg.color
     }
   } catch {}
 
   const chosen = SPINNERS[spinnerName] ?? SPINNERS[DEFAULT_SPINNER]
   const SPINNER = chosen.frames
   const SPINNER_INTERVAL = intervalOverride ?? chosen.interval
+
+  // Resolve spinner color: hooker-config.json > tmux @ACCENT_COLOR > "yellow"
+  const tmuxAccent = tmuxPane
+    ? (spawnSync("tmux", ["show-option", "-gqv", "@ACCENT_COLOR"], { encoding: "utf8" }).stdout ?? "").trim()
+    : ""
+  const SPINNER_COLOR = spinnerColorOverride ?? (tmuxAccent || "yellow")
   // ─────────────────────────────────────────────────────────────────────────
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null
@@ -92,7 +100,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     if (spinnerTimer) return
     spinnerTimer = setInterval(() => {
       const frame = SPINNER[spinnerFrame++ % SPINNER.length]
-      setWindowState(`#[fg=yellow]${frame} #[fg=default]`, "busy")
+      setWindowState(`#[fg=${SPINNER_COLOR}]${frame} #[fg=default]`, "busy")
     }, SPINNER_INTERVAL)
   }
 

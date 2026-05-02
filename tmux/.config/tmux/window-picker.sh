@@ -4,20 +4,23 @@
 
 SCRIPT_DIR=$(dirname "$0")
 ITEMS_SCRIPT="${SCRIPT_DIR}/window-picker-items.sh"
+_tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
+[ -f "$_tmux_style" ] || _tmux_style="${SCRIPT_DIR}/tmux-style.sh"
 # shellcheck source=/dev/null
-. "${SCRIPT_DIR}/opencode-style.sh"
+. "$_tmux_style"
+unset _tmux_style
 
 tmux display-popup \
   -b rounded \
-  -S "fg=$OPENCODE_POPUP_BORDER_COLOR" \
+  -S "fg=$TMUX_POPUP_BORDER_COLOR" \
   -w 80% \
   -h 55% \
   -E \
   "$ITEMS_SCRIPT | /home/fecavmi/go/bin/bfzf \
     -group-prefix '#' \
     -spinner-prefix '@SPIN@' \
-    -spinner '$OPENCODE_SPINNER_NAME' \
-    -spinner-color='$OPENCODE_SPINNER_COLOR' \
+    -spinner '$TMUX_SPINNER_NAME' \
+    -spinner-color='$TMUX_SPINNER_COLOR' \
     -with-nth 3 \
     -no-sort \
     -no-input \
@@ -25,7 +28,7 @@ tmux display-popup \
     -header='' \
     -cursor='▸ ' \
     -no-info \
-    -color='border:239,header:245,cursor:214,fg+:223' \
+    -color='$TMUX_BFZF_COLOR_SPEC' \
     -reload-cmd='$ITEMS_SCRIPT' \
     -reload-interval=1800 \
     -preview='

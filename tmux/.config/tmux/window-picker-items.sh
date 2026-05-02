@@ -18,7 +18,6 @@ C_RETRY='\033[38;2;231;138;78m'
 C_PERM='\033[38;2;234;105;98m'
 C_IDX='\033[38;2;146;131;116m'
 C_NAME='\033[38;2;212;190;152m'
-SPIN_PFX='@SPIN@'
 # ─────────────────────────────────────────────────────────────────────────────
 
 cur_session=$(tmux display-message -p '#S')
@@ -39,9 +38,8 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
 
     case "$state" in
       busy)
-        # \001 = SpinnerPlaceholder — bfzf animates it at that column position
         display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} $(printf '\001')"
-        printf '%s%s\t%s\t%b\n' "$SPIN_PFX" "$session" "$idx" "$display"
+        printf '@SPIN@%s\t%s\t%b\n' "$session" "$idx" "$display"
         ;;
       idle)
         display="   ${mark} ${C_IDX}${idx}${R}  ${C_NAME}${name}${R} ${C_IDLE}󱥂 ${R}"

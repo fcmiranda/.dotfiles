@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-BORDER_COLOR="magenta"
-TEXT_COLOR="blue"
-WIDTH="90%"
-HEIGHT="90%"
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+# shellcheck source=/dev/null
+. "$SCRIPT_DIR/opencode-style.sh"
 
 pane=$(tmux show -gv @opencode_last_bell 2>/dev/null)
 
 if [ -z "$pane" ]; then
   tmux display-popup \
     -b rounded \
-    -S "fg=$BORDER_COLOR" \
+    -S "fg=$OPENCODE_POPUP_BORDER_COLOR" \
     -T " No OpenCode notification " \
     -w 38 -h 5 \
     "printf '\n  No OpenCode notification yet.\n'; sleep 2"
@@ -31,11 +31,11 @@ if [ "$current_sess" = "$sess" ]; then
 fi
 
 tmux popup \
-  -S "fg=$BORDER_COLOR" \
-  -s "fg=$TEXT_COLOR" \
+  -S "fg=$OPENCODE_POPUP_BORDER_COLOR" \
+  -s "fg=$OPENCODE_POPUP_TEXT_COLOR" \
   -T "$TITLE" \
-  -w "$WIDTH" \
-  -h "$HEIGHT" \
+  -w "$OPENCODE_POPUP_WIDTH" \
+  -h "$OPENCODE_POPUP_HEIGHT" \
   -b rounded \
   -E \
   "tmux set-option -t \"$sess\" status off >/dev/null 2>&1; tmux attach-session -t \"$sess:$win_idx\"; tmux set-option -t \"$sess\" status on >/dev/null 2>&1"

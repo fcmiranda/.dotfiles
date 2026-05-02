@@ -4,23 +4,24 @@
 
 SCRIPT_DIR=$(dirname "$0")
 ITEMS_SCRIPT="${SCRIPT_DIR}/window-picker-items.sh"
-
-BORDER_COLOR="magenta"
+# shellcheck source=/dev/null
+. "${SCRIPT_DIR}/opencode-style.sh"
 
 tmux display-popup \
   -b rounded \
-  -S "fg=$BORDER_COLOR" \
+  -S "fg=$OPENCODE_POPUP_BORDER_COLOR" \
   -w 80% \
   -h 55% \
   -E \
   "$ITEMS_SCRIPT | /home/fecavmi/go/bin/bfzf \
     -group-prefix '#' \
     -spinner-prefix '@SPIN@' \
+    -spinner '$OPENCODE_SPINNER_NAME' \
     -with-nth 3 \
     -no-sort \
     -no-input \
     --height 100% \
-    -header='↑↓ navigate  •  Enter switch  •  Esc cancel' \
+    -header='' \
     -cursor='▸ ' \
     -no-info \
     -color='border:239,header:245,cursor:214,fg+:223' \

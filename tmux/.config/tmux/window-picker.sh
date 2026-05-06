@@ -26,7 +26,7 @@ tmux display-popup \
     -no-input \
     --height 100% \
     -header='' \
-    -cursor='▸ ' \
+    -cursor='' \
     -no-info \
     -color='$TMUX_BFZF_COLOR_SPEC' \
     -reload-cmd='$ITEMS_SCRIPT' \

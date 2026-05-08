@@ -12,6 +12,7 @@ USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed-overrides"
 # Reload tmux configuration so new theme colors apply immediately
 if tmux info &>/dev/null; then
   tmux source-file ~/.config/tmux/tmux.conf
+  tmux refresh-client
 fi
 
 # Re-render user templates with hooked-theme color overrides (or base colors if no hooked theme)

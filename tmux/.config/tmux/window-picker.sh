@@ -12,7 +12,6 @@ unset _tmux_style
 
 tmux display-popup \
   -b rounded \
-  -S "fg=$TMUX_POPUP_BORDER_COLOR" \
   -w 80% \
   -h 55% \
   -E \

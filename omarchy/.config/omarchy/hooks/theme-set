@@ -70,7 +70,35 @@ rm "$sed_script"
 
 # Restart services to apply re-rendered configs
 omarchy-restart-hyprctl
-omarchy-restart-terminal
+
+# Reload terminal emulator config.
+# We avoid `omarchy-restart-terminal` here because its `killall -SIGUSR2 ghostty`
+# hits helper subprocesses that don't handle the signal, causing them to die and
+# triggering a spurious "App failure" mako notification.
+if [[ -f ~/.config/alacritty/alacritty.toml ]]; then
+  touch ~/.config/alacritty/alacritty.toml
+fi
+if pgrep -x kitty >/dev/null; then
+  killall -SIGUSR1 kitty 2>/dev/null || true
+fi
+if pgrep -x ghostty >/dev/null; then
+  # Send SIGUSR2 only to root ghostty processes (parent is not another ghostty).
+  # Subprocesses (GPU helpers, etc.) whose parent IS ghostty are left alone.
+  pgrep -x ghostty | while IFS= read -r pid; do
+    ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+    ppid_name=$(ps -o comm= -p "$ppid" 2>/dev/null | tr -d ' ')
+    [[ "$ppid_name" != "ghostty" ]] && kill -SIGUSR2 "$pid" 2>/dev/null || true
+  done
+  # Give ghostty time to redraw, then send SIGWINCH to all tmux pane shells so
+  # the starship prompt redraws without needing to press Enter.
+  sleep 0.3
+  if tmux info &>/dev/null; then
+    tmux list-panes -a -F '#{pane_pid}' 2>/dev/null | while IFS= read -r ppid; do
+      kill -SIGWINCH "$ppid" 2>/dev/null || true
+    done
+  fi
+fi
+
 omarchy-restart-mako
 
 # Write nvim colorscheme name — running Neovim instances pick it up via the

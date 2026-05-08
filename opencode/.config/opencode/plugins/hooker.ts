@@ -16,7 +16,12 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const tmux = (...args: string[]) => spawnSync("tmux", args, { stdio: "ignore" })
 
   // Wipe stale global @opencode_state from old plugin versions once at startup
-  if (tmuxPane) tmux("set", "-g", "@opencode_state", "")
+  // and pin the window name/icon to OpenCode while this session is running.
+  if (tmuxPane) {
+    tmux("set", "-g", "@opencode_state", "")
+    tmux("set-option", "-w", "-t", tmuxPane, "automatic-rename", "off",
+         ";", "rename-window", "-t", tmuxPane, "")
+  }
 
   // ── Watchdog process ──────────────────────────────────────────────────────
   // Spawns a detached shell that polls until this plugin PID dies, then clears
@@ -26,7 +31,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     const { spawn } = require("node:child_process")
     const watchdog = spawn("sh", [
       "-c",
-      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @opencode_state_raw 2>/dev/null; tmux refresh-client -S 2>/dev/null`,
+      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @opencode_state_raw 2>/dev/null; tmux set-option -w -t '${tmuxPane}' automatic-rename on 2>/dev/null; tmux refresh-client -S 2>/dev/null`,
     ], { detached: true, stdio: "ignore" })
     watchdog.unref()
   }
@@ -86,11 +91,31 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const SPINNER = chosen.frames
   const SPINNER_INTERVAL = intervalOverride ?? chosen.interval
 
+  // ── Resolve theme colors — mirror window-picker-items.sh sources exactly ──
+  // tget reads a tmux global option (same as _tget in window-picker-items.sh)
+  const tget = (opt: string): string =>
+    (spawnSync("tmux", ["show-option", "-gqv", opt], { encoding: "utf8" }).stdout ?? "").trim()
+
+  const _tomlColor = (pattern: RegExp, fallback: string): string => {
+    try {
+      const content = require("node:fs").readFileSync(
+        `${process.env.HOME}/.config/omarchy/current/theme/colors.toml`, "utf8")
+      return content.match(pattern)?.[1] ?? fallback
+    } catch { return fallback }
+  }
+
   // Resolve spinner color: hooker-config.json > tmux @ACCENT_COLOR > "yellow"
-  const tmuxAccent = tmuxPane
-    ? (spawnSync("tmux", ["show-option", "-gqv", "@ACCENT_COLOR"], { encoding: "utf8" }).stdout ?? "").trim()
-    : ""
-  const SPINNER_COLOR = spinnerColorOverride ?? (tmuxAccent || "yellow")
+  const SPINNER_COLOR = spinnerColorOverride ?? (tget("@ACCENT_COLOR") || "yellow")
+
+  // State colors — same sources as window-picker-items.sh:
+  //   idle       → @CURRENT_COLOR  (color14 / teal)
+  //   question   → @PREFIX_COLOR   (color13 / mauve)
+  //   retry      → color11         (yellow, from colors.toml)
+  //   permission → color1          (red,    from colors.toml)
+  const C_IDLE   = tget("@CURRENT_COLOR") || "#94e2d5"
+  const C_QUEST  = tget("@PREFIX_COLOR")  || "#cba6f7"
+  const C_RETRY  = _tomlColor(/^color11\s*=\s*"([^"]+)"/m, "#f9e2af")
+  const C_PERM   = _tomlColor(/^color1\s*=\s*"([^"]+)"/m,  "#f38ba8")
   // ─────────────────────────────────────────────────────────────────────────
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null
@@ -112,10 +137,10 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   }
 
   const STATES: Record<string, string> = {
-    idle:       "#[fg=green]󱥂 #[fg=default]",   // done — green robot answered
-    question:   "#[fg=cyan]󱜻 #[fg=default]",   // waiting for answer — cyan bell
-    retry:      "#[fg=colour208]󰨄 #[fg=default]",  // retrying — orange refresh
-    permission: "#[fg=red]󱅭 #[fg=default]",    // needs permission — red alert
+    idle:       `#[fg=${C_IDLE}]󱥂 #[fg=default]`,
+    question:   `#[fg=${C_QUEST}]󱜻 #[fg=default]`,
+    retry:      `#[fg=${C_RETRY}]󰨄 #[fg=default]`,
+    permission: `#[fg=${C_PERM}]󱅭 #[fg=default]`,
   }
 
   const setAppState = (state: string) => {

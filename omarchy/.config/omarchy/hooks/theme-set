@@ -71,6 +71,9 @@ rm "$sed_script"
 
 # Restart services to apply re-rendered configs
 omarchy-restart-hyprctl
+# Clear stale uwsm app-daemon error flag (can be left behind if daemon crashed
+# during a previous hyprctl reload when /run/user tmpfs was full)
+rm -f "/run/user/$UID/uwsm/app_daemon_error"
 
 # Reload terminal emulator config.
 # We avoid `omarchy-restart-terminal` here because its `killall -SIGUSR2 ghostty`

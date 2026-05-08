@@ -21,6 +21,10 @@ window#waybar.bottom .modules-left {
     padding: 0 6px;
 }
 
+#workspaces button.active {
+    color: @background;
+}
+
 #custom-cava {
     margin-right: 16px;
 }

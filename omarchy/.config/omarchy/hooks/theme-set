@@ -46,6 +46,11 @@ append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
 
 shopt -s nullglob
 
+# if /home/fecavmi/.config/omarchy/current/theme/hyprland.conf exists rename it to /home/fecavmi/.config/omarchy/current/theme/hyprland.omarchy.conf
+if [[ -f "$CURRENT_THEME_DIR/hyprland.conf" ]]; then
+  cp "$CURRENT_THEME_DIR/hyprland.conf" "$CURRENT_THEME_DIR/hyprland.omarchy.conf"
+fi
+
 # Re-render all templates into the active theme dir
 # User templates take precedence over built-in templates with the same filename
 declare -A rendered_templates
@@ -53,6 +58,7 @@ for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
   filename=$(basename "$tpl" .tpl)
   [[ ${rendered_templates[$filename]+_} ]] && continue
   rendered_templates[$filename]=1
+
   sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"
 done
 
@@ -87,7 +93,4 @@ echo "$nvim_colorscheme" >"$CURRENT_THEME_DIR/nvim-colorscheme"
 # Restart services to apply re-rendered configs
 omarchy-restart-hyprctl
 omarchy-restart-terminal
-if pgrep -x waybar >/dev/null; then
-  omarchy-restart-waybar
-fi
 omarchy-restart-mako

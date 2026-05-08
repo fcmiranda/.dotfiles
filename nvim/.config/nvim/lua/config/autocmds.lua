@@ -19,62 +19,79 @@ local function read_omarchy_colorscheme()
   return cs and vim.trim(cs) or nil
 end
 
+local omarchy_theme_busy = false
+
+local function apply_plugins_from_spec(specs, cs)
+  local lazy_data = vim.fn.stdpath("data") .. "/lazy"
+  local lazy_cfg = require("lazy.core.config")
+  local missing = {}
+  for _, spec in ipairs(specs) do
+    local plugin = type(spec[1]) == "string" and spec[1] or nil
+    if plugin and plugin ~= "LazyVim/LazyVim" then
+      local short = plugin:match("[^/]+$")
+      local dir = lazy_data .. "/" .. short
+      if vim.fn.isdirectory(dir) == 1 then
+        -- Plugin is on disk: add to rtp if lazy doesn't know about it
+        if not lazy_cfg.plugins[short] then
+          vim.opt.rtp:prepend(dir)
+          local after = dir .. "/after"
+          if vim.fn.isdirectory(after) == 1 then
+            vim.opt.rtp:append(after)
+          end
+        else
+          require("lazy").load({ plugins = { short } })
+        end
+      else
+        table.insert(missing, short)
+      end
+    end
+  end
+  return missing
+end
+
 local w = vim.uv.new_fs_event()
 if w then
   w:start(vim.fn.expand("~/.config/omarchy/current"), {}, function(err, fname)
     if err or fname ~= "theme.name" then return end
+    if omarchy_theme_busy then return end
+    omarchy_theme_busy = true
     vim.schedule(function()
       local cs = read_omarchy_colorscheme()
-      if not cs or cs == "" then return end
+      if not cs or cs == "" then
+        omarchy_theme_busy = false
+        return
+      end
 
       local ok, specs = pcall(dofile, neovim_lua_file)
-      if not (ok and type(specs) == "table") then return end
-
-      local lazy_data = vim.fn.stdpath("data") .. "/lazy"
-      local lazy_cfg = require("lazy.core.config")
-      local missing = {}
-      for _, spec in ipairs(specs) do
-        local plugin = type(spec[1]) == "string" and spec[1] or nil
-        if plugin and plugin ~= "LazyVim/LazyVim" then
-          local short = plugin:match("[^/]+$")
-          local dir = lazy_data .. "/" .. short
-          if vim.fn.isdirectory(dir) == 1 then
-            -- Plugin is on disk: add to rtp if lazy doesn't know about it
-            if not lazy_cfg.plugins[short] then
-              vim.opt.rtp:prepend(dir)
-              local after = dir .. "/after"
-              if vim.fn.isdirectory(after) == 1 then
-                vim.opt.rtp:append(after)
-              end
-            else
-              require("lazy").load({ plugins = { short } })
-            end
-          else
-            table.insert(missing, short)
-          end
-        end
+      if not (ok and type(specs) == "table") then
+        omarchy_theme_busy = false
+        return
       end
+
+      local missing = apply_plugins_from_spec(specs, cs)
 
       if #missing > 0 then
         vim.notify(
-          "Installing theme plugins: " .. table.concat(missing, ", ") .. "\nRestart nvim when done.",
+          "Installing theme plugins: " .. table.concat(missing, ", ") .. "...",
           vim.log.levels.INFO,
           { title = "Omarchy theme" }
         )
         vim.fn.jobstart({ "nvim", "--headless", "+Lazy! install", "+qa" }, {
           on_exit = function(_, code)
-            if code == 0 then
-              vim.schedule(function()
-                vim.notify(
-                  "Theme plugins installed. Restart nvim to apply colorscheme.",
-                  vim.log.levels.INFO,
-                  { title = "Omarchy theme" }
-                )
-              end)
-            end
+            vim.schedule(function()
+              omarchy_theme_busy = false
+              if code ~= 0 then return end
+              -- Re-check spec now that plugins are installed
+              local ok2, specs2 = pcall(dofile, neovim_lua_file)
+              if ok2 and type(specs2) == "table" then
+                apply_plugins_from_spec(specs2, cs)
+              end
+              pcall(vim.cmd, "colorscheme " .. cs)
+            end)
           end,
         })
       else
+        omarchy_theme_busy = false
         pcall(vim.cmd, "colorscheme " .. cs)
       end
     end)

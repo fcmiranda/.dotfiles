@@ -72,12 +72,8 @@ omarchy-restart-hyprctl
 omarchy-restart-terminal
 omarchy-restart-mako
 
-# Write nvim colorscheme name and notify running Neovim instances
+# Write nvim colorscheme name — running Neovim instances pick it up via the
+# fs_event watcher in autocmds.lua, which handles install + apply automatically.
 if [[ -f $CURRENT_THEME_DIR/neovim.lua ]]; then
   nvim_cs=$(grep -oP 'colorscheme\s*=\s*"\K[^"]+' "$CURRENT_THEME_DIR/neovim.lua" | head -1)
-  if [[ -n $nvim_cs ]]; then
-    for socket in /run/user/$UID/nvim.*.0; do
-      [[ -S $socket ]] && nvim --server "$socket" --remote-send ":colorscheme $nvim_cs<CR>" &>/dev/null &
-    done
-  fi
 fi

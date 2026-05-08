@@ -31,13 +31,24 @@ if w then
       if not (ok and type(specs) == "table") then return end
 
       local lazy_data = vim.fn.stdpath("data") .. "/lazy"
+      local lazy_cfg = require("lazy.core.config")
       local missing = {}
       for _, spec in ipairs(specs) do
         local plugin = type(spec[1]) == "string" and spec[1] or nil
         if plugin and plugin ~= "LazyVim/LazyVim" then
           local short = plugin:match("[^/]+$")
-          if vim.fn.isdirectory(lazy_data .. "/" .. short) == 1 then
-            require("lazy").load({ plugins = { short } })
+          local dir = lazy_data .. "/" .. short
+          if vim.fn.isdirectory(dir) == 1 then
+            -- Plugin is on disk: add to rtp if lazy doesn't know about it
+            if not lazy_cfg.plugins[short] then
+              vim.opt.rtp:prepend(dir)
+              local after = dir .. "/after"
+              if vim.fn.isdirectory(after) == 1 then
+                vim.opt.rtp:append(after)
+              end
+            else
+              require("lazy").load({ plugins = { short } })
+            end
           else
             table.insert(missing, short)
           end
@@ -50,7 +61,7 @@ if w then
           vim.log.levels.INFO,
           { title = "Omarchy theme" }
         )
-        vim.fn.jobstart({ "nvim", "--headless", "+Lazy! sync", "+qa" }, {
+        vim.fn.jobstart({ "nvim", "--headless", "+Lazy! install", "+qa" }, {
           on_exit = function(_, code)
             if code == 0 then
               vim.schedule(function()

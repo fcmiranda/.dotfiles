@@ -19,7 +19,7 @@
 set -uo pipefail
 
 # ── Config ────────────────────────────────────────────────────────────────────
-DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles/main}"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -60,6 +60,9 @@ PACKAGE="${2:-}"
 # ── Resolve path ──────────────────────────────────────────────────────────────
 # Expand ~ manually in case it wasn't expanded by the shell
 TARGET_PATH="${TARGET_PATH/#\~/$HOME}"
+
+# Resolve relative paths against $PWD
+[[ "$TARGET_PATH" != /* ]] && TARGET_PATH="$PWD/$TARGET_PATH"
 
 # Follow symlinks to find the real file, but keep the original location for
 # the symlink path we need to recreate

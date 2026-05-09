@@ -15,4 +15,15 @@ if [[ -z "$selection" ]]; then
 fi
 
 /usr/bin/sesh connect --switch -- "$selection" 2>/dev/null && exit 0
-exec /usr/bin/uwsm-app -- /usr/bin/xdg-terminal-exec -e /usr/bin/sesh connect -- "$selection"
+
+# First run often fails when no tmux server/session exists yet.
+# Create a default session, retry, then fall back to opening in a terminal.
+if ! /usr/bin/tmux has-session -t main 2>/dev/null; then
+  /usr/bin/tmux new-session -d -s main 2>/dev/null || true
+fi
+
+/usr/bin/sesh connect --switch -- "$selection" 2>/dev/null && exit 0
+
+/usr/bin/uwsm-app -- /usr/bin/xdg-terminal-exec -e /usr/bin/bash -lc \
+  '/usr/bin/sesh connect -- "$1" || /usr/bin/tmux new-session -A -s main' _ "$selection"
+exit 0

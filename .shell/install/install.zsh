@@ -39,6 +39,7 @@ install_packages \
     bibata-cursor-theme-bin \
     upscayl-bin \
     aether \
+    just \
     cargo
 
 install_plugins \

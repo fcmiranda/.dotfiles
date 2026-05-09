@@ -68,15 +68,15 @@ cmd="${actions[$selected]:-}"
 # ── Run in terminal ───────────────────────────────────────────────────────────
 case "$TERM_CMD" in
   ghostty)
-    uwsm app -- ghostty -e zsh -c "$cmd" ;;
+    uwsm-app -- ghostty -e zsh -c "$cmd" ;;
   kitty)
-    uwsm app -- kitty zsh -c "$cmd" ;;
+    uwsm-app -- kitty zsh -c "$cmd" ;;
   alacritty)
-    uwsm app -- alacritty -e zsh -c "$cmd" ;;
+    uwsm-app -- alacritty -e zsh -c "$cmd" ;;
   foot)
-    uwsm app -- foot zsh -c "$cmd" ;;
+    uwsm-app -- foot zsh -c "$cmd" ;;
   xdg-terminal-exec)
-    uwsm app -- xdg-terminal-exec zsh -c "$cmd" ;;
+    uwsm-app -- xdg-terminal-exec zsh -c "$cmd" ;;
   *)
-    uwsm app -- "$TERM_CMD" zsh -c "$cmd" ;;
+    uwsm-app -- "$TERM_CMD" zsh -c "$cmd" ;;
 esac

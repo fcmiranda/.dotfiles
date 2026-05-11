@@ -1,0 +1,24 @@
+active_provider: opencode # default; uses opencode CLI free models
+providers:
+  opencode:
+    model: "opencode/minimax-m2.5-free" # Uses opencode CLI - no API key needed
+    fallback_models:
+      - "opencode/minimax-m2.5-free"
+      - "opencode/ling-2.6-flash-free"
+      - "opencode/hy3-preview-free"
+      - "opencode/nemotron-3-super-free"
+    num_suggestions: 10
+  copilot:
+    api_key: "$GITHUB_TOKEN"   # Uses GitHub token; token is exchanged internally
+    model: "gpt-4o"            # or "openai/gpt-4o"; both accepted
+    # endpoint_url: "https://api.githubcopilot.com"  # Optional - uses default if not specified
+  openai:
+    api_key: "$OPENAI_API_KEY"
+    model: "gpt-4o"
+    # endpoint_url: "https://api.openai.com/v1"  # Optional - uses default if not specified
+  anthropic:
+    model: "claude-haiku-4-5"  # Uses Claude Code CLI - no API key needed
+    num_suggestions: 10        # Number of commit suggestions to generate
+  gemini:
+    model: "flash"             # Uses Gemini CLI - no API key needed
+    num_suggestions: 10        # Number of commit suggestions to generate

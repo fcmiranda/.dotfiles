@@ -1,6 +1,6 @@
 git:
   commit:
-    generateCommand: "lazycommit commit --message-only --no-loading --staged-only --silent-empty"
+    generateCommand: "lazycommit commit --message-only --silent-empty"
 
 gui:
   theme:

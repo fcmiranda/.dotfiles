@@ -24,7 +24,7 @@ show_system_menu() {
 
   case "$(menu "System" "$options")" in
   *Screensaver*) omarchy-launch-screensaver force ;;
-  *Lock*) omarchy-lock-screen ;;
+  *Lock*) omarchy-system-lock ;;
   *Suspend*) systemctl suspend ;;
   *Hibernate*) systemctl hibernate ;;
   *Logout*) hyprctl dispatch exit ;;

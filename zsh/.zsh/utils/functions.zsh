@@ -127,6 +127,107 @@ dotadd() {
         (cd "$dotfiles_dir" && ./stow.sh -a "$package")
     fi
 }
+# copilot - Wraps the GitHub Copilot CLI with tmux state integration
+# Mirrors the hooker.ts pattern for OpenCode: shows a spinner in the window tab
+# while a session is active, an idle icon on exit, and fires a bell notification.
+#
+# State options used (parallel to opencode's):
+#   @copilot_state      — styled tmux format string interpolated in window-status-format
+#   @copilot_state_raw  — plain word ("active" | "idle") for scripts
+#
+# Usage: copilot [copilot-cli options...]
+#
+copilot() {
+  # Outside tmux: pass-through
+  if [[ -z "$TMUX_PANE" ]]; then
+    command copilot "$@"
+    return $?
+  fi
+
+  local pane="$TMUX_PANE"
+
+  # ── Window metadata ────────────────────────────────────────────────────────
+  local tmux_session tmux_window tmux_window_idx tmux_window_id
+  tmux_session=$(tmux display-message -t "$pane" -p "#S"           2>/dev/null)
+  tmux_window=$(tmux display-message  -t "$pane" -p "#W"           2>/dev/null)
+  tmux_window_idx=$(tmux display-message -t "$pane" -p "#I"        2>/dev/null)
+  tmux_window_id=$(tmux display-message  -t "$pane" -p "#{window_id}" 2>/dev/null)
+
+  # ── Resolve theme colors (mirrors hooker.ts) ───────────────────────────────
+  local accent idle_color
+  accent=$(tmux show-option -gqv @ACCENT_COLOR 2>/dev/null)
+  [[ -z "$accent" ]] && accent="cyan"
+  idle_color=$(tmux show-option -gqv @CURRENT_COLOR 2>/dev/null)
+  [[ -z "$idle_color" ]] && idle_color="#94e2d5"
+
+  # ── Pin window icon and disable auto-rename ────────────────────────────────
+  tmux set-option -w -t "$pane" automatic-rename off \; \
+       rename-window  -t "$pane" "󱙝"                  2>/dev/null
+
+  # ── Background spinner loop (arc frames, 150 ms interval) ─────────────────
+  # Updates @copilot_state directly — same mechanism as hooker.ts setInterval.
+  local _copilot_frames=("◜" "◠" "◝" "◞" "◡" "◟")
+  local _copilot_nf=${#_copilot_frames[@]}
+  (
+    local i=0
+    while true; do
+      tmux set-option -w -t "$pane" \
+           @copilot_state     "#[fg=${accent}]${_copilot_frames[$((i % _copilot_nf))]} #[fg=default]" \; \
+           set-option -w -t "$pane" @copilot_state_raw "active" \; \
+           refresh-client -S 2>/dev/null
+      sleep 0.15
+      (( i++ ))
+    done
+  ) &
+  local _copilot_spinner_pid=$!
+
+  # ── Watchdog: cleans up if the shell process is SIGKILL'd ─────────────────
+  local _copilot_shell_pid=$$
+  (
+    while kill -0 "$_copilot_shell_pid" 2>/dev/null; do sleep 1; done
+    kill "$_copilot_spinner_pid" 2>/dev/null
+    tmux set-option -w -t "$pane" -u @copilot_state     2>/dev/null
+    tmux set-option -w -t "$pane" -u @copilot_state_raw 2>/dev/null
+    tmux set-option -w -t "$pane" automatic-rename on   2>/dev/null
+    tmux refresh-client -S 2>/dev/null
+  ) &!
+
+  # ── Run Copilot ────────────────────────────────────────────────────────────
+  command copilot "$@"
+  local _copilot_exit=$?
+
+  # ── Stop spinner ───────────────────────────────────────────────────────────
+  kill "$_copilot_spinner_pid" 2>/dev/null
+  wait "$_copilot_spinner_pid" 2>/dev/null
+
+  # ── Show idle icon (same nerd-font icon used in status-right) ─────────────
+  tmux set-option -w -t "$pane" @copilot_state     "#[fg=${idle_color}]󱙝 #[fg=default]" \; \
+       set-option -w -t "$pane" @copilot_state_raw "idle"                               \; \
+       refresh-client -S 2>/dev/null
+
+  # ── Bell notification (reuses @opencode_bell / @opencode_last_bell) ────────
+  # Only fires if another client is NOT already viewing this window.
+  local _other_clients
+  _other_clients=$(tmux list-clients -F "#{client_session} #{window_id}" 2>/dev/null \
+    | grep -v "^${tmux_session} ${tmux_window_id}$" | head -1)
+  if [[ -n "$_other_clients" ]]; then
+    local _bell_msg="  #[fg=cyan]${tmux_window_idx}:${tmux_window} › 󱙝 finished #[fg=yellow](i)#[fg=default]"
+    tmux set -g @opencode_last_bell "$pane"        \; \
+         set -g @opencode_bell      "$_bell_msg"   \; \
+         refresh-client -S 2>/dev/null
+    ( sleep 7 && tmux set -g @opencode_bell '' && tmux refresh-client -S ) &!
+  fi
+
+  # ── Hold idle icon for 2 s then restore auto-rename ───────────────────────
+  sleep 2
+  tmux set-option -w -t "$pane" -u @copilot_state     2>/dev/null
+  tmux set-option -w -t "$pane" -u @copilot_state_raw 2>/dev/null
+  tmux set-option -w -t "$pane" automatic-rename on   2>/dev/null
+  tmux refresh-client -S 2>/dev/null
+
+  return $_copilot_exit
+}
+
 # rebuild_lazygirts - Build and reinstall lazygitrs + lazygirts alias
 # Usage: rebuild_lazygirts [-b <branch>] [repo_path]
 #   -b <branch>  Build from a worktree branch (e.g. -b ai-commit-shortcut)

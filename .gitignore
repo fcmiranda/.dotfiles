@@ -1,3 +1,6 @@
 kanshi/.config/kanshi/config
 stow-lock.json
 .bare
+
+# APM dependencies
+apm_modules/

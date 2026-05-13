@@ -13,12 +13,8 @@ command = 'fd --hidden --type f --type d --exclude .git'
 [[preview.layout]]
 command = 'eza -T --icons --level=3 {}'
 side = 'right'
-percentage = 70
-min = 50
-max = 90
-
-[query]
-border.type = 'Plain'
+percentage = 100
+min = 100
 
 [results]
 scroll_wrap = true
@@ -32,6 +28,3 @@ sort_threshold = 0
 
 [exit]
 abort_empty = true
-
-[ui]
-border.type = 'Plain'

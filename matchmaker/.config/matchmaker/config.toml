@@ -13,8 +13,7 @@ command = 'fd --hidden --type f --type d --exclude .git'
 [[preview.layout]]
 command = 'eza -T --icons --color=always --level=2 {}'
 side = 'right'
-percentage = 100
-min = 120
+percentage = 90
 
 [results]
 scroll_wrap = true

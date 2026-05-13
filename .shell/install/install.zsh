@@ -40,7 +40,8 @@ install_packages \
     upscayl-bin \
     aether \
     just \
-    cargo
+    cargo \
+    worktrunk
 
 install_plugins \
     zsh-plugins \

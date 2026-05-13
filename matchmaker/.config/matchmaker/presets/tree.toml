@@ -1,0 +1,10 @@
+[preview]
+show = true
+
+[start]
+command = 'fd --hidden --type f --type d --exclude .git'
+
+[[preview.layout]]
+command = 'eza -T --icons --level=3 {}'
+side = 'right'
+percentage = 50

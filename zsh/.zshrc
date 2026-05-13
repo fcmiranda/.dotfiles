@@ -18,3 +18,6 @@ export LC_ALL=en_US.UTF-8
 # . "$HOME/.local/share/../bin/env"
 export PATH=~/.npm-global/bin:$PATH
 export PATH="$PATH:$HOME/go/bin"
+export PATH="$HOME/.cargo/bin:$PATH"
+
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi

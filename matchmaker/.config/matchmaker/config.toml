@@ -25,7 +25,7 @@ scroll_wrap = true
 wrap = false
 autoscroll.end = true
 autoscroll.context = 0
-reverse = true
+reverse = false
 
 [matcher]
 sort_threshold = 0

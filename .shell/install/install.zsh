@@ -42,8 +42,7 @@ install_packages \
     just \
     cargo \
     worktrunk \
-    gpu-screen-recorder \
-    gpu-screen-recorder-ui
+    wf-recorder
 
 install_plugins \
     zsh-plugins \

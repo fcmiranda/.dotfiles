@@ -120,7 +120,7 @@ TREEEOF
     local _fd_ex="${(j: :)${_ignore_dirs[@]/#/-E }}"
     local _init_all_rel="( zoxide query -l; fd -td -H -E.git ${_fd_ex} --absolute-path 2>/dev/null ) | awk '!seen[\$0]++' | awk -v cwd='$_cwd' -f '$_relscript'"
     local _init_zo_rel="zoxide query -l | awk -v cwd='$_cwd' -f '$_relscript'"
-    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd' | sed 's|$|/|'; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd'; } 2>/dev/null | sort | awk -v base='$_cwd' -f '$_treescript'"
+    local _init_cwd_rel="{ fd -td -H -E.git ${_fd_ex} -a . '$_cwd' | sed 's|$|/|' | sort; fd -tf -H -E.git ${_fd_ex} -a . '$_cwd' | sort; } 2>/dev/null | awk -v base='$_cwd' -f '$_treescript'"
     # smart: wave 1 = all zoxide dirs (frecency order, appear at top)
     #        wave 2 = contents of each zoxide dir clustered in frecency order
     #        wave 3 = rest of $HOME (entries already seen are skipped by awk)
@@ -146,7 +146,11 @@ if [ -z \"\$d\" ]; then \\
     $_init_all_rel; \\
   fi; \\
 else \
-  { fd -td -H -E.git ${_fd_ex} -a . \"\$d\" | sed 's|$|/|'; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | sort | awk -v base=\"\$d\" -f '$_treescript'; \
+  if [ \"\$s\" = 'dirsfirst' ]; then \
+    { fd -td -H -E.git ${_fd_ex} -a . \"\$d\" | sed 's|$|/|' | sort; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\" | sort; } 2>/dev/null | awk -v base=\"\$d\" -f '$_treescript'; \
+  else \
+    { fd -td -H -E.git ${_fd_ex} -a . \"\$d\" | sed 's|$|/|'; fd -tf -H -E.git ${_fd_ex} -a . \"\$d\"; } 2>/dev/null | sort | awk -v base=\"\$d\" -f '$_treescript'; \
+  fi; \
 fi"
 
     # ── Theme ─────────────────────────────────────────────────────────────────

@@ -6,14 +6,19 @@ max = 20
 [preview]
 show = true
 wrap = true
+border.title_fg = 'cyan'
+
 
 [start]
 command = 'fd --hidden --type f --type d --exclude .git'
 
+[query]
+prompt_style.fg = 'cyan'
+
 [[preview.layout]]
-command = 'eza -T --icons --color=always --level=2 {}'
+command = 'if [ -d {} ]; then eza -T --icons --color=always --level=2 {}; else bat --style=numbers --color=always --line-range=:300 {}; fi'
 side = 'right'
-percentage = 90
+percentage = 80
 
 [results]
 scroll_wrap = true

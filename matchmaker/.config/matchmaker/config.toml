@@ -16,7 +16,7 @@ command = 'fd --hidden --type f --type d --exclude .git'
 prompt_style.fg = 'cyan'
 
 [[preview.layout]]
-command = 'if [ -d {} ]; then eza -T --icons --color=always --level=2 {}; else bat --style=numbers --color=always --line-range=:300 {}; fi'
+command = 'if [ -d {} ]; then eza -T --icons --color=always --level=3 {}; else bat --style=numbers --color=always --line-range=:300 {}; fi'
 side = 'right'
 percentage = 80
 

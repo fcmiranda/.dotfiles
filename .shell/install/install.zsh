@@ -41,7 +41,9 @@ install_packages \
     aether \
     just \
     cargo \
-    worktrunk
+    worktrunk \
+    gpu-screen-recorder \
+    gpu-screen-recorder-ui
 
 install_plugins \
     zsh-plugins \

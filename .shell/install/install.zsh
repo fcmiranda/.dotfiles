@@ -42,7 +42,8 @@ install_packages \
     just \
     cargo \
     worktrunk \
-    wf-recorder
+    wf-recorder \
+    obs-studio
 
 install_plugins \
     zsh-plugins \

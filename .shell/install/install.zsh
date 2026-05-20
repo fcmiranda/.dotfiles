@@ -43,7 +43,8 @@ install_packages \
     cargo \
     worktrunk \
     wf-recorder \
-    obs-studio
+    obs-studio \
+    herdr
 
 install_plugins \
     zsh-plugins \

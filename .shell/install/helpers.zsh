@@ -69,10 +69,10 @@ install_packages() {
     local script="${PACKAGES_DIR}/${item}.zsh"
     if [[ -f "$script" ]]; then
       print -P "  %F{green}→%f Installing %B${item}%b..."
-      source "$script"
+      source "$script" || print -P "  %F{red}✗%f %B${item}%b failed, skipping"
     else
       print -P "  %F{yellow}→%f Installing %B${item}%b via package manager..."
-      pkg_install "$item"
+      pkg_install "$item" || print -P "  %F{red}✗%f %B${item}%b failed, skipping"
     fi
   done
 }

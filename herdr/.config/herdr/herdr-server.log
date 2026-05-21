@@ -1,0 +1,21 @@
+2026-05-20T15:24:03.841694Z  INFO herdr::api: api server listening path=/home/fecavmi/.config/herdr/herdr.sock
+2026-05-20T15:24:03.842181Z  INFO herdr::app: using pane scrollback configuration pane_scrollback_limit_bytes=10000000
+2026-05-20T15:24:03.842260Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T15:24:03.842276Z  INFO herdr::server::headless: client protocol socket listening path=/home/fecavmi/.config/herdr/herdr-client.sock
+2026-05-20T15:24:03.842289Z  INFO herdr::server::headless: herdr server started api_socket=/home/fecavmi/.config/herdr/herdr.sock client_socket=/home/fecavmi/.config/herdr/herdr-client.sock
+2026-05-20T15:24:03.842292Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="server" outcome="started" pid=380413
+2026-05-20T15:24:04.093958Z  INFO herdr::server::headless: client connected client_id=2 cols=181 rows=47 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-20T15:54:03.843950Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T16:05:32.938486Z  INFO herdr::server::headless: client disconnected client_id=2
+2026-05-20T16:24:03.846375Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T16:54:03.848087Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T17:24:03.849505Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T17:54:03.852170Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T18:24:03.855246Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T18:54:03.856948Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T19:24:03.858535Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T19:54:03.860094Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T20:24:03.862374Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-20T20:24:04.198782Z  INFO herdr::logging: update available event="update.available" subsystem="update" outcome="ok" version="0.6.0"
+2026-05-20T20:24:04.198795Z  INFO herdr::update: new version v0.6.0 available at https://github.com/ogulcancelik/herdr/releases/download/v0.6.0/herdr-linux-aarch64
+2026-05-20T20:24:04.198833Z  INFO herdr::update: auto-update check: v0.6.0 available, waiting for explicit install

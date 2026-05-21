@@ -1,0 +1,1 @@
+wt switch --create nova-branch --base branch-de-origem

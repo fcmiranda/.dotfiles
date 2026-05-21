@@ -274,3 +274,40 @@ rebuild_lazygirts() {
     echo "Alias:     $install_dir/lazygirts"
     "$install_dir/lazygirts" --version
 }
+
+# wtr - Rename a worktrunk branch and its directory
+# Usage: wtr [old-name] <new-name>
+#   If old-name is omitted, it defaults to the branch of the current worktree.
+#
+# Examples:
+#   wtr feature-auth login-redesign
+#   wtr login-redesign (renames current worktree)
+#
+wtr() {
+    local old_name
+    local new_name
+
+    if [[ "$#" -eq 1 ]]; then
+        # Try to get the branch name from the current worktree
+        old_name=$(git branch --show-current 2>/dev/null)
+        if [[ -z "$old_name" ]]; then
+            echo "Error: Not in a git repository or no branch found."
+            return 1
+        fi
+        new_name="$1"
+    elif [[ "$#" -eq 2 ]]; then
+        old_name="$1"
+        new_name="$2"
+    else
+        echo "Usage: wtr [old-name] <new-name>"
+        return 1
+    fi
+
+    # 1. Remove the current worktree while keeping the branch (--no-delete-branch)
+    #    Run in foreground (--foreground) to ensure it's gone before renaming.
+    # 2. Rename the branch in git
+    # 3. Create the new worktree with the updated name
+    wt remove --no-delete-branch --foreground "$old_name" && \
+    git branch -m "$old_name" "$new_name" && \
+    wt switch "$new_name"
+}

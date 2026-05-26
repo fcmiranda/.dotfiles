@@ -1,21 +1,152 @@
-2026-05-20T15:24:03.841694Z  INFO herdr::api: api server listening path=/home/fecavmi/.config/herdr/herdr.sock
-2026-05-20T15:24:03.842181Z  INFO herdr::app: using pane scrollback configuration pane_scrollback_limit_bytes=10000000
-2026-05-20T15:24:03.842260Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T15:24:03.842276Z  INFO herdr::server::headless: client protocol socket listening path=/home/fecavmi/.config/herdr/herdr-client.sock
-2026-05-20T15:24:03.842289Z  INFO herdr::server::headless: herdr server started api_socket=/home/fecavmi/.config/herdr/herdr.sock client_socket=/home/fecavmi/.config/herdr/herdr-client.sock
-2026-05-20T15:24:03.842292Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="server" outcome="started" pid=380413
-2026-05-20T15:24:04.093958Z  INFO herdr::server::headless: client connected client_id=2 cols=181 rows=47 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
-2026-05-20T15:54:03.843950Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T16:05:32.938486Z  INFO herdr::server::headless: client disconnected client_id=2
-2026-05-20T16:24:03.846375Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T16:54:03.848087Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T17:24:03.849505Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T17:54:03.852170Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T18:24:03.855246Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T18:54:03.856948Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T19:24:03.858535Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T19:54:03.860094Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T20:24:03.862374Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
-2026-05-20T20:24:04.198782Z  INFO herdr::logging: update available event="update.available" subsystem="update" outcome="ok" version="0.6.0"
-2026-05-20T20:24:04.198795Z  INFO herdr::update: new version v0.6.0 available at https://github.com/ogulcancelik/herdr/releases/download/v0.6.0/herdr-linux-aarch64
-2026-05-20T20:24:04.198833Z  INFO herdr::update: auto-update check: v0.6.0 available, waiting for explicit install
+2026-05-19T01:19:52.977976Z  INFO herdr::api: api server listening path=/home/fecavmi/.config/herdr/herdr.sock
+2026-05-19T01:19:52.981629Z  INFO herdr::app: using pane scrollback configuration pane_scrollback_limit_bytes=10000000
+2026-05-19T01:19:52.982559Z  INFO herdr::server::headless: client protocol socket listening path=/home/fecavmi/.config/herdr/herdr-client.sock
+2026-05-19T01:19:52.982712Z  INFO herdr::server::headless: herdr server started api_socket=/home/fecavmi/.config/herdr/herdr.sock client_socket=/home/fecavmi/.config/herdr/herdr-client.sock
+2026-05-19T01:19:52.982751Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="server" outcome="started" pid=2593345
+2026-05-19T01:19:52.983169Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-19T01:19:53.248194Z  INFO herdr::server::headless: client connected client_id=2 cols=265 rows=62 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-19T01:20:26.130515Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=1 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-19T01:20:26.131859Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w652217be2ecb31" pane_id=1
+2026-05-19T01:20:26.131906Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w652217be2ecb31"
+2026-05-19T01:20:26.131926Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:1"
+2026-05-19T01:20:26.134182Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=1 pid=2598781
+2026-05-19T01:20:31.167708Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:20:45.003968Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=2 rows=61 cols=239 scrollback_limit_bytes=10000000
+2026-05-19T01:20:45.007526Z  INFO herdr::logging: tab created event="tab.create" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:2" pane_id=2
+2026-05-19T01:20:45.020746Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=2 pid=2602191
+2026-05-19T01:20:50.016324Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:20:53.602286Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=2 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:20:53.619326Z  INFO herdr::pane: pane session terminated pane=2 pid=2602191 signal=Hangup
+2026-05-19T01:20:53.619503Z  INFO herdr::pane: pane session terminated pane=2 pid=2602191 signal=Hangup
+2026-05-19T01:20:53.620939Z  WARN herdr::app::actions: PaneDied for unknown pane pane=2
+2026-05-19T01:20:58.637503Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:21:04.388806Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=3 rows=61 cols=239 scrollback_limit_bytes=10000000
+2026-05-19T01:21:04.390158Z  INFO herdr::logging: tab created event="tab.create" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:2" pane_id=3
+2026-05-19T01:21:04.401623Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=3 pid=2605608
+2026-05-19T01:21:08.433045Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=4 rows=61 cols=239 scrollback_limit_bytes=10000000
+2026-05-19T01:21:08.437707Z  INFO herdr::logging: tab created event="tab.create" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3" pane_id=4
+2026-05-19T01:21:08.439946Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=4 pid=2606396
+2026-05-19T01:21:12.176531Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3"
+2026-05-19T01:21:13.446923Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:2"
+2026-05-19T01:21:15.040359Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3"
+2026-05-19T01:21:20.043417Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:21:22.538661Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3"
+2026-05-19T01:21:23.220005Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3"
+2026-05-19T01:21:23.625289Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3"
+2026-05-19T01:21:25.019843Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w652217be2ecb31" tab_id="w652217be2ecb31:3"
+2026-05-19T01:21:28.357256Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=4 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:21:28.368025Z  INFO herdr::pane: pane session terminated pane=4 pid=2606396 signal=Hangup
+2026-05-19T01:21:28.368176Z  INFO herdr::pane: pane session terminated pane=4 pid=2606396 signal=Hangup
+2026-05-19T01:21:28.369060Z  WARN herdr::app::actions: PaneDied for unknown pane pane=4
+2026-05-19T01:21:29.914267Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=3 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:21:29.930128Z  INFO herdr::pane: pane session terminated pane=3 pid=2605608 signal=Hangup
+2026-05-19T01:21:29.930239Z  INFO herdr::pane: pane session terminated pane=3 pid=2605608 signal=Hangup
+2026-05-19T01:21:29.930935Z  WARN herdr::app::actions: PaneDied for unknown pane pane=3
+2026-05-19T01:21:34.932347Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:21:35.737673Z  INFO herdr::logging: workspace closed event="workspace.close" subsystem="workspace" outcome="ok" workspace_id="w652217be2ecb31"
+2026-05-19T01:21:35.754384Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=1 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:21:35.773982Z  INFO herdr::pane: pane session terminated pane=1 pid=2598781 signal=Hangup
+2026-05-19T01:21:35.774136Z  INFO herdr::pane: pane session terminated pane=1 pid=2598781 signal=Hangup
+2026-05-19T01:21:35.777374Z  WARN herdr::app::actions: PaneDied for unknown pane pane=1
+2026-05-19T01:21:40.778523Z  INFO herdr::logging: session cleared event="persist.clear" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json
+2026-05-19T01:21:45.992327Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=5 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-19T01:21:45.993487Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52" pane_id=5
+2026-05-19T01:21:45.993528Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:21:45.993547Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:1"
+2026-05-19T01:21:46.006647Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=5 pid=2612586
+2026-05-19T01:21:51.082149Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:21:52.950062Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=6 rows=30 cols=119 scrollback_limit_bytes=10000000
+2026-05-19T01:21:52.960789Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=6 pid=2613960
+2026-05-19T01:21:57.956650Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:22:04.229001Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=66 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:06.243469Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=83 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:07.449697Z  INFO herdr::server::headless: client resize client_id=2 cols=372 rows=90 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:08.558591Z  INFO herdr::server::headless: client resize client_id=2 cols=465 rows=111 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:14.391693Z  INFO herdr::server::headless: client resize client_id=2 cols=372 rows=90 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:15.394433Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=83 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:16.004602Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=66 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:18.922195Z  INFO herdr::server::headless: client resize client_id=2 cols=265 rows=62 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:25.475502Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=66 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:26.079405Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=83 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:26.585895Z  INFO herdr::server::headless: client resize client_id=2 cols=265 rows=62 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:31.102714Z  INFO herdr::server::headless: client resize client_id=2 cols=232 rows=58 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:32.609415Z  INFO herdr::server::headless: client resize client_id=2 cols=265 rows=62 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:33.315938Z  INFO herdr::server::headless: client resize client_id=2 cols=310 rows=66 cell_width_px=0 cell_height_px=0
+2026-05-19T01:22:37.255387Z  INFO herdr::server::headless: client detach requested via keybind client_id=2
+2026-05-19T01:22:37.260837Z  INFO herdr::server::headless: client disconnected client_id=2
+2026-05-19T01:22:43.984182Z  INFO herdr::server::headless: client connected client_id=4 cols=265 rows=62 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-19T01:22:48.864836Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=6 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:22:48.886258Z  INFO herdr::pane: pane session terminated pane=6 pid=2613960 signal=Hangup
+2026-05-19T01:22:48.886387Z  INFO herdr::pane: pane session terminated pane=6 pid=2613960 signal=Hangup
+2026-05-19T01:22:48.887799Z  WARN herdr::app::actions: PaneDied for unknown pane pane=6
+2026-05-19T01:22:53.890157Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:22:57.165395Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=7 rows=30 cols=119 scrollback_limit_bytes=10000000
+2026-05-19T01:22:57.174626Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=7 pid=2627241
+2026-05-19T01:23:02.171332Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:23:04.895455Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=8 rows=30 cols=60 scrollback_limit_bytes=10000000
+2026-05-19T01:23:04.902701Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=8 pid=2628916
+2026-05-19T01:23:09.900729Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:23:18.036966Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:23:18.037071Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:1"
+2026-05-19T01:23:23.039136Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:23:41.309867Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=7 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:23:41.324724Z  INFO herdr::pane: pane session terminated pane=7 pid=2627241 signal=Hangup
+2026-05-19T01:23:41.324813Z  INFO herdr::pane: pane session terminated pane=7 pid=2627241 signal=Hangup
+2026-05-19T01:23:41.326487Z  WARN herdr::app::actions: PaneDied for unknown pane pane=7
+2026-05-19T01:23:47.741471Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=8 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:23:47.754135Z  INFO herdr::pane: pane session terminated pane=8 pid=2628916 signal=Hangup
+2026-05-19T01:23:47.754261Z  INFO herdr::pane: pane session terminated pane=8 pid=2628916 signal=Hangup
+2026-05-19T01:23:47.755020Z  WARN herdr::app::actions: PaneDied for unknown pane pane=8
+2026-05-19T01:23:58.112333Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:29:13.089669Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=9 rows=61 cols=239 scrollback_limit_bytes=10000000
+2026-05-19T01:29:13.094058Z  INFO herdr::logging: tab created event="tab.create" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2" pane_id=9
+2026-05-19T01:29:13.103273Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=9 pid=2691945
+2026-05-19T01:29:17.757946Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:29:17.757995Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:29:18.425849Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:29:18.425923Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:29:19.266543Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:1"
+2026-05-19T01:29:20.646335Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:29:23.361919Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:29:23.362031Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:29:28.363729Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:30:42.794813Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=10 rows=61 cols=239 scrollback_limit_bytes=10000000
+2026-05-19T01:30:42.799512Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w65221a0a486d93" pane_id=10
+2026-05-19T01:30:42.799564Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w65221a0a486d93"
+2026-05-19T01:30:42.799587Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w65221a0a486d93" tab_id="w65221a0a486d93:1"
+2026-05-19T01:30:42.801584Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=10 pid=2707616
+2026-05-19T01:30:47.848364Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=2
+2026-05-19T01:31:12.538508Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:31:12.538674Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:31:17.552468Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=2
+2026-05-19T01:31:26.724410Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:31:26.724468Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:31:31.725964Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=2
+2026-05-19T01:31:34.988835Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:31:34.988956Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:31:38.310300Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:1"
+2026-05-19T01:31:43.319501Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=2
+2026-05-19T01:31:45.926659Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:31:46.415907Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:31:48.410352Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w65221a0a486d93"
+2026-05-19T01:31:48.410399Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w65221a0a486d93" tab_id="w65221a0a486d93:1"
+2026-05-19T01:31:50.281609Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:31:50.281723Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6522180a584b52" tab_id="w6522180a584b52:2"
+2026-05-19T01:31:55.284254Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=2
+2026-05-19T01:31:57.837246Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=9 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:31:57.854717Z  INFO herdr::pane: pane session terminated pane=9 pid=2691945 signal=Hangup
+2026-05-19T01:31:57.854799Z  INFO herdr::pane: pane session terminated pane=9 pid=2691945 signal=Hangup
+2026-05-19T01:31:57.855360Z  WARN herdr::app::actions: PaneDied for unknown pane pane=9
+2026-05-19T01:31:59.817265Z  INFO herdr::logging: workspace closed event="workspace.close" subsystem="workspace" outcome="ok" workspace_id="w6522180a584b52"
+2026-05-19T01:31:59.897409Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=5 status="ExitStatus { code: 1, signal: None }"
+2026-05-19T01:32:00.394208Z  INFO herdr::pane: pane session terminated pane=5 pid=2612586 signal=Terminate
+2026-05-19T01:32:00.394308Z  INFO herdr::pane: pane session terminated pane=5 pid=2612586 signal=Hangup
+2026-05-19T01:32:00.400101Z  WARN herdr::app::actions: PaneDied for unknown pane pane=5
+2026-05-19T01:32:05.402527Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:32:25.653826Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w65221a0a486d93"
+2026-05-19T01:32:25.653889Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w65221a0a486d93" tab_id="w65221a0a486d93:1"
+2026-05-19T01:32:30.655417Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/home/fecavmi/.config/herdr/session.json workspaces=1
+2026-05-19T01:49:52.984134Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-19T01:55:21.172739Z  INFO herdr::server::headless: client disconnected client_id=4
+2026-05-19T02:19:53.003510Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-19T02:49:53.005023Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"

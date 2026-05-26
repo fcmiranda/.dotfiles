@@ -1,8 +1,10 @@
 onboarding = false
-# herdr configuration
-# https://herdr.dev/docs/configuration/
-
-# herdr --default-config  # print full default config
 
 [theme]
-name = "dracula"
+name = "catppuccin"
+
+[ui.toast]
+delivery = "herdr"
+
+[ui]
+show_agent_labels_on_pane_borders = true

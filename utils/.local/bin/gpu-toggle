@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# gpu-toggle — switch between NVIDIA dedicated and Intel integrated GPU
+# Uses EnvyControl under the hood. Requires sudo + reboot to take effect.
+
+set -euo pipefail
+
+NVIDIA_CARD="NVIDIA GeForce GT 750M"
+INTEL_CARD="Intel Haswell-ULT"
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+has_nvidia() {
+    lspci | grep -qi "GeForce GT 750"
+}
+
+current_mode() {
+    envycontrol --query 2>/dev/null || echo "unknown"
+}
+
+print_status() {
+    local mode
+    mode=$(current_mode)
+    echo ""
+    echo "  GPU toggle — status"
+    echo "  ───────────────────────────────────────"
+    echo "  Current mode : $mode"
+    echo "  NVIDIA card  : $NVIDIA_CARD (PCI 08:00.0)"
+    echo "  Intel card   : $INTEL_CARD  (PCI 00:02.0)"
+    echo ""
+    case "$mode" in
+        nvidia)     echo "  Active renderer: NVIDIA (dedicated GPU)" ;;
+        integrated) echo "  Active renderer: Intel (integrated GPU)" ;;
+        hybrid)     echo "  Active renderer: Intel + NVIDIA on-demand (PRIME)" ;;
+        *)          echo "  Active renderer: unknown" ;;
+    esac
+    echo ""
+}
+
+usage() {
+    echo "Usage: gpu-toggle [nvidia|intel|hybrid|status]"
+    echo ""
+    echo "  nvidia    — use NVIDIA GT 750M exclusively (best performance)"
+    echo "  intel     — use Intel integrated only (power saving)"
+    echo "  hybrid    — Intel renders desktop, NVIDIA available on-demand via PRIME"
+    echo "  status    — show current GPU mode (default if no argument)"
+    echo ""
+    echo "  A reboot is required after switching modes."
+    echo ""
+}
+
+switch_mode() {
+    local target="$1"
+    local current
+    current=$(current_mode)
+
+    if [[ "$current" == "$target" ]]; then
+        echo "Already in '$target' mode. Nothing to do."
+        exit 0
+    fi
+
+    echo "Switching GPU mode: $current → $target"
+    echo "This requires sudo..."
+    echo ""
+
+    case "$target" in
+        nvidia)
+            sudo envycontrol --switch nvidia
+            ;;
+        intel)
+            sudo envycontrol --switch integrated
+            ;;
+        hybrid)
+            sudo envycontrol --switch hybrid --rtd3
+            ;;
+    esac
+
+    echo ""
+    echo "Done. Mode set to: $target"
+    echo ""
+    echo "  ⚠  A reboot is required for changes to take effect."
+    echo ""
+    read -r -p "  Reboot now? [y/N] " answer
+    case "$answer" in
+        [yY]|[yY][eE][sS])
+            echo "Rebooting..."
+            systemctl reboot
+            ;;
+        *)
+            echo "Reboot skipped. Run 'systemctl reboot' when ready."
+            ;;
+    esac
+}
+
+toggle() {
+    local current
+    current=$(current_mode)
+    case "$current" in
+        nvidia)     switch_mode "intel" ;;
+        integrated) switch_mode "nvidia" ;;
+        hybrid)     switch_mode "nvidia" ;;
+        *)
+            echo "Cannot auto-toggle from unknown mode '$current'."
+            echo "Run: gpu-toggle nvidia | intel | hybrid"
+            exit 1
+            ;;
+    esac
+}
+
+# ── main ─────────────────────────────────────────────────────────────────────
+
+if ! has_nvidia; then
+    echo "No NVIDIA GeForce GT 750M detected on this system. Exiting."
+    exit 1
+fi
+
+case "${1:-status}" in
+    status)         print_status ;;
+    toggle)         print_status; toggle ;;
+    nvidia)         switch_mode "nvidia" ;;
+    intel)          switch_mode "intel" ;;
+    hybrid)         switch_mode "hybrid" ;;
+    -h|--help|help) usage ;;
+    *)
+        echo "Unknown option: $1"
+        usage
+        exit 1
+        ;;
+esac

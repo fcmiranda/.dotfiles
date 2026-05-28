@@ -6,19 +6,31 @@ max = 20
 [preview]
 show = true
 wrap = true
-border.title_fg = 'cyan'
 
 
-[start]
-command = 'fd --hidden --type f --type d --exclude .git'
+[start.command]
+cmd = '''
+if command -v fd >/dev/null 2>&1; then
+  fd --hidden --strip-cwd-prefix --print0 --exclude .git
+else
+  find . -print0
+fi
+'''
+separator = "\\0"
 
 [query]
 prompt_style.fg = 'cyan'
+status_inline = true
 
 [[preview.layout]]
 command = 'if [ -d {} ]; then eza -T --icons --color=always --level=3 {}; else bat --style=numbers --color=always --line-range=:300 {}; fi'
 side = 'right'
-percentage = 80
+percentage = 85
+#border.type = "Plain"
+#border.padding = [2, 0]
+title = "File: {item}"
+border.title_fg = 'Yellow'
+gap = 1
 
 [results]
 scroll_wrap = true
@@ -32,3 +44,9 @@ sort_threshold = 0
 
 [exit]
 abort_empty = true
+
+[action]
+width_pct = 80
+
+[action.border]
+color = "cyan"

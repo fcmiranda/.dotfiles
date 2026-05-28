@@ -5,6 +5,8 @@
 #----- Optimized bars animation without much CPU usage increase --------
 bar="▁▂▃▄▅▆▇█"
 dict="s/;//g"
+config_file="/tmp/bar_cava_config"
+disabled_file="/tmp/waybar-cava-disabled"
 
 # Calculate the length of the bar outside the loop
 bar_length=${#bar}
@@ -15,7 +17,6 @@ for ((i = 0; i < bar_length; i++)); do
 done
 
 # Create cava config
-config_file="/tmp/bar_cava_config"
 cat >"$config_file" <<EOF
 [general]
 # Older systems show significant CPU use with default framerate
@@ -35,14 +36,35 @@ data_format = ascii
 ascii_max_range = 7
 EOF
 
-# Kill cava if it's already running
-pkill -f "cava -p $config_file"
+cleanup() {
+    pkill -f "cava -p $config_file" 2>/dev/null
+}
 
-# Read stdout from cava, show bars only when music is playing
-cava -p "$config_file" | sed -u "$dict" | while IFS= read -r line; do
-    if playerctl status 2>/dev/null | grep -q "Playing"; then
-        echo "$line"
-    else
-        echo ""
+trap cleanup EXIT INT TERM
+
+# Kill cava if it's already running
+cleanup
+
+while true; do
+    if [ -f "$disabled_file" ]; then
+        echo "󰝟"
+        sleep 1
+        continue
     fi
+
+    # Read stdout from cava, show bars only when music is playing.
+    # The toggle script kills this cava process so the loop can re-check disabled_file.
+    cava -p "$config_file" | sed -u "$dict" | while IFS= read -r line; do
+        if [ -f "$disabled_file" ]; then
+            echo "󰝟"
+            pkill -f "cava -p $config_file" 2>/dev/null
+            break
+        elif playerctl status 2>/dev/null | grep -q "Playing"; then
+            echo "$line"
+        else
+            echo ""
+        fi
+    done
+
+    sleep 1
 done

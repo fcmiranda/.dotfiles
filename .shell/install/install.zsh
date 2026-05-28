@@ -42,8 +42,8 @@ install_packages \
     just \
     cargo \
     worktrunk \
+    apm-unix \
     wf-recorder \
-    obs-studio \
     herdr
 
 install_plugins \

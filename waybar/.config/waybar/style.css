@@ -46,3 +46,36 @@
   margin: 0;
   padding: 0;
 }
+
+/* ── OpenCode state indicator ──────────────────────────────────────────────
+ * Colors mirror the tmux bell/state palette in hooker.ts:
+ *   busy       → @ACCENT_COLOR / yellow  (spinner)
+ *   idle       → #94e2d5  teal    (C_IDLE)
+ *   question   → #cba6f7  mauve   (C_QUEST)
+ *   permission → #f38ba8  red     (C_PERM)
+ *   retry      → #f9e2af  yellow  (C_RETRY)
+ * ───────────────────────────────────────────────────────────────────────── */
+#custom-opencode {
+  margin-left: 8px;
+  min-width: 14px;
+}
+
+#custom-opencode.busy {
+  color: #f9e2af;
+}
+
+#custom-opencode.idle {
+  color: #94e2d5;
+}
+
+#custom-opencode.question {
+  color: #cba6f7;
+}
+
+#custom-opencode.permission {
+  color: #f38ba8;
+}
+
+#custom-opencode.retry {
+  color: #f9e2af;
+}

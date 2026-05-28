@@ -11,7 +11,8 @@
     "clock",
     "custom/update",
     "custom/spotify",
-    "custom/screenrecording-indicator"
+    "custom/screenrecording-indicator",
+    "custom/opencode"
   ],
   "modules-right": [
     "custom/cava",
@@ -269,5 +270,13 @@
   "tray": {
     "icon-size": 12,
     "spacing": 17
+  },
+  "custom/opencode": {
+    "exec": "$HOME/.config/waybar/modules/opencode-state.sh",
+    "return-type": "json",
+    "interval": 1,
+    "format": "{}",
+    "tooltip": true,
+    "signal": 13
   }
 }

@@ -27,11 +27,15 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   // Spawns a detached shell that polls until this plugin PID dies, then clears
   // the tmux state. Catches all exit types including SIGKILL (which Node.js
   // process.on() handlers cannot intercept).
-  if (tmuxPane) {
+  // Also cleans up the waybar state file and refreshes waybar.
+  {
     const { spawn } = require("node:child_process")
+    const tmuxCleanup = tmuxPane
+      ? `tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @opencode_state_raw 2>/dev/null; tmux set-option -w -t '${tmuxPane}' automatic-rename on 2>/dev/null; tmux refresh-client -S 2>/dev/null;`
+      : ""
     const watchdog = spawn("sh", [
       "-c",
-      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @opencode_state_raw 2>/dev/null; tmux set-option -w -t '${tmuxPane}' automatic-rename on 2>/dev/null; tmux refresh-client -S 2>/dev/null`,
+      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; ${tmuxCleanup} rm -f /tmp/opencode-waybar-state 2>/dev/null; pkill -RTMIN+13 waybar 2>/dev/null`,
     ], { detached: true, stdio: "ignore" })
     watchdog.unref()
   }
@@ -46,6 +50,24 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
          ";", "set-option", "-w", "-t", tmuxPane, "@opencode_state_raw", raw,
          ";", "refresh-client", "-S")
   }
+
+  // ── Waybar integration ────────────────────────────────────────────────────
+  // Writes the plain state word to /tmp/opencode-waybar-state and sends
+  // SIGRTMIN+13 to waybar so the custom/opencode module refreshes instantly.
+  // Works even when not running inside tmux.
+  const WAYBAR_STATE_FILE = "/tmp/opencode-waybar-state"
+  const setWaybarState = (raw: string) => {
+    try {
+      const fs = require("node:fs")
+      if (!raw || raw === "unknown") {
+        try { fs.unlinkSync(WAYBAR_STATE_FILE) } catch {}
+      } else {
+        fs.writeFileSync(WAYBAR_STATE_FILE, raw, "utf8")
+      }
+    } catch {}
+    spawnSync("pkill", ["-RTMIN+13", "waybar"], { stdio: "ignore" })
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ── Spinner catalogue ────────────────────────────────────────────────────
   const SPINNERS: Record<string, { frames: string[]; interval: number }> = {
@@ -123,6 +145,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
   const startSpinner = () => {
     if (spinnerTimer) return
+    setWaybarState("busy")
     spinnerTimer = setInterval(() => {
       const frame = SPINNER[spinnerFrame++ % SPINNER.length]
       setWindowState(`#[fg=${SPINNER_COLOR}]${frame} #[fg=default]`, "busy")
@@ -148,6 +171,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       startSpinner()
     } else {
       stopSpinner()
+      setWaybarState(state)
       setWindowState(STATES[state] ?? "", state)
     }
   }
@@ -197,6 +221,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
 
   const clearTmuxState = () => {
     stopSpinner()
+    setWaybarState("")
     if (!tmuxPane) return
     tmux("set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state",
          ";", "set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state_raw",

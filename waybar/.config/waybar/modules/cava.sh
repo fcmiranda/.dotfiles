@@ -47,7 +47,7 @@ cleanup
 
 while true; do
     if [ -f "$disabled_file" ]; then
-        echo "󰝟"
+        echo "󰗅"
         sleep 1
         continue
     fi
@@ -56,7 +56,7 @@ while true; do
     # The toggle script kills this cava process so the loop can re-check disabled_file.
     cava -p "$config_file" | sed -u "$dict" | while IFS= read -r line; do
         if [ -f "$disabled_file" ]; then
-            echo "󰝟"
+            echo "󰗅"
             pkill -f "cava -p $config_file" 2>/dev/null
             break
         elif playerctl status 2>/dev/null | grep -q "Playing"; then

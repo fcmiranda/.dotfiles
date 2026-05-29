@@ -45,6 +45,10 @@ sort_threshold = 0
 [exit]
 abort_empty = true
 
+[binds]
+# Use xdg-open to automatically open images with the default image viewer and videos with mpv
+"shift-enter" = "ExecuteSilent(xdg-open {=1})"
+
 #[action]
 #width_pct = 80
 

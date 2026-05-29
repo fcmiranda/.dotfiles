@@ -1,4 +1,6 @@
 {
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "system",
   "attention": {
     "enabled": true,
     "notifications": true,

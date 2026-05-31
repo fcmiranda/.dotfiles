@@ -19,7 +19,7 @@ TMUX_POPUP_HEIGHT="80%"
 _seg_bg=$(_tget @SEGMENT_BG)
 _fg=$(_tget @FG)
 _accent=$(_tget @ACCENT_COLOR)
-TMUX_BFZF_COLOR_SPEC="border:${_seg_bg},header:${_fg},cursor:${_accent},fg+:${_fg}"
+TMUX_BFZF_COLOR_SPEC="list-border:${_seg_bg},group-header:${_fg},selected-prefix:${_accent},selected-fg:${_fg}"
 unset _seg_bg _fg _accent
 
 # ── Spinner ───────────────────────────────────────────────────────────────────

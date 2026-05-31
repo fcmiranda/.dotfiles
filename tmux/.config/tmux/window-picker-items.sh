@@ -53,7 +53,7 @@ cur_session=$(tmux display-message -p '#S')
 cur_window=$(tmux display-message -p '#I')
 
 tmux list-sessions -F '#S' | while IFS= read -r session; do
-  printf '#%b%b  %s%b\n' "$C_SESSION" "$BOLD" "$session" "$R"
+  printf '#  %s\n' "$session"
 
   tmux list-windows -t "$session" \
       -F '#{window_index}	#{window_name}	#{@opencode_state_raw}' \

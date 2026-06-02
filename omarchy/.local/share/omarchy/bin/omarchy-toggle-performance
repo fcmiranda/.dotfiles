@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# omarchy:summary=Toggle performance mode (disables blur, shadows, animations, transparency)
+# omarchy:group=toggle
+# omarchy:name=performance
+
+FLAG="$HOME/.local/state/omarchy/toggles/hypr/performance.conf"
+CAVA_DISABLED="/tmp/waybar-cava-disabled"
+
+if [[ -f $FLAG ]]; then
+  # Disable performance mode: restore visual effects and re-enable cava
+  omarchy-hyprland-toggle \
+    --disabled-notification "Performance mode: OFF — visual effects restored" \
+    performance
+  omarchy-powerprofiles-set autodetect
+  rm -f "$CAVA_DISABLED"
+  pkill -f "cava.sh" 2>/dev/null || true  # restart so it picks up the re-enable
+else
+  # Enable performance mode: kill effects and stop cava
+  omarchy-hyprland-toggle \
+    --enabled-notification "Performance mode: ON — blur, shadows, cava disabled" \
+    performance
+  omarchy-powerprofiles-set ac
+  : >"$CAVA_DISABLED"
+  pkill -f "cava -p" 2>/dev/null || true  # cava.sh loop will show the muted icon
+fi

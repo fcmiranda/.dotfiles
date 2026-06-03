@@ -31,7 +31,7 @@ tmux display-popup \
     results.current_prefix=' ' \
     --nav \
     --color '$TMUX_COLOR_SPEC' \
-    'P=command=sess=\"{session}\"; sess=\"\${sess#@SPIN@}\"; idx=\"{idx}\"; tmux capture-pane -ep -t \"\${sess}:\${idx}\" 2>/dev/null || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"|||side=right|||percentage=50' \
+    'P=command=sess=\"{=session}\"; sess=\"\${sess#@SPIN@}\"; tmux capture-pane -ep -t \"\${sess}:{=idx}\" 2>/dev/null || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"|||side=right|||percentage=50' \
   | (read chosen && [ -n \"\$chosen\" ] && \
       session=\$(printf '%s' \"\$chosen\" | cut -f1) && \
       session=\"\${session#@SPIN@}\" && \

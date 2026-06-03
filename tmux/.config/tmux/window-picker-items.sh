@@ -69,28 +69,28 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
 
     case "$state" in
       busy)
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} $(printf '\001')"
-        printf '@SPIN@%s\t%s\t%s\t%b\n' "$name" "$session" "$idx" "$display"
+        display="@SPIN@   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} $(printf '\001')"
+        printf '%b\t%s\t%s\t%s\n' "$display" "$name" "$session" "$idx"
         ;;
       idle)
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_IDLE}󱥂 ${R}"
-        printf '%s\t%s\t%s\t%b\n' "$name" "$session" "$idx" "$display"
+        printf '%b\t%s\t%s\t%s\n' "$display" "$name" "$session" "$idx"
         ;;
       question)
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_QUESTION}󱜻 ${R}"
-        printf '%s\t%s\t%s\t%b\n' "$name" "$session" "$idx" "$display"
+        printf '%b\t%s\t%s\t%s\n' "$display" "$name" "$session" "$idx"
         ;;
       retry)
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_RETRY}󰨄 ${R}"
-        printf '%s\t%s\t%s\t%b\n' "$name" "$session" "$idx" "$display"
+        printf '%b\t%s\t%s\t%s\n' "$display" "$name" "$session" "$idx"
         ;;
       permission)
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_PERM}󱅭 ${R}"
-        printf '%s\t%s\t%s\t%b\n' "$name" "$session" "$idx" "$display"
+        printf '%b\t%s\t%s\t%s\n' "$display" "$name" "$session" "$idx"
         ;;
       *)
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R}    "
-        printf '%s\t%s\t%s\t%b\n' "$name" "$session" "$idx" "$display"
+        printf '%b\t%s\t%s\t%s\n' "$display" "$name" "$session" "$idx"
         ;;
     esac
   done

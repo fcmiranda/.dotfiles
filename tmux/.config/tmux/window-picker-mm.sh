@@ -27,6 +27,7 @@ tmux display-popup \
     'b.Start=ToggleColumn(name)|||ToggleColumn(session)|||ToggleColumn(idx)' \
     --group-prefix '#' \
     results.spinner_prefix='@SPIN@' \
+    results.spinner_inline=true \
     results.spinner='$TMUX_SPINNER_NAME' \
     --color 'spinner:$TMUX_SPINNER_COLOR' \
     query.status_inline=true \

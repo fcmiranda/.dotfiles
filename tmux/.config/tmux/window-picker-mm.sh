@@ -20,8 +20,8 @@ tmux display-popup \
     start.ansi=true \
     'c.s=\\t' \
     tui.mouse=false \
-    c.n=session c.n=idx c.n=display \
-    'b.Start=ToggleColumn(session)|||ToggleColumn(idx)' \
+    c.n=name c.n=session c.n=idx c.n=display \
+    'b.Start=ToggleColumn(name)|||ToggleColumn(session)|||ToggleColumn(idx)' \
     --group-prefix '#' \
     results.spinner_prefix='@SPIN@' \
     results.spinner='$TMUX_SPINNER_NAME' \
@@ -31,10 +31,10 @@ tmux display-popup \
     results.current_prefix=' ' \
     --nav \
     --color '$TMUX_COLOR_SPEC' \
-    'P=command=sess=\"{=session}\"; sess=\"\${sess#@SPIN@}\"; tmux capture-pane -ep -t \"\${sess}:{=idx}\" 2>/dev/null || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"|||side=right|||percentage=50' \
+    p.wrap=false \
+    'P=command=sess=\"{=session}\"; tmux capture-pane -ep -t \"\${sess}:{=idx}\" 2>/dev/null || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"|||side=right|||percentage=50|||title={item}' \
   | (read chosen && [ -n \"\$chosen\" ] && \
-      session=\$(printf '%s' \"\$chosen\" | cut -f1) && \
-      session=\"\${session#@SPIN@}\" && \
-      idx=\$(printf '%s' \"\$chosen\" | cut -f2) && \
+      session=\$(printf '%s' \"\$chosen\" | cut -f2) && \
+      idx=\$(printf '%s' \"\$chosen\" | cut -f3) && \
       [ -n \"\$idx\" ] && \
       tmux switch-client -t \"\${session}:\${idx}\"); true"

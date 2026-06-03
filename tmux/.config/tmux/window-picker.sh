@@ -20,7 +20,7 @@ tmux display-popup \
     -spinner-prefix '@SPIN@' \
     -spinner '$TMUX_SPINNER_NAME' \
     -spinner-color='$TMUX_SPINNER_COLOR' \
-    -with-nth 3 \
+    -with-nth 4 \
     -no-sort \
     -no-input \
     --height 100% \
@@ -31,14 +31,14 @@ tmux display-popup \
     -reload-cmd='$ITEMS_SCRIPT' \
     -reload-interval=1800 \
     -preview='
-      sess={1}; idx={2}
+      sess={2}; idx={3}
       tmux capture-pane -ep -t \"\${sess}:\${idx}\" 2>/dev/null \
         || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"
     ' \
     -preview-position=right \
     -preview-size=50 \
   | (read chosen && [ -n \"\$chosen\" ] && \
-      session=\$(printf '%s' \"\$chosen\" | cut -f1) && \
-      idx=\$(printf '%s' \"\$chosen\" | cut -f2) && \
+      session=\$(printf '%s' \"\$chosen\" | cut -f2) && \
+      idx=\$(printf '%s' \"\$chosen\" | cut -f3) && \
       [ -n \"\$idx\" ] && \
       tmux switch-client -t \"\${session}:\${idx}\"); true"

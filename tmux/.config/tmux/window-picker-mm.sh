@@ -19,7 +19,7 @@ tmux display-popup \
     start.sort=false \
     start.ansi=true \
     'c.s=\\t' \
-    tui.mouse=false \
+    tui.mouse=true \
     c.n=name c.n=session c.n=idx c.n=display \
     'b.Start=ToggleColumn(name)|||ToggleColumn(session)|||ToggleColumn(idx)' \
     --group-prefix '#' \

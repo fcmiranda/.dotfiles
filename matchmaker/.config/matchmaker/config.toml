@@ -28,7 +28,7 @@ side = 'right'
 percentage = 80
 #border.type = "Plain"
 #border.padding = [2, 0]
-title = "File: {item}"
+title = "{item}"
 border.title_fg = 'Yellow'
 gap = 1
 

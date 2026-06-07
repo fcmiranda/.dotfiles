@@ -12,6 +12,10 @@ icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
 
+[results.autoscroll]
+indicator = ""
+indicator_style.fg = "blue"
+
 [preview]
 media = true
 

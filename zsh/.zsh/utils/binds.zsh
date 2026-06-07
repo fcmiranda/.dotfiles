@@ -31,6 +31,10 @@ _smart_tab() {
         BUFFER=""
         CURSOR=0
         zle _jump_widget
+    elif [[ "$BUFFER" == "h" ]]; then
+        BUFFER=""
+        CURSOR=0
+        zle _zcd_widget
     elif [[ "$LBUFFER" == *" " ]]; then
         zle fzf-tab-complete
     elif [[ -n "$POSTDISPLAY" ]]; then

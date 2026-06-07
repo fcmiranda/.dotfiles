@@ -45,7 +45,7 @@ sort_threshold = 0
 [exit]
 abort_empty = true
 
-[binds]
+[ui.nav_binds]
 # Use xdg-open to automatically open images with the default image viewer and videos with mpv
 "o" = "ExecuteSilent(xdg-open {=1})"
 

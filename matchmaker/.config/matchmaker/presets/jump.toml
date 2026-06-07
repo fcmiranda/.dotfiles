@@ -3,7 +3,11 @@ nav_mode = true
 nav_bar = "Plain"
 nav_color = "Black"
 
+[matcher]
+sort = false
+
 [results]
+reverse = false
 icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"

@@ -13,7 +13,19 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 # Single Tab: "j<Tab>"→zcd, trailing space→fzf-tab,
 #             ghost text present→autosuggest-accept, else→fzf-tab
 _jump_widget() {
-    local result=$(zoxide query -l | mm -o jump)
+    local result
+    if [[ "$PWD" == "$HOME" ]]; then
+        result=$(zoxide query -l | mm -o jump)
+    else
+        local _ignore_dirs=(
+            node_modules .cache target dist build __pycache__
+            .venv venv env vendor .gradle .npm .pnpm-store
+            .next out coverage .tox .mypy_cache .pytest_cache
+            .cargo .rustup .local .mozilla .thunderbird
+        )
+        result=$(fd -td -H -E.git "${_ignore_dirs[@]/#/-E}" -a . | mm -o jump)
+    fi
+
     if [[ -n "$result" ]]; then
         if [[ -d "$result" ]]; then
             zoxide add "$result"

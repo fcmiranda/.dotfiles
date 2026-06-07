@@ -12,11 +12,25 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
 # Single Tab: "j<Tab>"→zcd, trailing space→fzf-tab,
 #             ghost text present→autosuggest-accept, else→fzf-tab
+_jump_widget() {
+    local result=$(zoxide query -l | mm -o jump)
+    if [[ -n "$result" ]]; then
+        if [[ -d "$result" ]]; then
+            zoxide add "$result"
+            cd "$result"
+        else
+            LBUFFER+="$result"
+        fi
+    fi
+    zle reset-prompt
+}
+zle -N _jump_widget
+
 _smart_tab() {
     if [[ "$BUFFER" == "j" ]]; then
         BUFFER=""
         CURSOR=0
-        _zcd_widget
+        zle _jump_widget
     elif [[ "$LBUFFER" == *" " ]]; then
         zle fzf-tab-complete
     elif [[ -n "$POSTDISPLAY" ]]; then

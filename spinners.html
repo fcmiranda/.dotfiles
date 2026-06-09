@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSFiddle df0okLhv</title>
+
+  <style>
+    
+  </style>
+
+  
+</head>
+<body>
+  <html>
+  <head>
+    <title>Spinners</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      #grid {
+        display: grid;
+        grid-template-columns: max-content auto;
+        place-items: flex-start;
+        gap: 20px;
+      }
+
+      #grid > * {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      select,
+      button,
+      input,
+      textarea {
+        padding: 5px;
+        border: solid 1px gray;
+        border-radius: 5px;
+      }
+
+      #preview,
+      #frames {
+        display: inline-block;
+        max-width: 100%;
+        overflow: auto;
+        padding: 5px;
+        white-space: pre;
+        box-shadow: 0 0 5px #0004;
+      }
+
+      #frames {
+        height: 10lh;
+      }
+
+      :not(html) ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background-color: lightgray;
+      }
+
+      :not(html) ::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background-color: gray;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="grid">
+      <label>Design:</label>
+      <div>
+        <select id="design" oninput="onDesignChange()"></select>
+        <button onclick="prevNext(-1)">Prev</button>
+        <button onclick="prevNext(1)">Next</button>
+      </div>
+
+      <label>Interval:</label>
+      <input
+        id="interval"
+        type="number"
+        min="5"
+        step="5"
+        max="10000"
+        oninput="onIntervalChange()"
+      />
+
+      <label>Font:</label>
+      <input id="font" value="Courier New" oninput="onStyleChange()" />
+
+      <label>Dark:</label>
+      <input id="dark" type="checkbox" checked oninput="onStyleChange()" />
+
+      <label>Preview:</label>
+      <div><span id="preview"></span></div>
+
+      <label>Frames:</label>
+      <textarea id="frames" oninput="onFramesChange()"></textarea>
+    </div>
+
+    <script>
+      // load spinners
+      const url = "spinners.json";
+      let spinners = [];
+      fetch(url)
+        .then((response) => response.json())
+        .then((json) => {
+          spinners = json;
+          makeOptions();
+          onDesignChange();
+        });
+
+      // make dropdown options
+      const makeOptions = () => {
+        for (const name of Object.keys(spinners)) {
+          const option = document.createElement("option");
+          option.value = name;
+          option.innerText = name;
+          design.append(option);
+        }
+      };
+
+      // elements
+      const design = document.querySelector("#design");
+      const interval = document.querySelector("#interval");
+      const font = document.querySelector("#font");
+      const dark = document.querySelector("#dark");
+      const preview = document.querySelector("#preview");
+      const frames = document.querySelector("#frames");
+
+      // true modulo
+      const mod = (n, d) => ((n % d) + d) % d;
+
+      // prev/next design
+      const prevNext = (change) => {
+        design.selectedIndex = mod(
+          design.selectedIndex + change,
+          design.options.length
+        );
+        onDesignChange();
+      };
+
+      // current spinner
+      let spinner = { interval: 100, frames: [] };
+
+      // tick frame
+      let frame = 0;
+      let timer;
+      const tick = () => {
+        frame = (frame + 1) % spinner.frames.length;
+        preview.innerText = spinner.frames[frame];
+      };
+
+      const onDesignChange = (event) => {
+        spinner = spinners[design.value];
+        interval.value = spinner.interval;
+        frames.value = spinner.frames.join("\n");
+        onIntervalChange();
+      };
+
+      const onIntervalChange = () => {
+        spinner.interval = Number(interval.value);
+        window.clearInterval(timer);
+        timer = window.setInterval(tick, spinner.interval);
+        tick();
+      };
+
+      const onStyleChange = () => {
+        for (const element of [preview, frames]) {
+          element.style.background = dark.checked ? "black" : "white";
+          element.style.color = dark.checked ? "white" : "black";
+          element.style.fontFamily = font.value;
+        }
+      };
+      onStyleChange();
+
+      const onFramesChange = () => {
+        spinner.frames = frames.value.split("\n");
+        onDesignChange();
+      };
+    </script>
+  </body>
+</html>
+
+
+  <script>
+    
+  </script>
+</body>
+</html>

@@ -21,3 +21,7 @@ export PATH="$PATH:$HOME/go/bin"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/fecavmi/.local/bin:$PATH"

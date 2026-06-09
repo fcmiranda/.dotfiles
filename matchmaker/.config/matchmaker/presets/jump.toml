@@ -27,3 +27,16 @@ color = "blue"
 command = "if [ -d {1} ]; then eza --tree --level=2 --icons --color=always {1}; else bat --style=numbers --color=always --line-range=:300 {1}; fi"
 side = "right"
 percentage = 80
+
+[start.command]
+command = '''
+if command -v fd >/dev/null 2>&1; then
+    IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.local -E.mozilla -E.thunderbird"
+    fd -td -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 .
+    fd -tf -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 .
+    fd -H $IGNORE --strip-cwd-prefix --print0 --min-depth 2 .
+else
+    find . -print0
+fi
+'''
+separator = "\\0"

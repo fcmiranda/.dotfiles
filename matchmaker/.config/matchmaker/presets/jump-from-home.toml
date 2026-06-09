@@ -1,0 +1,43 @@
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "Black"
+
+[matcher]
+sort = false
+
+[results]
+reverse = false
+icons = true
+symlink_target = true
+symlink_target_style.fg = "cyan"
+
+[results.autoscroll]
+indicator = ""
+indicator_style.fg = "blue"
+
+[preview]
+media = true
+
+[preview.border]
+title_fg = "cyan"
+color = "blue"
+
+[[preview.layout]]
+command = "if [ -d {1} ]; then eza --tree --level=2 --icons --color=always {1}; else bat --style=numbers --color=always --line-range=:300 {1}; fi"
+side = "right"
+percentage = 80
+
+[start.command]
+command = '''
+IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.local -E.mozilla -E.thunderbird"
+
+{
+    zoxide query -l 2>/dev/null
+    zoxide query -l 2>/dev/null | while IFS= read -r _zd; do
+        fd -H $IGNORE -a --max-depth 3 . "$_zd" 2>/dev/null
+    done
+    fd -H $IGNORE -a . "$HOME" 2>/dev/null
+} | awk '!seen[$0]++'
+'''
+separator = "\n"

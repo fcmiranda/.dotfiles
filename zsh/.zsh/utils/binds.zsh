@@ -14,21 +14,9 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 #             ghost text present→autosuggest-accept, else→fzf-tab
 _jump_widget() {
     local result
-    local _ignore_dirs=(
-        node_modules .cache target dist build __pycache__
-        .venv venv env vendor .gradle .npm .pnpm-store
-        .next out coverage .tox .mypy_cache .pytest_cache
-        .cargo .rustup .local .mozilla .thunderbird
-    )
 
     if [[ "$PWD" == "$HOME" ]]; then
-        result=$( {
-            zoxide query -l 2>/dev/null
-            zoxide query -l 2>/dev/null | while IFS= read -r _zd; do
-                fd -H -E.git "${_ignore_dirs[@]/#/-E}" -a --max-depth 3 . "$_zd" 2>/dev/null
-            done
-            fd -H -E.git "${_ignore_dirs[@]/#/-E}" -a . "$HOME" 2>/dev/null
-        } | awk '!seen[$0]++' | mm -o jump-home )
+        result=$(mm --no-read -o jump-from-home)
     else
         result=$(mm --no-read -o jump)
     fi

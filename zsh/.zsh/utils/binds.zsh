@@ -31,9 +31,9 @@ _jump_widget() {
         } | awk '!seen[$0]++' | mm -o jump )
     else
         result=$( {
-            fd -td -H -E.git "${_ignore_dirs[@]/#/-E}" -a --max-depth 1 .
-            fd -tf -H -E.git "${_ignore_dirs[@]/#/-E}" -a --max-depth 1 .
-            fd -H -E.git "${_ignore_dirs[@]/#/-E}" -a --min-depth 2 .
+            fd -td -H -E.git "${_ignore_dirs[@]/#/-E}" --strip-cwd-prefix --max-depth 1 .
+            fd -tf -H -E.git "${_ignore_dirs[@]/#/-E}" --strip-cwd-prefix --max-depth 1 .
+            fd -H -E.git "${_ignore_dirs[@]/#/-E}" --strip-cwd-prefix --min-depth 2 .
         } | mm -o jump )
     fi
 

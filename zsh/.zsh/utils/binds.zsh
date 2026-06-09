@@ -30,7 +30,7 @@ _jump_widget() {
             fd -H -E.git "${_ignore_dirs[@]/#/-E}" -a . "$HOME" 2>/dev/null
         } | awk '!seen[$0]++' | mm -o jump )
     else
-        result=$(fd -td -H -E.git "${_ignore_dirs[@]/#/-E}" -a . | mm -o jump)
+        result=$(fd -H -E.git "${_ignore_dirs[@]/#/-E}" -a . | mm -o jump)
     fi
 
     if [[ -n "$result" ]]; then

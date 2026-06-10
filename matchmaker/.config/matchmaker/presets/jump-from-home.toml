@@ -28,6 +28,9 @@ command = "if [ -d {1} ]; then eza --tree --level=2 --icons --color=always {1}; 
 side = "right"
 percentage = 80
 
+[ui.nav_binds]
+"l" = "BecomeSilent(cd \"{=}\" && exec mm --no-read -o jump)"
+
 [start.command]
 command = '''
 IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.local -E.mozilla -E.thunderbird"

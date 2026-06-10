@@ -48,6 +48,7 @@ abort_empty = true
 [ui.nav_binds]
 # Use xdg-open to automatically open images with the default image viewer and videos with mpv
 "o" = "ExecuteSilent(xdg-open {=1})"
+"~" = "BecomeSilent(cd /home/fecavmi && exec mm --no-read -o jump-from-home)"
 
 #[action]
 #width_pct = 80

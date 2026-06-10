@@ -29,7 +29,12 @@ side = "right"
 percentage = 80
 
 [ui.nav_binds]
-"z" = "Reload(zoxide query -l 2>/dev/null | tr '\\n' '\\0')"
+"z" = "@reloadnext"
+"l" = ["ChDir({=})", "@reload_local"]
+"h" = ["ChDir(..)", "@reload_local"]
+
+[start]
+additional_commands = ["", "zoxide query -l 2>/dev/null | tr '\\n' '\\0'"]
 
 [start.command]
 command = '''

@@ -15,11 +15,7 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 _jump_widget() {
     local result
 
-    if [[ "$PWD" == "$HOME" ]]; then
-        result=$(mm --no-read -o jump-from-home)
-    else
-        result=$(mm --no-read -o jump)
-    fi
+    result=$(mm --no-read -o jump)
 
     if [[ -n "$result" ]]; then
         if [[ -d "$result" ]]; then

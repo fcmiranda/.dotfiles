@@ -30,37 +30,24 @@ percentage = 80
 
 [start.command]
 command = '''
-if command -v fd >/dev/null 2>&1; then
-    IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.local -E.mozilla -E.thunderbird"
-    fd -td -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 .
-    fd -tf -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 .
-    fd -H $IGNORE --strip-cwd-prefix --print0 --min-depth 2 .
+IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.local -E.mozilla -E.thunderbird"
+
+if [ "$PWD" = "$HOME" ]; then
+    {
+        zoxide query -l 2>/dev/null | tr '\n' '\0'
+        zoxide query -l 2>/dev/null | while IFS= read -r _zd; do
+            fd -H $IGNORE -a --print0 --max-depth 3 . "$_zd" 2>/dev/null
+        done
+        fd -H $IGNORE -a --print0 . "$HOME" 2>/dev/null
+    } | awk -v RS='\0' -v ORS='\0' '!seen[$0]++'
 else
-    find . -print0
+    if command -v fd >/dev/null 2>&1; then
+        fd -td -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 .
+        fd -tf -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 .
+        fd -H $IGNORE --strip-cwd-prefix --print0 --min-depth 2 .
+    else
+        find . -print0
+    fi
 fi
 '''
 separator = "\\0"
-
-[ui.nav_binds]
-"l" = '''Become(
-if [ -d "{=}" ]; then
-    cd "{=}"
-fi
-unset MM_TARGET_ITEM
-if [ "$PWD" = "$HOME" ]; then
-    exec mm --no-read -o jump-from-home
-else
-    exec mm --no-read -o jump
-fi
-)'''
-
-"h" = '''Become(
-CURRENT_DIR=$(basename "$PWD")
-cd ..
-export MM_TARGET_ITEM="$CURRENT_DIR"
-if [ "$PWD" = "$HOME" ]; then
-    exec mm --no-read -o jump-from-home
-else
-    exec mm --no-read -o jump
-fi
-)'''

@@ -57,6 +57,7 @@ separator = "/"
 style.fg = "Cyan"
 style.modifier = "BOLD"
 separator_style.fg = "Cyan"
+truncate_length = 3
 #width_pct = 80
 
 #[action.border]

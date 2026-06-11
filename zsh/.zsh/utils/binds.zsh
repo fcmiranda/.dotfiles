@@ -16,9 +16,12 @@ _jump_widget() {
     local result
 
     result=$(mm --no-read -o jump)
+    local exit_code=$?
 
     if [[ -n "$result" ]]; then
-        if [[ -d "$result" ]]; then
+        if [[ $exit_code -eq 2 ]]; then
+            LBUFFER+="$result"
+        elif [[ -d "$result" ]]; then
             zoxide add "$result"
             cd "$result"
         else

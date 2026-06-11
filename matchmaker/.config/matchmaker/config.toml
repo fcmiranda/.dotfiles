@@ -57,7 +57,8 @@ separator = "/"
 style.fg = "Cyan"
 style.modifier = "BOLD"
 separator_style.fg = "Cyan"
-truncate_length = 3
+current_folder_only = true
+#truncate_length = 3
 #width_pct = 80
 
 #[action.border]

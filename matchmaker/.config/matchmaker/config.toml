@@ -51,7 +51,12 @@ abort_empty = true
 "~" = ["ChDir(/home/fecavmi)", "Pos(0)", "Reload"]
 "l" = ["ChDir({=})", "Pos(0)", "Reload"]
 
-#[action]
+[breadcrumb]
+show = true
+separator = "/"
+style.fg = "Cyan"
+style.modifier = "BOLD"
+separator_style.fg = "Cyan"
 #width_pct = 80
 
 #[action.border]

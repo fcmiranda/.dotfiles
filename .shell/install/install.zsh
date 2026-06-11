@@ -44,7 +44,8 @@ install_packages \
     worktrunk \
     apm-unix \
     wf-recorder \
-    herdr
+    herdr \
+    ripdrag
 
 install_plugins \
     zsh-plugins \

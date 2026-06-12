@@ -22,6 +22,7 @@ media = true
 [preview.border]
 title_fg = "cyan"
 color = "blue"
+type = "Rounded"
 
 [[preview.layout]]
 command = "if [ -d {1} ]; then eza --tree --level=2 --icons --color=always {1}; else bat --style=numbers --color=always --line-range=:300 {1}; fi"

@@ -39,7 +39,7 @@ tmux display-popup \
     focus-on-start:picker \
     --color '$TMUX_COLOR_SPEC' \
     p.wrap=false \
-    'P=command=sess=\"{=session}\"; tmux capture-pane -ep -t \"\${sess}:{=idx}\" 2>/dev/null || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"|||side=right|||percentage=50|||title=''' \
+    'P=command=sess=\"{=session}\"; tmux capture-pane -ep -t \"\${sess}:{=idx}\" 2>/dev/null || printf \"  \033[38;2;146;131;116m(no preview)\033[0m\n\"|||side=right|||percentage=80|||title=''' \
   | (read chosen && [ -n \"\$chosen\" ] && \
       session=\$(printf '%s' \"\$chosen\" | cut -f3) && \
       idx=\$(printf '%s' \"\$chosen\" | cut -f1) && \

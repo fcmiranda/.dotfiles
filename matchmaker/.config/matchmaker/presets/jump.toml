@@ -28,7 +28,14 @@ command = "if [ -d {1} ]; then eza --tree --level=2 --icons --color=always {1}; 
 side = "right"
 percentage = 80
 
+[binds]
+"@reloadnext" = "ReloadNext"
+"alt-f" = "@reloadnext"
+"ctrl-f" = "@reloadnext"
+
 [ui.nav_binds]
+"alt-f" = "@reloadnext"
+"ctrl-f" = "@reloadnext"
 "z" = "@reloadnext"
 "l" = ["ChDir({=})", "@reload_local"]
 "h" = ["ChDir(..)", "@reload_local"]

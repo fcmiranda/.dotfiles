@@ -8,6 +8,9 @@ show = true
 wrap = true
 
 
+[start]
+additional_commands = ["", "zoxide query -l 2>/dev/null | tr '\\n' '\\0'"]
+
 [start.command]
 cmd = '''
 if command -v fd >/dev/null 2>&1; then
@@ -45,11 +48,18 @@ sort_threshold = 0
 [exit]
 abort_empty = true
 
+[binds]
+"@reloadnext" = "ReloadNext"
+"alt-f" = "@reloadnext"
+"ctrl-f" = "@reloadnext"
+
 [ui.nav_binds]
+"alt-f" = "@reloadnext"
+"ctrl-f" = "@reloadnext"
 # Use xdg-open to automatically open images with the default image viewer and videos with mpv
 "o" = "ExecuteSilent(xdg-open {=1})"
-"~" = ["ChDir(/home/fecavmi)", "Pos(0)", "Reload"]
-"l" = ["ChDir({=})", "Pos(0)", "Reload"]
+"~" = ["ChDir(/home/fecavmi)", "Pos(0)", "@reload_local"]
+"l" = ["ChDir({=})", "Pos(0)", "@reload_local"]
 
 [breadcrumb]
 show = true

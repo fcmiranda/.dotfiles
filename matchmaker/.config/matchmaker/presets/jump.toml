@@ -30,12 +30,10 @@ percentage = 80
 
 [binds]
 "@reloadnext" = "ReloadNext"
-"alt-f" = "@reloadnext"
-"ctrl-f" = "@reloadnext"
+"ctrl-z" = "@reloadnext"
 
 [ui.nav_binds]
-"alt-f" = "@reloadnext"
-"ctrl-f" = "@reloadnext"
+"ctrl-z" = "@reloadnext"
 "z" = "@reloadnext"
 "l" = ["ChDir({=})", "@reload_local"]
 "h" = ["ChDir(..)", "@reload_local"]

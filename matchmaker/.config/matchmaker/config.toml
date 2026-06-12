@@ -50,12 +50,10 @@ abort_empty = true
 
 [binds]
 "@reloadnext" = "ReloadNext"
-"alt-f" = "@reloadnext"
-"ctrl-f" = "@reloadnext"
+"ctrl-z" = "@reloadnext"
 
 [ui.nav_binds]
-"alt-f" = "@reloadnext"
-"ctrl-f" = "@reloadnext"
+"ctrl-z" = "@reloadnext"
 # Use xdg-open to automatically open images with the default image viewer and videos with mpv
 "o" = "ExecuteSilent(xdg-open {=1})"
 "~" = ["ChDir(/home/fecavmi)", "Pos(0)", "@reload_local"]

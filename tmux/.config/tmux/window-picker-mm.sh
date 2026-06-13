@@ -30,7 +30,7 @@ unset _tmux_style
   no-filter \
   focus-on-start:picker \
 | (read chosen && [ -n "$chosen" ] && \
-    session=$(printf '%s' "$chosen" | cut -f3) && \
-    idx=$(printf '%s' "$chosen" | cut -f1) && \
+    session=$(printf '%s' "$chosen" | cut -f4) && \
+    idx=$(printf '%s' "$chosen" | cut -f2) && \
     [ -n "$idx" ] && \
     tmux switch-client -t "${session}:${idx}"); true

@@ -69,28 +69,40 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
 
     case "$state" in
       busy)
+        icon="@SPIN@"
+        title="$idx $name $icon"
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} $(printf '\001')@SPIN@   "
-        printf '%s\t%s\t%s\t%b\n' "$idx" "$name" "$session" "$display"
+        printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       idle)
+        icon="󱥂"
+        title="$idx $name $icon"
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_IDLE}󱥂${R}      "
-        printf '%s\t%s\t%s\t%b\n' "$idx" "$name" "$session" "$display"
+        printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       question)
+        icon="󱜻"
+        title="$idx $name $icon"
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_QUESTION}󱜻${R}      "
-        printf '%s\t%s\t%s\t%b\n' "$idx" "$name" "$session" "$display"
+        printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       retry)
+        icon="󰨄"
+        title="$idx $name $icon"
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_RETRY}󰨄${R}      "
-        printf '%s\t%s\t%s\t%b\n' "$idx" "$name" "$session" "$display"
+        printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       permission)
+        icon="󱅭"
+        title="$idx $name $icon"
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_PERM}󱅭${R}      "
-        printf '%s\t%s\t%s\t%b\n' "$idx" "$name" "$session" "$display"
+        printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       *)
+        icon=""
+        title="$idx $name"
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R}          "
-        printf '%s\t%s\t%s\t%b\n' "$idx" "$name" "$session" "$display"
+        printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
     esac
   done

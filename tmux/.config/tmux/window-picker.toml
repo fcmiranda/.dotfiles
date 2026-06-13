@@ -9,6 +9,7 @@ sort_threshold = 0
 [columns]
 split = '\t'
 names = [
+    { name = "title" },
     { name = "idx" },
     { name = "name" },
     { name = "session" },
@@ -46,7 +47,6 @@ color = "Gray"
 command = 'sess="{=session}"; tmux capture-pane -ep -t "${sess}:{=idx}" 2>/dev/null || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"'
 side = "right"
 percentage = 80
-title = ""
 
 [binds]
-Start = ["ToggleColumn(name)", "ToggleColumn(session)", "ToggleColumn(idx)"]
+Start = ["ToggleColumn(title)", "ToggleColumn(name)", "ToggleColumn(session)", "ToggleColumn(idx)"]

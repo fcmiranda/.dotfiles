@@ -1,0 +1,47 @@
+[start]
+sort = false
+ansi = true
+reload_interval = 1800
+
+[matcher]
+sort_threshold = 0
+
+[columns]
+split = '\t'
+names = [
+    { name = "idx" },
+    { name = "name" },
+    { name = "session" },
+    { name = "display" }
+]
+
+[tui]
+mouse = true
+
+[results]
+spinner_prefix = "@SPIN@"
+spinner_inline = true
+current_prefix = " "
+
+[results.border]
+sides = ""
+
+[query]
+status_inline = true
+prompt = " "
+
+[ui.border]
+sides = ""
+
+[preview]
+wrap = false
+
+
+[[preview.layout]]
+command = 'sess="{=session}"; tmux capture-pane -ep -t "${sess}:{=idx}" 2>/dev/null || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"'
+side = "right"
+percentage = 80
+title = ""
+
+[binds]
+Start = ["ToggleColumn(name)", "ToggleColumn(session)", "ToggleColumn(idx)"]

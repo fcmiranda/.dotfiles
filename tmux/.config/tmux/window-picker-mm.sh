@@ -19,32 +19,16 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 unset _tmux_style
 
 "$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
+  -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT" \
-  start.sort=false \
-  matcher.sort_threshold=false \
-  start.ansi=true \
-  start.reload_interval=1800 \
-  'c.s=\t' \
-  tui.mouse=true \
-  c.n=idx c.n=name c.n=session c.n=display \
-  'b.Start=ToggleColumn(name)|||ToggleColumn(session)|||ToggleColumn(idx)' \
-  --group-prefix '#' \
-  results.spinner_prefix='@SPIN@' \
-  results.spinner_inline=true \
   results.spinner="$TMUX_SPINNER_NAME" \
   --color "spinner:$TMUX_SPINNER_COLOR" \
-  query.status_inline=true \
-  query.prompt=' ' \
-  results.current_prefix=' ' \
+  --color "$TMUX_COLOR_SPEC" \
+  --group-prefix '#' \
   --nav \
   basic \
   no-filter \
   focus-on-start:picker \
-  --color "$TMUX_COLOR_SPEC" \
-  'ui.border.sides=' \
-  'results.border.sides=' \
-  p.wrap=false \
-  'P=command=sess="{=session}"; tmux capture-pane -ep -t "${sess}:{=idx}" 2>/dev/null || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"|||side=right|||percentage=80|||title=' \
 | (read chosen && [ -n "$chosen" ] && \
     session=$(printf '%s' "$chosen" | cut -f3) && \
     idx=$(printf '%s' "$chosen" | cut -f1) && \

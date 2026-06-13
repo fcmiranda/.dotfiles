@@ -39,6 +39,16 @@ percentage = 80
 "l" = ["ChDir({=})", "@reload_local"]
 "h" = ["ChDir(..)", "@reload_local"]
 
+[breadcrumb]
+show = true
+separator = "/"
+style.fg = "Cyan"
+style.modifier = "BOLD"
+separator_style.fg = "Cyan"
+#current_folder_only = true
+#truncate_length = 3
+#width_pct = 80
+
 [start]
 additional_commands = ["", "zoxide query -l 2>/dev/null | tr '\\n' '\\0'"]
 

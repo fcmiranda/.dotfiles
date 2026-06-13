@@ -38,11 +38,6 @@ sides = ""
 [preview]
 wrap = false
 
-[preview.border]
-title_fg = "cyan"
-color = "Black"
-type = "Rounded"
-
 [[preview.layout]]
 command = 'sess="{=session}"; tmux capture-pane -ep -t "${sess}:{=idx}" 2>/dev/null || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"'
 side = "right"

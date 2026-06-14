@@ -60,7 +60,7 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
     | while IFS='	' read -r idx name state; do
 
     if [ "$session" = "$cur_session" ] && [ "$idx" = "$cur_window" ]; then
-      mark="${C_CURMARK}󰧞${R}"
+      mark="${C_CURMARK}•${R}"
       c_cur_name="$C_CURMARK"
     else
       mark="${C_DIMMARK}·${R}"
@@ -71,7 +71,7 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
       busy)
         icon="󰑮"
         title="$idx $name $icon"
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R}${C_IDLE}@SPIN@${R}      "
+        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_IDLE}@SPIN@${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       idle)

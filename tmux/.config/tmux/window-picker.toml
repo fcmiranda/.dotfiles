@@ -26,6 +26,9 @@ spinner_prefix = "@SPIN@"
 spinner_inline = true
 current_prefix = " "
 
+[results.autoscroll]
+enabled = false
+
 [results.border]
 sides = ""
 

@@ -4,16 +4,16 @@ ansi = true
 reload_interval = 1800
 
 [matcher]
-sort_threshold = 0
+sort_threshold = false
 
 [columns]
 split = '\t'
 names = [
-    { name = "title" },
+    { name = "title", ignore = true },
     { name = "idx" },
     { name = "name" },
     { name = "session" },
-    { name = "display" }
+    { name = "display", ignore = true }
 ]
 
 [tui]

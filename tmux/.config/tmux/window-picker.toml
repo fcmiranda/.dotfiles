@@ -26,7 +26,7 @@ spinner_prefix = "@SPIN@"
 spinner_inline = true
 current_prefix = " "
 unselected_prefix = ""
-row_connection = "Disjoint"
+row_connection = "Full"
 column_spacing = 0
 
 [results.autoscroll]

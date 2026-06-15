@@ -71,7 +71,7 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
       busy)
         icon="󰑮"
         title="$idx $name $icon"
-        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_IDLE}@SPIN@${R}      "
+        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_IDLE}@SPIN@${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       idle)

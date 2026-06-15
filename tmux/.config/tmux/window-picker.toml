@@ -25,7 +25,9 @@ max = 9999
 spinner_prefix = "@SPIN@"
 spinner_inline = true
 current_prefix = " "
-row_connection = "Full"
+unselected_prefix = ""
+row_connection = "Disjoint"
+column_spacing = 0
 
 [results.autoscroll]
 enabled = false

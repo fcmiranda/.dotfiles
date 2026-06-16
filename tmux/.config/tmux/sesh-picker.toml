@@ -1,0 +1,44 @@
+[start]
+sort = false
+ansi = true
+
+[matcher]
+sort_threshold = false
+
+[ui.border]
+title = " sesh "
+sides = ""
+
+[query]
+prompt = "⚡  "
+status_inline = true
+
+[results]
+spinner_inline = true
+current_prefix = " "
+unselected_prefix = "  "
+row_connection = "Full"
+column_spacing = 1
+
+[results.border]
+sides = ""
+
+[preview]
+wrap = false
+
+[preview.border]
+sides = "LEFT"
+color = "Gray"
+
+[[preview.layout]]
+command = 'sesh preview {=}'
+side = "right"
+percentage = 55
+
+[binds]
+"ctrl-a" = [ "SetPrompt(⚡  )", "Reload(sesh list --icons)" ]
+"ctrl-t" = [ "SetPrompt(🪟  )", "Reload(sesh list -t --icons)" ]
+"ctrl-g" = [ "SetPrompt(⚙️  )", "Reload(sesh list -c --icons)" ]
+"ctrl-x" = [ "SetPrompt(📁  )", "Reload(sesh list -z --icons)" ]
+"ctrl-f" = [ "SetPrompt(🔎  )", "Reload(fd -H -d 2 -t d -E .Trash . ~)" ]
+"ctrl-d" = [ "ExecuteSilent(sess=\"{=}\"; sess=\"${sess#* }\"; tmux kill-session -t \"$sess\")", "SetPrompt(⚡  )", "Reload(sesh list --icons)" ]

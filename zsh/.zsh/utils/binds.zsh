@@ -41,14 +41,12 @@ _smart_tab() {
         BUFFER=""
         CURSOR=0
         zle _zcd_widget
-    elif [[ "$LBUFFER" == *" " ]]; then
-        zle fzf-tab-complete
     elif [[ -n "$POSTDISPLAY" ]]; then
         # Ghost text visible → accept it
         zle autosuggest-accept
     else
         # No ghost text, no trailing space → open completion
-        zle fzf-tab-complete
+        zle _jump_widget
     fi
 }
 zle -N _smart_tab

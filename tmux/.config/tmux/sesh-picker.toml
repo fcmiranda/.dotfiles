@@ -1,5 +1,6 @@
 [ui]
 nav_mode = true
+nav_basic = true
 nav_bar = "Plain"
 nav_color = "Black"
 

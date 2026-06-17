@@ -4,9 +4,11 @@
 
 if [ "$1" = "--fullscreen" ]; then
   if ! [ -t 1 ]; then
+    echo "[$(date)] exec tmux split-window -Z $0 --fullscreen" >> /tmp/sesh-picker-mm.log
     exec tmux split-window -Z "$0" --fullscreen
   fi
 elif [ -z "$TMUX_POPUP" ]; then
+  echo "[$(date)] exec tmux display-popup -b rounded -w 80% -E \"TMUX_POPUP=1 $0\"" >> /tmp/sesh-picker-mm.log
   exec tmux display-popup -b rounded -w 80%  -E "TMUX_POPUP=1 $0"
 fi
 
@@ -18,11 +20,9 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 . "$_tmux_style" 2>/dev/null || true
 unset _tmux_style
 
+echo "[$(date)] sesh list --icons | mm -o $SCRIPT_DIR/sesh-picker.toml --color \"${TMUX_COLOR_SPEC:-}\"" >> /tmp/sesh-picker-mm.log
+
 sesh list --icons | ~/.cargo/bin/mm \
   -o "$SCRIPT_DIR/sesh-picker.toml" \
-  results.spinner="${TMUX_SPINNER_NAME:-dot}" \
-  --color "spinner:${TMUX_SPINNER_COLOR:-blue}" \
   --color "${TMUX_COLOR_SPEC:-}" \
-  --nav \
-  basic \
 | (read chosen && [ -n "$chosen" ] && sesh connect "$chosen"); true

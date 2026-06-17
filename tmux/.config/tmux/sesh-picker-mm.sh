@@ -7,7 +7,7 @@ if [ "$1" = "--fullscreen" ]; then
     exec tmux split-window -Z "$0" --fullscreen
   fi
 elif [ -z "$TMUX_POPUP" ]; then
-  exec tmux display-popup -b rounded -w 80% -h 70% -E "TMUX_POPUP=1 $0"
+  exec tmux display-popup -b rounded -w 80%  -E "TMUX_POPUP=1 $0"
 fi
 
 SCRIPT_DIR=$(dirname "$0")
@@ -25,6 +25,4 @@ sesh list --icons | ~/.cargo/bin/mm \
   --color "${TMUX_COLOR_SPEC:-}" \
   --nav \
   basic \
-  no-filter \
-  focus-on-start:picker \
 | (read chosen && [ -n "$chosen" ] && sesh connect "$chosen"); true

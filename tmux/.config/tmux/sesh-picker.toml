@@ -1,3 +1,8 @@
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "Black"
+
 [start]
 sort = false
 ansi = true
@@ -7,7 +12,6 @@ command = "sesh list --icons"
 sort_threshold = false
 
 [ui.border]
-title = " sesh "
 sides = ""
 
 [query]
@@ -18,7 +22,7 @@ status_inline = true
 spinner_inline = true
 current_prefix = " "
 unselected_prefix = "  "
-row_connection = "Full"
+row_connection = "Disjoint"
 column_spacing = 1
 
 [results.border]

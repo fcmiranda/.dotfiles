@@ -26,7 +26,7 @@ spinner_prefix = "@SPIN@"
 spinner_inline = true
 current_prefix = " "
 unselected_prefix = ""
-row_connection = "Full"
+row_connection = "Disjoint"
 column_spacing = 0
 
 [results.autoscroll]
@@ -38,6 +38,11 @@ sides = ""
 [query]
 status_inline = true
 prompt = " "
+show = false
+
+[ui]
+nav_mode = true
+nav_focus_on_start = "picker"
 
 [ui.border]
 sides = ""

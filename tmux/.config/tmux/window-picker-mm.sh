@@ -25,10 +25,6 @@ unset _tmux_style
   --color "spinner:$TMUX_SPINNER_COLOR" \
   --color "$TMUX_COLOR_SPEC" \
   --group-prefix '#' \
-  --nav \
-  basic \
-  no-filter \
-  focus-on-start:picker \
 | (read chosen && [ -n "$chosen" ] && \
     session=$(printf '%s' "$chosen" | cut -f4) && \
     idx=$(printf '%s' "$chosen" | cut -f2) && \

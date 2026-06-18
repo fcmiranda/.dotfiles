@@ -3,7 +3,7 @@ import type { Plugin } from "@opencode-ai/plugin"
 
 /**
  * Plugin that:
- * - Updates the tmux @opencode_state user option with a styled indicator on every session state change
+ * - Updates the tmux @ai_agent_state user option with a styled indicator on every session state change
  * - Sends desktop notifications for idle / question / permission events
  */
 export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
@@ -16,7 +16,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const tmux = (...args: string[]) => spawnSync("tmux", args, { stdio: "ignore" })
 
   if (tmuxPane) {
-    tmux("set", "-g", "@opencode_state", "")
+    tmux("set", "-g", "@ai_agent_state", "")
     tmux("set-option", "-w", "-t", tmuxPane, "automatic-rename", "off",
       ";", "rename-window", "-t", tmuxPane, "󱋩")
   }
@@ -29,11 +29,11 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   {
     const { spawn } = require("node:child_process")
     const tmuxCleanup = tmuxPane
-      ? `tmux set-option -w -t '${tmuxPane}' -u @opencode_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @opencode_state_raw 2>/dev/null; tmux set-option -w -t '${tmuxPane}' automatic-rename on 2>/dev/null; tmux refresh-client -S 2>/dev/null;`
+      ? `tmux set-option -w -t '${tmuxPane}' -u @ai_agent_state 2>/dev/null; tmux set-option -w -t '${tmuxPane}' -u @ai_agent_state_raw 2>/dev/null; tmux set-option -w -t '${tmuxPane}' automatic-rename on 2>/dev/null; tmux refresh-client -S 2>/dev/null;`
       : ""
     const watchdog = spawn("sh", [
       "-c",
-      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; ${tmuxCleanup} rm -f /tmp/opencode-waybar-state 2>/dev/null; pkill -RTMIN+13 waybar 2>/dev/null`,
+      `while kill -0 ${process.pid} 2>/dev/null; do sleep 1; done; ${tmuxCleanup} rm -f /tmp/ai-agent-waybar-state 2>/dev/null; pkill -RTMIN+13 waybar 2>/dev/null`,
     ], { detached: true, stdio: "ignore" })
     watchdog.unref()
   }
@@ -42,18 +42,18 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const setWindowState = (value: string, raw: string) => {
     if (!tmuxPane) return
     // set-option + refresh-client in a single tmux process via ";" separator
-    // @opencode_state      — styled tmux format string for the status bar
-    // @opencode_state_raw  — plain word (busy/idle/question/permission) for scripts
-    tmux("set-option", "-w", "-t", tmuxPane, "@opencode_state", value,
-      ";", "set-option", "-w", "-t", tmuxPane, "@opencode_state_raw", raw,
+    // @ai_agent_state      — styled tmux format string for the status bar
+    // @ai_agent_state_raw  — plain word (busy/idle/question/permission) for scripts
+    tmux("set-option", "-w", "-t", tmuxPane, "@ai_agent_state", value,
+      ";", "set-option", "-w", "-t", tmuxPane, "@ai_agent_state_raw", raw,
       ";", "refresh-client", "-S")
   }
 
   // ── Waybar integration ────────────────────────────────────────────────────
-  // Writes the plain state word to /tmp/opencode-waybar-state and sends
+  // Writes the plain state word to /tmp/ai-agent-waybar-state and sends
   // SIGRTMIN+13 to waybar so the custom/opencode module refreshes instantly.
   // Works even when not running inside tmux.
-  const WAYBAR_STATE_FILE = "/tmp/opencode-waybar-state"
+  const WAYBAR_STATE_FILE = "/tmp/ai-agent-waybar-state"
   const setWaybarState = (raw: string) => {
     try {
       const fs = require("node:fs")
@@ -189,7 +189,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     : ""
 
   // Updates the tmux status-right bell segment without stealing focus.
-  // Stores the source pane in @opencode_last_bell so prefix+i can jump to it.
+  // Stores the source pane in @ai_agent_last_bell so prefix+i can jump to it.
   // Clears automatically after 7 seconds via a detached background process.
   // Only fires for clients NOT already viewing the opencode window.
   const bell = (action: string, force = false) => {
@@ -205,14 +205,14 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     }
 
     // Store the source pane so prefix+i can navigate to it
-    tmux("set", "-g", "@opencode_last_bell", tmuxPane)
+    tmux("set", "-g", "@ai_agent_last_bell", tmuxPane)
     // Write the bell message to the status-right segment variable
     const msg = `  #[fg=cyan]${tmuxWindowIndex}:${tmuxWindow} › ${action} #[fg=yellow](i)#[fg=default]`
-    tmux("set", "-g", "@opencode_bell", msg, ";", "refresh-client", "-S")
+    tmux("set", "-g", "@ai_agent_bell", msg, ";", "refresh-client", "-S")
     // Clear after 7 seconds via a detached background process
     const { spawn } = require("node:child_process")
     const cleaner = spawn("sh", ["-c",
-      `sleep 7 && tmux set -g @opencode_bell '' && tmux refresh-client -S`
+      `sleep 7 && tmux set -g @ai_agent_bell '' && tmux refresh-client -S`
     ], { detached: true, stdio: "ignore" })
     cleaner.unref()
   }
@@ -221,8 +221,8 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     stopSpinner()
     setWaybarState("")
     if (!tmuxPane) return
-    tmux("set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state",
-      ";", "set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state_raw",
+    tmux("set-option", "-w", "-t", tmuxPane, "-u", "@ai_agent_state",
+      ";", "set-option", "-w", "-t", tmuxPane, "-u", "@ai_agent_state_raw",
       ";", "refresh-client", "-S")
   }
   process.on("exit", clearTmuxState)

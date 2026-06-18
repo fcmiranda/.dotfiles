@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 
 const PID_FILE = '/tmp/agy-spinner.pid';
-const WAYBAR_FILE = '/tmp/opencode-waybar-state';
+const WAYBAR_FILE = '/tmp/ai-agent-waybar-state';
 
 async function readStdin() {
   const chunks = [];
@@ -79,8 +79,8 @@ function startSpinner(tmuxPane) {
       const frame = frames[i++ % frames.length];
       const val = '#[fg=' + color + ']' + frame + ' #[fg=default]';
       spawnSync('tmux', [
-        'set-option', '-w', '-t', pane, '@opencode_state', val, 
-        ';', 'set-option', '-w', '-t', pane, '@opencode_state_raw', 'busy', 
+        'set-option', '-w', '-t', pane, '@ai_agent_state', val, 
+        ';', 'set-option', '-w', '-t', pane, '@ai_agent_state_raw', 'busy', 
         ';', 'refresh-client', '-S'
       ]);
     }, interval);
@@ -101,8 +101,8 @@ function setStaticState(tmuxPane, stateStr, rawState) {
   spawnSync('pkill', ['-RTMIN+13', 'waybar'], { stdio: 'ignore' });
   if (!tmuxPane) return;
   spawnSync('tmux', [
-    'set-option', '-w', '-t', tmuxPane, '@opencode_state', stateStr,
-    ';', 'set-option', '-w', '-t', tmuxPane, '@opencode_state_raw', rawState,
+    'set-option', '-w', '-t', tmuxPane, '@ai_agent_state', stateStr,
+    ';', 'set-option', '-w', '-t', tmuxPane, '@ai_agent_state_raw', rawState,
     ';', 'refresh-client', '-S'
   ], { stdio: 'ignore' });
 }
@@ -128,10 +128,10 @@ function bell(tmuxPane, action) {
   const tmuxWindow = (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#W"], { encoding: "utf8" }).stdout || "").trim();
 
   const msg = `  #[fg=cyan]${tmuxWindowIndex}:${tmuxWindow} › ${action} #[fg=yellow](i)#[fg=default]`;
-  spawnSync("tmux", ["set", "-g", "@opencode_last_bell", tmuxPane]);
-  spawnSync("tmux", ["set", "-g", "@opencode_bell", msg, ";", "refresh-client", "-S"]);
+  spawnSync("tmux", ["set", "-g", "@ai_agent_last_bell", tmuxPane]);
+  spawnSync("tmux", ["set", "-g", "@ai_agent_bell", msg, ";", "refresh-client", "-S"]);
 
-  const cleaner = spawn("sh", ["-c", `sleep 7 && tmux set -g @opencode_bell '' && tmux refresh-client -S`], { detached: true, stdio: "ignore" });
+  const cleaner = spawn("sh", ["-c", `sleep 7 && tmux set -g @ai_agent_bell '' && tmux refresh-client -S`], { detached: true, stdio: "ignore" });
   cleaner.unref();
 }
 

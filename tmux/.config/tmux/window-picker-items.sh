@@ -56,7 +56,7 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
   printf '#  %s\n' "$session"
 
   tmux list-windows -t "$session" \
-      -F '#{window_index}	#{window_name}	#{@opencode_state_raw}' \
+      -F '#{window_index}	#{window_name}	#{@ai_agent_state_raw}' \
     | while IFS='	' read -r idx name state; do
 
     if [ "$session" = "$cur_session" ] && [ "$idx" = "$cur_window" ]; then

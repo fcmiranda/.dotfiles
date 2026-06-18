@@ -7,7 +7,7 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 . "$_tmux_style"
 unset _tmux_style
 
-pane=$(tmux show -gv @opencode_last_bell 2>/dev/null)
+pane=$(tmux show -gv @ai_agent_last_bell 2>/dev/null)
 
 if [ -z "$pane" ]; then
   tmux display-popup \

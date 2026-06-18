@@ -1,0 +1,47 @@
+{
+  "tmux": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs PreInvocation",
+        "timeout": 0
+      }
+    ],
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs PostInvocation",
+        "timeout": 0
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs Stop",
+        "timeout": 0
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs PreToolUse",
+            "timeout": 0
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs PostToolUse",
+            "timeout": 0
+          }
+        ]
+      }
+    ]
+  }
+}

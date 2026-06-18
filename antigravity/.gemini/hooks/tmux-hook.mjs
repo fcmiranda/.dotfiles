@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 
 const PID_FILE = '/tmp/agy-spinner.pid';
-const WAYBAR_FILE = '/tmp/agy-waybar-state';
+const WAYBAR_FILE = '/tmp/opencode-waybar-state';
 
 async function readStdin() {
   const chunks = [];
@@ -74,8 +74,8 @@ function startSpinner(tmuxPane) {
       const frame = frames[i++ % frames.length];
       const val = '#[fg=' + color + ']' + frame + ' #[fg=default]';
       spawnSync('tmux', [
-        'set-option', '-w', '-t', pane, '@agy_state', val, 
-        ';', 'set-option', '-w', '-t', pane, '@agy_state_raw', 'busy', 
+        'set-option', '-w', '-t', pane, '@opencode_state', val, 
+        ';', 'set-option', '-w', '-t', pane, '@opencode_state_raw', 'busy', 
         ';', 'refresh-client', '-S'
       ]);
     }, interval);
@@ -96,8 +96,8 @@ function setStaticState(tmuxPane, stateStr, rawState) {
   spawnSync('pkill', ['-RTMIN+13', 'waybar'], { stdio: 'ignore' });
   if (!tmuxPane) return;
   spawnSync('tmux', [
-    'set-option', '-w', '-t', tmuxPane, '@agy_state', stateStr,
-    ';', 'set-option', '-w', '-t', tmuxPane, '@agy_state_raw', rawState,
+    'set-option', '-w', '-t', tmuxPane, '@opencode_state', stateStr,
+    ';', 'set-option', '-w', '-t', tmuxPane, '@opencode_state_raw', rawState,
     ';', 'refresh-client', '-S'
   ], { stdio: 'ignore' });
 }
@@ -123,29 +123,32 @@ function bell(tmuxPane, action) {
   const tmuxWindow = (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#W"], { encoding: "utf8" }).stdout || "").trim();
 
   const msg = `  #[fg=cyan]${tmuxWindowIndex}:${tmuxWindow} › ${action} #[fg=yellow](i)#[fg=default]`;
-  spawnSync("tmux", ["set", "-g", "@agy_last_bell", tmuxPane]);
-  spawnSync("tmux", ["set", "-g", "@agy_bell", msg, ";", "refresh-client", "-S"]);
+  spawnSync("tmux", ["set", "-g", "@opencode_last_bell", tmuxPane]);
+  spawnSync("tmux", ["set", "-g", "@opencode_bell", msg, ";", "refresh-client", "-S"]);
 
-  const cleaner = spawn("sh", ["-c", `sleep 7 && tmux set -g @agy_bell '' && tmux refresh-client -S`], { detached: true, stdio: "ignore" });
+  const cleaner = spawn("sh", ["-c", `sleep 7 && tmux set -g @opencode_bell '' && tmux refresh-client -S`], { detached: true, stdio: "ignore" });
   cleaner.unref();
 }
 
 async function main() {
   const eventType = process.argv[2];
-  const tmuxPane = process.env.TMUX_PANE || '';
+  let tmuxPane = process.env.TMUX_PANE || '';
+  if (!tmuxPane) {
+    tmuxPane = spawnSync('tmux', ['display-message', '-p', '#{pane_id}'], { encoding: 'utf8' }).stdout?.trim() || '';
+  }
 
   try {
     const inputStr = await readStdin();
     const context = inputStr.trim() ? JSON.parse(inputStr) : {};
 
     // Debug logging
-    try { fs.appendFileSync('/tmp/agy-plugin-debug.log', `Hook ${eventType}: ${inputStr}\n`); } catch (e) { }
+    try { fs.appendFileSync('/tmp/agy-plugin-debug.log', `Hook ${eventType}: ${inputStr} | TMUX_PANE: ${tmuxPane}\n`); } catch (e) { }
 
     if (eventType === 'SessionStart' || eventType === 'PreInvocation') {
       notify('Antigravity Hooks Active', 'Session has started and hooks are connected.');
       if (tmuxPane) {
         spawnSync('tmux', [
-          'set', '-g', '@agy_state', '',
+          'set-option', '-w', '-t', tmuxPane, '@opencode_state', '',
           ';', 'set-option', '-w', '-t', tmuxPane, 'automatic-rename', 'off',
           ';', 'rename-window', '-t', tmuxPane, '󰚩'
         ]);

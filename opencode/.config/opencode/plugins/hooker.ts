@@ -15,13 +15,11 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const { spawnSync } = require("node:child_process")
   const tmux = (...args: string[]) => spawnSync("tmux", args, { stdio: "ignore" })
 
-  // Wipe stale global @opencode_state from old plugin versions once at startup
-  // and pin the window name/icon to OpenCode while this session is running.
-  // if (tmuxPane) {
-  //   tmux("set", "-g", "@opencode_state", "")
-  //   tmux("set-option", "-w", "-t", tmuxPane, "automatic-rename", "off",
-  //     ";", "rename-window", "-t", tmuxPane, "")
-  // }
+  if (tmuxPane) {
+    tmux("set", "-g", "@opencode_state", "")
+    tmux("set-option", "-w", "-t", tmuxPane, "automatic-rename", "off",
+      ";", "rename-window", "-t", tmuxPane, "󱋩")
+  }
 
   // ── Watchdog process ──────────────────────────────────────────────────────
   // Spawns a detached shell that polls until this plugin PID dies, then clears

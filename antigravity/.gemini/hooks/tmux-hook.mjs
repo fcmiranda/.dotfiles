@@ -17,6 +17,17 @@ function getTmuxColor(opt, fallback) {
   return res.stdout?.trim() || fallback;
 }
 
+function getTomlColor(patternStr, fallback) {
+  try {
+    const pattern = new RegExp(patternStr, 'm');
+    const content = fs.readFileSync(`${process.env.HOME}/.config/omarchy/current/theme/colors.toml`, 'utf8');
+    const match = content.match(pattern);
+    return match ? match[1] : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
 function notify(title, body) {
   try {
     spawnSync('notify-send', ['-a', 'Antigravity', title, body], { stdio: 'ignore' });
@@ -156,12 +167,17 @@ async function main() {
       }
     }
     else if (eventType === 'PreToolUse') {
-      const toolName = context.tool_name || context.tool || '';
+      const toolCall = context.toolCall || {};
+      const toolName = toolCall.name || context.tool_name || context.tool || '';
       // Map ask_user / permission prompts to question state
-      if (toolName === 'ask_user' || toolName === 'question' || toolName === 'request_permission') {
+      if (['ask_user', 'question', 'ask_question'].includes(toolName)) {
         const cQuest = getTmuxColor('@PREFIX_COLOR', '#cba6f7');
         setStaticState(tmuxPane, `#[fg=${cQuest}]󱜻 #[fg=default]`, 'question');
         bell(tmuxPane, '󱜻 question');
+      } else if (['request_permission', 'ask_permission'].includes(toolName)) {
+        const cPerm = getTomlColor('^color1\\\\s*=\\\\s*"([^"]+)"', '#f38ba8');
+        setStaticState(tmuxPane, `#[fg=${cPerm}]󱅭 #[fg=default]`, 'permission');
+        bell(tmuxPane, '󱅭 permission');
       } else {
         if (tmuxPane) startSpinner(tmuxPane);
       }

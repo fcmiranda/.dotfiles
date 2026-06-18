@@ -28,12 +28,6 @@ function getTomlColor(patternStr, fallback) {
   }
 }
 
-function notify(title, body) {
-  try {
-    spawnSync('notify-send', ['-a', 'Antigravity', title, body], { stdio: 'ignore' });
-  } catch (e) {}
-}
-
 function stopSpinner() {
   if (fs.existsSync(PID_FILE)) {
     try {
@@ -156,13 +150,7 @@ async function main() {
     try { fs.appendFileSync('/tmp/agy-plugin-debug.log', `Hook ${eventType}: ${inputStr} | TMUX_PANE: ${tmuxPane}\n`); } catch (e) { }
 
     if (eventType === 'SessionStart' || eventType === 'PreInvocation') {
-      notify('Antigravity Hooks Active', 'Session has started and hooks are connected.');
       if (tmuxPane) {
-        spawnSync('tmux', [
-          'set-option', '-w', '-t', tmuxPane, '@opencode_state', '',
-          ';', 'set-option', '-w', '-t', tmuxPane, 'automatic-rename', 'off',
-          ';', 'rename-window', '-t', tmuxPane, '󰚩'
-        ]);
         startSpinner(tmuxPane);
       }
     }
@@ -192,7 +180,6 @@ async function main() {
       const cIdle = getTmuxColor('@CURRENT_COLOR', '#94e2d5');
       setStaticState(tmuxPane, `#[fg=${cIdle}]󱥂 #[fg=default]`, 'idle');
       bell(tmuxPane, '󱥂 finished');
-      notify('Antigravity Finished', 'The agent has completed the request.');
       process.exit(0);
     }
     else {

@@ -20,7 +20,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   if (tmuxPane) {
     tmux("set", "-g", "@opencode_state", "")
     tmux("set-option", "-w", "-t", tmuxPane, "automatic-rename", "off",
-         ";", "rename-window", "-t", tmuxPane, "")
+      ";", "rename-window", "-t", tmuxPane, "")
   }
 
   // ── Watchdog process ──────────────────────────────────────────────────────
@@ -47,8 +47,8 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     // @opencode_state      — styled tmux format string for the status bar
     // @opencode_state_raw  — plain word (busy/idle/question/permission) for scripts
     tmux("set-option", "-w", "-t", tmuxPane, "@opencode_state", value,
-         ";", "set-option", "-w", "-t", tmuxPane, "@opencode_state_raw", raw,
-         ";", "refresh-client", "-S")
+      ";", "set-option", "-w", "-t", tmuxPane, "@opencode_state_raw", raw,
+      ";", "refresh-client", "-S")
   }
 
   // ── Waybar integration ────────────────────────────────────────────────────
@@ -60,32 +60,32 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     try {
       const fs = require("node:fs")
       if (!raw || raw === "unknown") {
-        try { fs.unlinkSync(WAYBAR_STATE_FILE) } catch {}
+        try { fs.unlinkSync(WAYBAR_STATE_FILE) } catch { }
       } else {
         fs.writeFileSync(WAYBAR_STATE_FILE, raw, "utf8")
       }
-    } catch {}
+    } catch { }
     spawnSync("pkill", ["-RTMIN+13", "waybar"], { stdio: "ignore" })
   }
   // ─────────────────────────────────────────────────────────────────────────
 
   // ── Spinner catalogue ────────────────────────────────────────────────────
   const SPINNERS: Record<string, { frames: string[]; interval: number }> = {
-    minidot:   { frames: ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"], interval: 83  },
-    dot:       { frames: ["⣾ ","⣽ ","⣻ ","⢿ ","⡿ ","⣟ ","⣯ ","⣷ "],  interval: 100 },
-    line:      { frames: ["|","/","-","\\"],                            interval: 100 },
-    jump:      { frames: ["⢄","⢂","⢁","⡁","⡈","⡐","⡠"],              interval: 100 },
-    pulse:     { frames: ["█","▓","▒","░"],                              interval: 125 },
-    points:    { frames: ["∙∙∙","●∙∙","∙●∙","∙∙●"],                    interval: 143 },
-    meter:     { frames: ["▱▱▱","▰▱▱","▰▰▱","▰▰▰","▰▰▱","▰▱▱","▱▱▱"], interval: 143 },
-    hamburger: { frames: ["☱","☲","☴","☲"],                             interval: 333 },
-    ellipsis:  { frames: ["",".","..","."],                              interval: 333 },
-    globe:     { frames: ["🌍","🌎","🌏"],                               interval: 250 },
-    moon:      { frames: ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"],     interval: 125 },
-    monkey:    { frames: ["🙈","🙉","🙊"],                               interval: 333 },
-    arc:       { frames: ["◜","◠","◝","◞","◡","◟"],                     interval: 150 },
-    nerd:      { frames: ["","","","","",""],                  interval: 100 },
-    nerdarc:   { frames: ["◜","","◝","◞","◡","◟",""],  interval: 120 },
+    minidot: { frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"], interval: 83 },
+    dot: { frames: ["⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ "], interval: 100 },
+    line: { frames: ["|", "/", "-", "\\"], interval: 100 },
+    jump: { frames: ["⢄", "⢂", "⢁", "⡁", "⡈", "⡐", "⡠"], interval: 100 },
+    pulse: { frames: ["█", "▓", "▒", "░"], interval: 125 },
+    points: { frames: ["∙∙∙", "●∙∙", "∙●∙", "∙∙●"], interval: 143 },
+    meter: { frames: ["▱▱▱", "▰▱▱", "▰▰▱", "▰▰▰", "▰▰▱", "▰▱▱", "▱▱▱"], interval: 143 },
+    hamburger: { frames: ["☱", "☲", "☴", "☲"], interval: 333 },
+    ellipsis: { frames: ["", ".", "..", "."], interval: 333 },
+    globe: { frames: ["🌍", "🌎", "🌏"], interval: 250 },
+    moon: { frames: ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"], interval: 125 },
+    monkey: { frames: ["🙈", "🙉", "🙊"], interval: 333 },
+    arc: { frames: ["◜", "◠", "◝", "◞", "◡", "◟"], interval: 150 },
+    nerd: { frames: ["", "", "", "", "", ""], interval: 100 },
+    nerdarc: { frames: ["◜", "", "◝", "◞", "◡", "◟", ""], interval: 120 },
   }
 
   // ── Spinner resolution: env var > config file > default ─────────────────
@@ -107,7 +107,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       if (typeof cfg.interval === "number") intervalOverride = cfg.interval
       if (typeof cfg.color === "string" && cfg.color) spinnerColorOverride = cfg.color
     }
-  } catch {}
+  } catch { }
 
   const chosen = SPINNERS[spinnerName] ?? SPINNERS[DEFAULT_SPINNER]
   const SPINNER = chosen.frames
@@ -134,10 +134,10 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   //   question   → @PREFIX_COLOR   (color13 / mauve)
   //   retry      → color11         (yellow, from colors.toml)
   //   permission → color1          (red,    from colors.toml)
-  const C_IDLE   = tget("@CURRENT_COLOR") || "#94e2d5"
-  const C_QUEST  = tget("@PREFIX_COLOR")  || "#cba6f7"
-  const C_RETRY  = _tomlColor(/^color11\s*=\s*"([^"]+)"/m, "#f9e2af")
-  const C_PERM   = _tomlColor(/^color1\s*=\s*"([^"]+)"/m,  "#f38ba8")
+  const C_IDLE = tget("@CURRENT_COLOR") || "#94e2d5"
+  const C_QUEST = tget("@PREFIX_COLOR") || "#cba6f7"
+  const C_RETRY = _tomlColor(/^color11\s*=\s*"([^"]+)"/m, "#f9e2af")
+  const C_PERM = _tomlColor(/^color1\s*=\s*"([^"]+)"/m, "#f38ba8")
   // ─────────────────────────────────────────────────────────────────────────
   let spinnerFrame = 0
   let spinnerTimer: ReturnType<typeof setInterval> | null = null
@@ -160,9 +160,9 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   }
 
   const STATES: Record<string, string> = {
-    idle:       `#[fg=${C_IDLE}]󱥂 #[fg=default]`,
-    question:   `#[fg=${C_QUEST}]󱜻 #[fg=default]`,
-    retry:      `#[fg=${C_RETRY}]󰨄 #[fg=default]`,
+    idle: `#[fg=${C_IDLE}]󱥂 #[fg=default]`,
+    question: `#[fg=${C_QUEST}]󱜻 #[fg=default]`,
+    retry: `#[fg=${C_RETRY}]󰨄 #[fg=default]`,
     permission: `#[fg=${C_PERM}]󱅭 #[fg=default]`,
   }
 
@@ -224,13 +224,13 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     setWaybarState("")
     if (!tmuxPane) return
     tmux("set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state",
-         ";", "set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state_raw",
-         ";", "refresh-client", "-S")
+      ";", "set-option", "-w", "-t", tmuxPane, "-u", "@opencode_state_raw",
+      ";", "refresh-client", "-S")
   }
-  process.on("exit",   clearTmuxState)
-  process.on("SIGINT",  () => { clearTmuxState(); process.exit(0) })
+  process.on("exit", clearTmuxState)
+  process.on("SIGINT", () => { clearTmuxState(); process.exit(0) })
   process.on("SIGTERM", () => { clearTmuxState(); process.exit(0) })
-  process.on("SIGHUP",  () => { clearTmuxState(); process.exit(0) })
+  process.on("SIGHUP", () => { clearTmuxState(); process.exit(0) })
 
   return {
     "event": async ({ event }) => {
@@ -243,7 +243,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
           "/tmp/opencode-plugin-debug.log",
           `event: ${evtType}${statusType ? ` status=${statusType}` : ""}\n`,
         )
-      } catch {}
+      } catch { }
 
       const evtType = (event as any)?.type ?? "unknown"
 
@@ -268,7 +268,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       try {
         const fs = await import("node:fs")
         fs.appendFileSync("/tmp/opencode-plugin-debug.log", `session.status: ${statusType}\n`)
-      } catch {}
+      } catch { }
 
       // Reflect state in tmux status bar
       // Keep permission indicator visible while waiting for user reply.
@@ -287,12 +287,12 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       if (msg) {
         try {
           // Note: do NOT wrap template expressions in quotes — bun's $ handles escaping
-         // await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
+          // await $`notify-send ${msg.title} ${msg.body} -u ${msg.urgency}`
         } catch (err) {
           try {
             const fs = await import("node:fs")
             fs.appendFileSync("/tmp/opencode-plugin-debug.log", `notify-send error: ${err}\n`)
-          } catch {}
+          } catch { }
         }
       }
     },
@@ -302,13 +302,13 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       try {
         const fs = await import("node:fs")
         fs.appendFileSync("/tmp/opencode-plugin-debug.log", `tool.execute.before: ${toolName}\n`)
-      } catch {}
+      } catch { }
       if (toolName === "question") {
         // Switch to the question icon so the tab signals it needs attention
         setAppState("question")
         bell("󱜻 question", true)
         try {
-         // await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
+          // await $`notify-send "OpenCode Needs Attention" "The AI has a question for you" -u critical`
         } catch (err) {
           console.error("NotifyIdlePlugin: notify-send for question failed", err)
         }
@@ -322,7 +322,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       try {
         const fs = await import("node:fs")
         fs.appendFileSync("/tmp/opencode-plugin-debug.log", `permission.ask: ${tool}\n`)
-      } catch {}
+      } catch { }
       // Use the permission style (red alert) so it's visible in the status bar
       setAppState("permission")
       bell("󱅭 permission", true)
@@ -339,7 +339,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       try {
         const fs = await import("node:fs")
         fs.appendFileSync("/tmp/opencode-plugin-debug.log", `permission.asked: ${tool}\n`)
-      } catch {}
+      } catch { }
       // Use the permission style (red alert) so it's visible in the status bar
       setAppState("permission")
       bell("󱅭 permission", true)

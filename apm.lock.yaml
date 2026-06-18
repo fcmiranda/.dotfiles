@@ -1,7 +1,16 @@
 lockfile_version: '1'
-generated_at: '2026-05-12T00:40:05.515402+00:00'
-apm_version: 0.13.0
+generated_at: '2026-06-18T08:55:32.340055+00:00'
+apm_version: 0.15.0
 dependencies:
+- repo_url: anthropics/skills
+  host: github.com
+  resolved_commit: 57546260929473d4e0d1c1bb75297be2fdfa1949
+  package_type: marketplace_plugin
+  deployed_files:
+  - .agents/skills/skill-creator
+  content_hash: sha256:4f6d306e750b5b4f3b0dfc0f50418fa8403b3fc99867d5c2f7c170eccf94203b
+  skill_subset:
+  - skill-creator
 - repo_url: github/awesome-copilot
   host: github.com
   resolved_commit: c1151e395975e48a8f3273b66ffd6a6f71e613c7

@@ -5,6 +5,9 @@ author: felipe cavalcante miranda
 dependencies:
   apm:
   - github/awesome-copilot/skills/review-and-refactor
+  - git: anthropics/skills
+    skills:
+    - skill-creator
   mcp: []
 includes: auto
 scripts: {}

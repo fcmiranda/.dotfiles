@@ -27,7 +27,7 @@ unset _seg_bg _fg _accent
 # TMUX_SPINNER_NAME: dot, minidot, line, jump, pulse, points, meter, hamburger,
 #                   ellipsis, globe, moon, monkey, arc, nerd, nerdarc
 TMUX_SPINNER_NAME="arc"
-# TMUX_SPINNER_COLOR: used by bfzf --spinner-color and opencode-state.sh #[fg=...].
+# TMUX_SPINNER_COLOR: used by --spinner-color and opencode-state.sh #[fg=...].
 TMUX_SPINNER_COLOR=$(_tget @ACCENT_COLOR)
 
 unset -f _tget

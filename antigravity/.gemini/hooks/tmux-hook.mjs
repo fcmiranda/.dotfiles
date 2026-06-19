@@ -1,197 +1,56 @@
-import fs from 'node:fs';
-import { spawnSync, spawn } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
-const PID_FILE = '/tmp/agy-spinner.pid';
-const WAYBAR_FILE = '/tmp/ai-agent-waybar-state';
-
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks).toString('utf-8');
-}
-
-function getTmuxColor(opt, fallback) {
-  const res = spawnSync('tmux', ['show-option', '-gqv', opt], { encoding: 'utf8' });
-  return res.stdout?.trim() || fallback;
-}
-
-function getTomlColor(patternStr, fallback) {
+async function sendAcpState(paneId, state, message = null) {
+  if (!paneId) return;
   try {
-    const pattern = new RegExp(patternStr, 'm');
-    const content = fs.readFileSync(`${process.env.HOME}/.config/omarchy/current/theme/colors.toml`, 'utf8');
-    const match = content.match(pattern);
-    return match ? match[1] : fallback;
-  } catch (e) {
-    return fallback;
-  }
-}
-
-function stopSpinner() {
-  if (fs.existsSync(PID_FILE)) {
-    try {
-      const pid = parseInt(fs.readFileSync(PID_FILE, 'utf8'), 10);
-      process.kill(pid, 'SIGTERM');
-    } catch (e) { }
-    try { fs.unlinkSync(PID_FILE); } catch (e) { }
-  }
-}
-
-function startSpinner(tmuxPane) {
-  stopSpinner(); // ensure no duplicates
-
-  // Resolve spinner config in a detached script to keep animating
-  const spinnerScript = `
-    const fs = require('fs');
-    const { spawnSync } = require('child_process');
-    const pane = '${tmuxPane}';
-    
-    const SPINNERS = {
-      arc: { frames: ["◜", "◠", "◝", "◞", "◡", "◟"], interval: 150 },
-      moon: { frames: ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"], interval: 125 },
-      minidot: { frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"], interval: 83 }
-    };
-    
-    let spinnerName = process.env.AGY_SPINNER || 'arc';
-    let intervalOverride = null;
-    let colorOverride = null;
-    
-    try {
-      const cfg = JSON.parse(fs.readFileSync(process.env.HOME + '/.config/agy/hooker-config.json', 'utf8'));
-      if (!process.env.AGY_SPINNER && cfg.spinner) spinnerName = cfg.spinner;
-      if (typeof cfg.interval === 'number') intervalOverride = cfg.interval;
-      if (typeof cfg.color === 'string') colorOverride = cfg.color;
-    } catch(e){}
-    
-    const chosen = SPINNERS[spinnerName] || SPINNERS.arc;
-    const frames = chosen.frames;
-    const interval = intervalOverride || chosen.interval;
-    
-    const tmuxColor = spawnSync('tmux', ['show-option', '-gqv', '@ACCENT_COLOR'], {encoding:'utf8'}).stdout || '';
-    const color = colorOverride || tmuxColor.trim() || 'yellow';
-    
-    try { fs.writeFileSync('${WAYBAR_FILE}', 'busy', 'utf8'); } catch(e){}
-    spawnSync('pkill', ['-RTMIN+13', 'waybar']);
-
-    let i = 0;
-    const timer = setInterval(() => {
-      const frame = frames[i++ % frames.length];
-      const val = '#[fg=' + color + ']' + frame + ' #[fg=default]';
-      spawnSync('tmux', [
-        'set-option', '-w', '-t', pane, '@ai_agent_state', val, 
-        ';', 'set-option', '-w', '-t', pane, '@ai_agent_state_raw', 'busy', 
-        ';', 'refresh-client', '-S'
-      ]);
-    }, interval);
-
-    process.on('SIGTERM', () => {
-      clearInterval(timer);
-      process.exit(0);
+    await fetch('http://127.0.0.1:4040/api/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pane_id: paneId, state, message }),
     });
-  `;
-  const child = spawn('node', ['-e', spinnerScript], { detached: true, stdio: 'ignore' });
-  fs.writeFileSync(PID_FILE, child.pid.toString(), 'utf8');
-  child.unref();
-}
-
-function setStaticState(tmuxPane, stateStr, rawState) {
-  stopSpinner();
-  try { fs.writeFileSync(WAYBAR_FILE, rawState, 'utf8'); } catch (e) { }
-  spawnSync('pkill', ['-RTMIN+13', 'waybar'], { stdio: 'ignore' });
-  if (!tmuxPane) return;
-  spawnSync('tmux', [
-    'set-option', '-w', '-t', tmuxPane, '@ai_agent_state', stateStr,
-    ';', 'set-option', '-w', '-t', tmuxPane, '@ai_agent_state_raw', rawState,
-    ';', 'refresh-client', '-S'
-  ], { stdio: 'ignore' });
-}
-
-function bell(tmuxPane, action) {
-  if (!tmuxPane) return;
-
-  const tmuxSession = (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#S"], { encoding: "utf8" }).stdout || "").trim();
-  const tmuxWindowId = (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#{window_id}"], { encoding: "utf8" }).stdout || "").trim();
-
-  // Don't ring bell if already focused
-  const listClients = spawnSync("tmux", ["list-clients", "-F", "#{client_session} #{window_id}"], { encoding: "utf8" }).stdout || "";
-  const anyOtherClient = listClients
-    .trim().split("\n").filter(Boolean)
-    .some((line) => {
-      const [cs, wid] = line.split(" ");
-      return !(cs === tmuxSession && wid === tmuxWindowId);
-    });
-
-  if (!anyOtherClient) return;
-
-  const tmuxWindowIndex = (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#I"], { encoding: "utf8" }).stdout || "").trim();
-  const tmuxWindow = (spawnSync("tmux", ["display-message", "-t", tmuxPane, "-p", "#W"], { encoding: "utf8" }).stdout || "").trim();
-
-  const msg = `  #[fg=cyan]${tmuxWindowIndex}:${tmuxWindow} › ${action} #[fg=yellow](i)#[fg=default]`;
-  spawnSync("tmux", ["set", "-g", "@ai_agent_last_bell", tmuxPane]);
-  spawnSync("tmux", ["set", "-g", "@ai_agent_bell", msg, ";", "refresh-client", "-S"]);
-
-  const cleaner = spawn("sh", ["-c", `sleep 7 && tmux set -g @ai_agent_bell '' && tmux refresh-client -S`], { detached: true, stdio: "ignore" });
-  cleaner.unref();
+  } catch (e) { 
+    // Ignore errors so the agent doesn't crash if the acpd daemon is down
+  }
 }
 
 async function main() {
   const eventType = process.argv[2];
   let tmuxPane = process.env.TMUX_PANE || '';
   if (!tmuxPane) {
-    tmuxPane = spawnSync('tmux', ['display-message', '-p', '#{pane_id}'], { encoding: 'utf8' }).stdout?.trim() || '';
+    tmuxPane = spawnSync('tmux', ['display-message', '-p', '#{pane_id}']).stdout?.toString().trim() || '';
   }
 
-  try {
-    const inputStr = await readStdin();
-    const context = inputStr.trim() ? JSON.parse(inputStr) : {};
-
-    // Debug logging
-    try { fs.appendFileSync('/tmp/agy-plugin-debug.log', `Hook ${eventType}: ${inputStr} | TMUX_PANE: ${tmuxPane}\n`); } catch (e) { }
-
-    if (eventType === 'SessionStart' || eventType === 'PreInvocation') {
-      if (tmuxPane) {
-        startSpinner(tmuxPane);
-      }
-    }
-    else if (eventType === 'PreToolUse') {
-      const toolCall = context.toolCall || {};
-      const toolName = toolCall.name || context.tool_name || context.tool || '';
-      // Map ask_user / permission prompts to question state
-      if (['ask_user', 'question', 'ask_question'].includes(toolName)) {
-        const cQuest = getTmuxColor('@PREFIX_COLOR', '#cba6f7');
-        setStaticState(tmuxPane, `#[fg=${cQuest}]󱜻 #[fg=default]`, 'question');
-        bell(tmuxPane, '󱜻 question');
-      } else if (['request_permission', 'ask_permission'].includes(toolName)) {
-        const cPerm = getTomlColor('^color1\\\\s*=\\\\s*"([^"]+)"', '#f38ba8');
-        setStaticState(tmuxPane, `#[fg=${cPerm}]󱅭 #[fg=default]`, 'permission');
-        bell(tmuxPane, '󱅭 permission');
-      } else {
-        if (tmuxPane) startSpinner(tmuxPane);
-      }
-      console.log(JSON.stringify(context)); // Allow the tool by echoing context back
-      process.exit(0);
-    }
-    else if (eventType === 'PostToolUse') {
-      // Keep state as busy until Stop is called or next tool is pre-used
-      process.exit(0);
-    }
-    else if (eventType === 'Stop' || eventType === 'PostInvocation') {
-      const cIdle = getTmuxColor('@CURRENT_COLOR', '#94e2d5');
-      setStaticState(tmuxPane, `#[fg=${cIdle}]󱥂 #[fg=default]`, 'idle');
-      bell(tmuxPane, '󱥂 finished');
-      process.exit(0);
-    }
-    else {
-      console.log(JSON.stringify(context));
-      process.exit(0);
-    }
-
-  } catch (err) {
-    try { fs.appendFileSync('/tmp/agy-plugin-debug.log', `Error: ${err.message}\n`); } catch (e) { }
-    if (eventType === 'PreToolUse') console.log(JSON.stringify(context || {}));
-    process.exit(0);
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk);
   }
+  const inputStr = Buffer.concat(chunks).toString('utf-8');
+  const ctx = inputStr.trim() ? JSON.parse(inputStr) : {};
+
+  if (['SessionStart', 'PreInvocation'].includes(eventType)) {
+    await sendAcpState(tmuxPane, 'working');
+  } 
+  else if (eventType === 'PreToolUse') {
+    const toolCall = ctx.toolCall || {};
+    const toolName = toolCall.name || ctx.tool_name || ctx.tool || '';
+    
+    if (['ask_user', 'question', 'ask_question'].includes(toolName)) {
+      await sendAcpState(tmuxPane, 'awaiting_input');
+    } else if (['request_permission', 'ask_permission'].includes(toolName)) {
+      await sendAcpState(tmuxPane, 'permission');
+    } else {
+      await sendAcpState(tmuxPane, 'working');
+    }
+  } 
+  else if (['Stop', 'PostInvocation'].includes(eventType)) {
+    await sendAcpState(tmuxPane, 'idle');
+  }
+
+  // Echo the context back so we don't break the pipeline
+  if (!['SessionStart', 'PreInvocation'].includes(eventType)) {
+    console.log(JSON.stringify(ctx));
+  }
+  process.exit(0);
 }
 
 main();

@@ -1,0 +1,14 @@
+{
+  "model": "Gemini 3.1 Pro (Low)",
+  "notifications": true,
+  "permissions": {
+    "allow": [
+      "command(sleep)",
+      "command(cargo add async-trait)"
+    ]
+  },
+  "trustedWorkspaces": [
+    "/home/fecavmi/.dotfiles/main",
+    "/home/fecavmi"
+  ]
+}

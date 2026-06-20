@@ -18,6 +18,10 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 . "$_tmux_style"
 unset _tmux_style
 
+# Extract the active spinner from acpd if available (acpd sets this on startup)
+ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
+[ -n "$ACPD_SPINNER" ] && TMUX_SPINNER_NAME="$ACPD_SPINNER"
+
 "$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT" \

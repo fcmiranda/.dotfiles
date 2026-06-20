@@ -40,8 +40,9 @@ C_CURMARK=$(_hex_esc "$(_tget @CURRENT_COLOR)")
 C_DIMMARK=$(_hex_esc "$(_tget @SEGMENT_BG)")
 C_IDLE=$(_hex_esc "$(_tget @CURRENT_COLOR)")
 C_QUESTION=$(_hex_esc "$(_tget @PREFIX_COLOR)")
-C_RETRY=$(_hex_esc "$_color11")
+C_BUSY=$(_hex_esc "$_color11")
 C_PERM=$(_hex_esc "$_color1")
+C_ERROR=$(_hex_esc "$_color1")
 C_IDX=$(_hex_esc "$(_tget @SEGMENT_BG)")
 C_NAME=$(_hex_esc "$(_tget @FG)")
 
@@ -71,7 +72,7 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
       busy)
         icon="󰑮"
         title="$idx $name $icon"
-        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_IDLE}@SPIN@${R}      "
+        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_BUSY}@SPIN@${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       idle)
@@ -86,10 +87,10 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
         display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_QUESTION}󱜻${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
-      retry)
+      error)
         icon="󰨄"
         title="$idx $name $icon"
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_RETRY}󰨄${R}      "
+        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${C_ERROR}󰨄${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       permission)

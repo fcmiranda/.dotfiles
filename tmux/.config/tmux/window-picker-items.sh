@@ -23,7 +23,7 @@ _hex_esc() {
 R='\033[0m'
 BOLD='\033[1m'
 # @SESSION_COLOR  → color4  (blue)       — session group header
-# @ACCENT_COLOR   → accent  (blue)       — current-window marker / cursor mark
+# @CURRENT_COLOR  → color14 (teal)       — current-window marker / cursor mark / idle AI state
 # @SEGMENT_BG     → color8  (surface1)   — dim marker / index
 # @CURRENT_COLOR  → color14 (teal)       — idle AI state
 # @PREFIX_COLOR   → color13 (mauve/pink) — question AI state
@@ -36,7 +36,7 @@ _color1=$(grep '^color1 ' "$_colors_toml" 2>/dev/null | sed 's/.*= *"\(.*\)"/\1/
 [ -z "$_color1"  ] && _color1="#f38ba8"   # catppuccin red fallback
 
 C_SESSION=$(printf '\033[1m'; _hex_esc "$(_tget @SESSION_COLOR)")
-C_CURMARK=$(_hex_esc "$(_tget @ACCENT_COLOR)")
+C_CURMARK=$(_hex_esc "$(_tget @CURRENT_COLOR)")
 C_DIMMARK=$(_hex_esc "$(_tget @SEGMENT_BG)")
 C_IDLE=$(_hex_esc "$(_tget @CURRENT_COLOR)")
 C_QUESTION=$(_hex_esc "$(_tget @PREFIX_COLOR)")
@@ -61,7 +61,7 @@ tmux list-sessions -F '#S' | while IFS= read -r session; do
 
     if [ "$session" = "$cur_session" ] && [ "$idx" = "$cur_window" ]; then
       mark="${C_CURMARK}•${R}"
-      c_cur_name="$C_CURMARK"
+      c_cur_name="${BOLD}${C_CURMARK}"
     else
       mark="${C_DIMMARK}·${R}"
       c_cur_name="$C_NAME"

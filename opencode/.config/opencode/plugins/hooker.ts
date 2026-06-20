@@ -1,4 +1,5 @@
 import type { Plugin } from "@opencode-ai/plugin"
+import { execSync } from "child_process"
 
 /**
  * Thin Client Plugin that:
@@ -6,6 +7,21 @@ import type { Plugin } from "@opencode-ai/plugin"
  */
 export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   const tmuxPane = process.env.TMUX_PANE ?? ""
+
+  if (tmuxPane) {
+    process.on("exit", () => {
+      try {
+        execSync(`curl -s -X POST http://127.0.0.1:4040/api/status -H "Content-Type: application/json" -d '{"pane_id":"${tmuxPane}","state":"closed"}'`);
+      } catch {
+        // Ignore errors on exit
+      }
+    });
+
+    // Handle Ctrl+C properly to trigger exit
+    process.on("SIGINT", () => {
+      process.exit(0);
+    });
+  }
 
   const sendAcpState = async (state: string, message: string | null = null) => {
     if (!tmuxPane) return;

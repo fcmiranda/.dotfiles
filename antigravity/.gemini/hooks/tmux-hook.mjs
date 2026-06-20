@@ -45,6 +45,9 @@ async function main() {
   else if (['Stop', 'PostInvocation'].includes(eventType)) {
     await sendAcpState(tmuxPane, 'idle');
   }
+  else if (['SessionEnd', 'Exit'].includes(eventType)) {
+    await sendAcpState(tmuxPane, 'closed');
+  }
 
   // Echo the context back so we don't break the pipeline
   if (!['SessionStart', 'PreInvocation'].includes(eventType)) {

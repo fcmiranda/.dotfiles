@@ -9,3 +9,4 @@ alias clear="clear && [ -n \"\$TMUX\" ] && tmux clear-history"
 alias scrollback='tmux capture-pane -epS - > /tmp/tmux_scrollback.ansi && nvim -c "BaleiaColorize" -c "normal G" /tmp/tmux_scrollback.ansi'
 alias adopt='bash $HOME/.dotfiles/main/.shell/sh/stow-adopt-path.sh'
 alias oc='exec /usr/bin/opencode'
+alias agy="$HOME/.dotfiles/main/antigravity/.gemini/hooks/agy-wrapper.sh"

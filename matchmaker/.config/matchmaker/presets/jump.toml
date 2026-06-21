@@ -32,6 +32,8 @@ percentage = 80
 [binds]
 "@reloadnext" = "ReloadNext"
 "ctrl-z" = "@reloadnext"
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
 
 [ui.nav_binds]
 "ctrl-z" = "@reloadnext"

@@ -3,7 +3,7 @@ nav_mode = true
 nav_basic = true
 nav_bar = "Plain"
 nav_color = "Black"
-
+nav_prompt = ""
 [start]
 sort = false
 ansi = true
@@ -12,11 +12,12 @@ command = "sesh list --icons"
 [matcher]
 sort_threshold = false
 
+
 [ui.border]
 sides = ""
 
 [query]
-prompt = "⚡  "
+prompt = "⚡"
 status_inline = true
 
 [results]

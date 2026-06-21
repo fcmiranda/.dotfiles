@@ -22,10 +22,16 @@ unset _tmux_style
 ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
 [ -n "$ACPD_SPINNER" ] && TMUX_SPINNER_NAME="$ACPD_SPINNER"
 
+# Calculate the index of the current window for the initial selection
+# We ignore group headers (lines starting with '#') and find the 0-based index of the row containing '•'
+START_IDX=$("$ITEMS_SCRIPT" | awk '!/^#/ {n++} /•/ {print n-1; exit}')
+[ -z "$START_IDX" ] && START_IDX=0
+
 "$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT" \
   results.spinner="$TMUX_SPINNER_NAME" \
+  binds.Synced="Pos($START_IDX)|||Unbind(Synced)" \
   --color "spinner:$TMUX_SPINNER_COLOR" \
   --color "$TMUX_COLOR_SPEC" \
   --group-prefix '#' \

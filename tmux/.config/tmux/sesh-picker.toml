@@ -9,6 +9,10 @@ sort = false
 ansi = true
 command = "sesh list --icons"
 
+[tui]
+percentage = 100
+max = 9999
+
 [matcher]
 sort_threshold = false
 

@@ -9,7 +9,7 @@ if [ "$1" = "--fullscreen" ]; then
   fi
 elif [ -z "$TMUX_POPUP" ]; then
   echo "[$(date)] exec tmux display-popup -b rounded -w 80% -E \"TMUX_POPUP=1 $0\"" >> /tmp/sesh-picker-mm.log
-  exec tmux display-popup -b rounded -w 80%  -E "TMUX_POPUP=1 $0"
+  exec tmux display-popup -b rounded -w 80% -h 35%  -E "TMUX_POPUP=1 $0"
 fi
 
 SCRIPT_DIR=$(dirname "$0")

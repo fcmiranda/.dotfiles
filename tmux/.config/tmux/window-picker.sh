@@ -7,7 +7,7 @@ if [ "$1" = "--fullscreen" ]; then
     exec tmux split-window -Z "$0" --fullscreen
   fi
 elif [ -z "$TMUX_POPUP" ]; then
-  exec tmux display-popup -b rounded -w 80% -h 35% -E "TMUX_POPUP=1 $0"
+  exec tmux display-popup -b rounded -w 80% -h 35% -y 30 -E "TMUX_POPUP=1 $0"
 fi
 
 SCRIPT_DIR=$(dirname "$0")

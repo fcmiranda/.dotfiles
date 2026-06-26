@@ -228,53 +228,6 @@ copilot() {
   return $_copilot_exit
 }
 
-# rebuild_lazygirts - Build and reinstall lazygitrs + lazygirts alias
-# Usage: rebuild_lazygirts [-b <branch>] [repo_path]
-#   -b <branch>  Build from a worktree branch (e.g. -b ai-commit-shortcut)
-#   repo_path    Explicit path to repo (overrides -b)
-rebuild_lazygirts() {
-    local branch=""
-    while [[ "$1" == -* ]]; do
-        case "$1" in
-            -b|--branch) branch="$2"; shift 2 ;;
-            -h|--help)
-                echo "Usage: rebuild_lazygirts [-b <branch>] [repo_path]"
-                echo "  -b <branch>  Build from a worktree branch folder"
-                echo "Default repo_path: $HOME/dev/github/lazygitrs/main"
-                return 0
-                ;;
-            *) echo "Unknown option: $1"; return 1 ;;
-        esac
-    done
-
-    local base_dir="$HOME/dev/github/lazygitrs"
-    local default_path="${branch:+$base_dir/$branch}"
-    local repo_path="${1:-${default_path:-$base_dir/main}}"
-    local cargo_bin="$HOME/.cargo/bin/cargo"
-    local install_dir="$HOME/.local/bin"
-
-    if [[ ! -d "$repo_path" ]]; then
-        echo "Error: repo not found: $repo_path"
-        return 1
-    fi
-
-    if [[ ! -x "$cargo_bin" ]]; then
-        echo "Error: cargo not found at $cargo_bin"
-        return 1
-    fi
-
-    echo "Building lazygitrs from: $repo_path"
-    (cd "$repo_path" && "$cargo_bin" build --release) || return 1
-
-    mkdir -p "$install_dir" || return 1
-    install -m 755 "$repo_path/target/release/lazygitrs" "$install_dir/lazygitrs" || return 1
-    ln -sf "$install_dir/lazygitrs" "$install_dir/lazygirts" || return 1
-
-    echo "Installed: $install_dir/lazygitrs"
-    echo "Alias:     $install_dir/lazygirts"
-    "$install_dir/lazygirts" --version
-}
-
 # wtr - Rename a worktrunk branch and its directory
 # Usage: wtr [old-name] <new-name>
 #   If old-name is omitted, it defaults to the branch of the current worktree.

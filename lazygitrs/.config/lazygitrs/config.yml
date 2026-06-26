@@ -16,3 +16,6 @@ keybinding:
   overrides:
     files.commitChanges: "C"
     universal.refresh: "r"
+
+aiNotes:
+  enabled: true

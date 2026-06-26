@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
 async function main() {
@@ -42,9 +42,29 @@ async function main() {
     // Look for the conversation ID in the context payload or environment
     const conversationId = ctx.conversationId || ctx.conversation_id || process.env.AGY_CONVERSATION_ID || ctx.id;
 
+    let bridgeStatus = '✅ Lazygit SSE Bridge online';
+    let fallbackWarning = '';
+
+    // Ensure SSE bridge is running
+    try {
+      execSync('pgrep -f lazygit-sse-bridge.sh');
+    } catch (e) {
+      // pgrep exits with 1 if no process matches
+      try {
+        const sseProcess = spawn('bash', ['/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-sse-bridge.sh'], {
+          detached: true,
+          stdio: 'ignore'
+        });
+        sseProcess.unref();
+      } catch (err) {
+        bridgeStatus = '❌ SSE Bridge Error';
+        fallbackWarning = ' (Using subprocess fallback)';
+      }
+    }
+
     if (conversationId) {
       try {
-        await fetch('http://127.0.0.1:47657/session-api', {
+        const res = await fetch('http://127.0.0.1:47657/session-api', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -55,9 +75,21 @@ async function main() {
             force: true
           }),
         });
+        if (!res.ok) {
+          bridgeStatus = '⚠️ Lazygitrs registration rejected';
+          fallbackWarning = ' (Fallback active)';
+        }
       } catch (e) {
-        // lazygitrs is probably not running, fail silently
+        // lazygitrs is probably not running
+        bridgeStatus = '⚠️ Lazygitrs offline';
+        fallbackWarning = ' (Start lazygitrs to integrate)';
       }
+    }
+
+    if (tmuxPane) {
+      try {
+        execSync(`tmux display-message -t "${tmuxPane}" "[AGY] ${bridgeStatus}${fallbackWarning}"`);
+      } catch (e) {}
     }
   }
 

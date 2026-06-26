@@ -5,6 +5,11 @@
         "type": "command",
         "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs PreInvocation",
         "timeout": 0
+      },
+      {
+        "type": "command",
+        "command": "node /home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-hook.mjs PreInvocation",
+        "timeout": 0
       }
     ],
     "PostInvocation": [

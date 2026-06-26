@@ -2,69 +2,111 @@
 import { execSync, spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
-async function main() {
-  const eventType = process.argv[2];
+const API_BASE_URL = 'http://127.0.0.1:47657/session-api';
 
+async function readStdin() {
   const chunks = [];
   for await (const chunk of process.stdin) {
     chunks.push(chunk);
   }
   const inputStr = Buffer.concat(chunks).toString('utf-8');
   let ctx = {};
-  try {
-    ctx = inputStr.trim() ? JSON.parse(inputStr) : {};
-  } catch (e) { }
+  if (inputStr.trim()) {
+    try {
+      ctx = JSON.parse(inputStr);
+    } catch (e) {
+      // Ignore parse error, return empty object
+    }
+  }
+  return { inputStr, ctx };
+}
 
-  const conversationId = ctx.session_id || process.env.ANTIGRAVITY_CONVERSATION_ID;
+function getActiveTmuxPane() {
+  let tmuxPane = process.env.TMUX_PANE || '';
+  if (!tmuxPane) {
+    try {
+      tmuxPane = execSync('tmux display-message -p "#{pane_id}"', { stdio: 'pipe' }).toString().trim();
+    } catch (e) { }
+  }
+  if (!tmuxPane) {
+    try {
+      const panes = execSync('tmux list-panes -a -F "#{pane_id} #{pane_current_command}"', { stdio: 'pipe' }).toString();
+      const agyPaneLine = panes.split('\n').find(line => line.includes('agy') || line.includes('node'));
+      if (agyPaneLine) {
+        tmuxPane = agyPaneLine.split(' ')[0];
+      }
+    } catch (e) { }
+  }
+  return tmuxPane;
+}
+
+function saveTmuxPane(tmuxPane) {
+  if (tmuxPane) {
+    try {
+      writeFileSync('/tmp/agy-active-pane.txt', tmuxPane);
+    } catch (e) { }
+  }
+}
+
+function notifyTmux(pane, message) {
+  if (!pane) return;
+  try {
+    execSync(`tmux display-message -t "${pane}" "${message}"`, { stdio: 'pipe' });
+  } catch (e) { }
+}
+
+async function registerLazygitrs(conversationId, tmuxPane) {
+  if (!conversationId) return;
 
   let bridgeStatus = '✅ Lazygit SSE Bridge online';
   let fallbackWarning = '';
 
-  if (conversationId) {
-    try {
-      // Check if already registered
-      const checkRes = await fetch('http://127.0.0.1:47657/session-api/session');
-      let isAlreadyRegistered = false;
-
-      if (checkRes.ok) {
-        const currentSessionData = await checkRes.json();
-        if (currentSessionData && currentSessionData.sessionId === conversationId) {
-          isAlreadyRegistered = true;
-        }
-      }
-
-      if (!isAlreadyRegistered) {
-        const res = await fetch('http://127.0.0.1:47657/session-api', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'register',
-            sessionId: conversationId,
-            cli: 'antigravity',
-            notifyCommand: 'agy --conversation {{session_id}} --print {{prompt}}',
-            force: true
-          }),
-        });
-        if (!res.ok) {
-          bridgeStatus = '⚠️ Lazygitrs registration rejected';
-          fallbackWarning = ' (Fallback active)';
-        } else {
-          bridgeStatus = '✅ Registered Lazygitrs session';
-          try { execSync('notify-send "Antigravity" "Lazygitrs session successfully registered"'); } catch (e) { }
-        }
-      } else {
-        bridgeStatus = '✅ Lazygitrs session already registered';
-      }
-    } catch (e) {
-      // lazygitrs is probably not running
-      bridgeStatus = '⚠️ Lazygitrs offline';
-      fallbackWarning = ' (Start lazygitrs to integrate)';
-    }
-  }
-
-  // Ensure SSE bridge is running
   try {
-    execSync('pgrep -f lazygit-sse-bridge.sh');
+    const checkRes = await fetch(`${API_BASE_URL}/session`);
+    let isAlreadyRegistered = false;
+
+    if (checkRes.ok) {
+      const currentSessionData = await checkRes.json();
+      if (currentSessionData && currentSessionData.sessionId === conversationId) {
+        isAlreadyRegistered = true;
+      }
+    }
+
+    if (!isAlreadyRegistered) {
+      const res = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
+          sessionId: conversationId,
+          cli: 'antigravity',
+          notifyCommand: 'agy --conversation {{session_id}} --print {{prompt}}',
+          force: true
+        }),
+      });
+
+      if (!res.ok) {
+        bridgeStatus = '⚠️ Lazygitrs registration rejected';
+        fallbackWarning = ' (Fallback active)';
+      } else {
+        bridgeStatus = '✅ Registered Lazygitrs session';
+        notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning} - conversation id: ${conversationId}`);
+      }
+    } else {
+      bridgeStatus = '✅ Lazygitrs session already registered';
+    }
+
+  } catch (e) {
+    // lazygitrs is probably not running
+    bridgeStatus = '⚠️ Lazygitrs offline';
+    fallbackWarning = ' (Start lazygitrs to integrate)';
+    notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning}`);
+  }
+}
+
+function ensureSseBridge() {
+  try {
+    execSync('pgrep -f lazygit-sse-bridge.sh', { stdio: 'pipe' });
   } catch (e) {
     // pgrep exits with 1 if no process matches
     try {
@@ -73,45 +115,20 @@ async function main() {
         stdio: 'ignore'
       });
       sseProcess.unref();
-    } catch (err) {
-      bridgeStatus = '❌ SSE Bridge Error';
-      fallbackWarning = ' (Using subprocess fallback)';
-    }
+    } catch (err) { }
   }
+}
 
-  // Stdin parsing moved to the top of main()
+async function main() {
+  const { inputStr, ctx } = await readStdin();
 
-  // Save the active tmux pane so the SSE bridge knows where to inject keys
-  let tmuxPane = process.env.TMUX_PANE || '';
-  if (!tmuxPane) {
-    try {
-      tmuxPane = execSync('tmux display-message -p "#{pane_id}"').toString().trim();
-    } catch (e) { }
-  }
-  if (!tmuxPane) {
-    try {
-      const panes = execSync('tmux list-panes -a -F "#{pane_id} #{pane_current_command}"').toString();
-      const agyPaneLine = panes.split('\n').find(line => line.includes('agy') || line.includes('node'));
-      if (agyPaneLine) {
-        tmuxPane = agyPaneLine.split(' ')[0];
-      }
-    } catch (e) { }
-  }
-  if (tmuxPane) {
-    try {
-      writeFileSync('/tmp/agy-active-pane.txt', tmuxPane);
-    } catch (e) { }
-  }
+  const tmuxPane = getActiveTmuxPane();
+  saveTmuxPane(tmuxPane);
 
-  if (tmuxPane) {
-    try {
-      // We don't want to spam tmux either, but we can do it on the first run of the hook.
-      // Wait, let's only do it if we just registered it to avoid spam.
-      if (bridgeStatus === '✅ Registered Lazygitrs session' || bridgeStatus === '⚠️ Lazygitrs offline') {
-        execSync(`tmux display-message -t "${tmuxPane}" "[AGY] ${bridgeStatus}${fallbackWarning}"`);
-      }
-    } catch (e) { }
-  }
+  const conversationId = ctx.session_id || process.env.ANTIGRAVITY_CONVERSATION_ID;
+  await registerLazygitrs(conversationId, tmuxPane);
+
+  ensureSseBridge();
 
   // Echo the context back so we don't break the hook pipeline
   if (inputStr.trim()) {

@@ -3,19 +3,17 @@ git:
     generateCommand: "lazycommit commit --message-only --silent-empty"
 
 gui:
-  theme:
-    borderType: rounded
-    borderSides: [all]
+  border: "rounded"
 
 keybinding:
+  universal:
+    refresh: "r"
   files:
     generateAICommit: "G"
+    commitChanges: "C"
   commitMessage:
     commitMenu: "<c-o>"
     aiGenerate: "<c-g>"
-  overrides:
-    files.commitChanges: "C"
-    universal.refresh: "r"
 
 aiNotes:
   enabled: true

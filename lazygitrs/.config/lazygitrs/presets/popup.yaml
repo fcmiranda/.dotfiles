@@ -1,0 +1,152 @@
+gui:
+  scrollHeight: 2
+  scrollPastBottom: true
+  mouseEvents: true
+  skipDiscardChangeWarning: false
+  sidePanelWidth: 0.3333
+  theme:
+    activeBorderColor:
+    - green
+    inactiveBorderColor:
+    - default
+    selectedLineBgColor:
+    - blue
+    optionsTextColor:
+    - blue
+  showFileTree: true
+  showCommandLog: true
+  showBottomLine: true
+  nerdFontsVersion: '3'
+  border: hidden
+git:
+  autoFetch: true
+  autoRefresh: true
+  branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
+  paging:
+    useConfig: false
+  commit:
+    signOff: false
+    autoWrapCommitMessage: true
+    autoWrapWidth: 72
+    generateCommand: ''
+  merging:
+    manualCommit: false
+    args: ''
+refresher:
+  refreshInterval: 10
+  fetchInterval: 60
+keybinding:
+  universal:
+    quit: q
+    quit-alt1: <c-c>
+    return: <escape>
+    quitWithoutChangingDirectory: Q
+    togglePanel: <tab>
+    togglePanelReverse: <backtab>
+    prevItem: k
+    nextItem: j
+    prevItem-alt: <up>
+    nextItem-alt: <down>
+    prevPage: <pgup>
+    nextPage: <pgdown>
+    scrollLeft: H
+    scrollRight: L
+    gotoTop: <
+    gotoBottom: '>'
+    prevBlock: <left>
+    nextBlock: <right>
+    prevBlock-alt: h
+    nextBlock-alt: l
+    nextMatch: n
+    prevMatch: N
+    startSearch: /
+    optionMenu: x
+    edit: e
+    openFile: o
+    scrollUpMain: <pgup>
+    scrollDownMain: <pgdown>
+    scrollUpMain-alt1: K
+    scrollDownMain-alt1: J
+    undo: z
+    redo: <c-z>
+    filteringMenu: <c-s>
+    diffingMenu: W
+    copyToClipboard: <c-o>
+    refresh: R
+    createRebaseOptionsMenu: m
+    pushFiles: P
+    pullFiles: p
+    nextScreenMode: +
+    prevScreenMode: _
+    createPatchOptionsMenu: <c-p>
+    revertBlock: <enter>
+    undoRevertBlock: u
+    shrinkSidePanel: <a-h>
+    expandSidePanel: <a-l>
+    sidePanelFull: <a-k>
+    mainPanelFull: <a-j>
+    resetSidePanel: <a-r>
+  status:
+    checkForUpdate: u
+    recentRepos: <enter>
+    allBranchesLogGraph: a
+  files:
+    commitChanges: c
+    generateAICommit: <c-g>
+    commitChangesWithoutHook: w
+    amendLastCommit: A
+    commitChangesWithEditor: C
+    toggleStagedAll: a
+    stashAllChanges: s
+    viewStashOptions: S
+    toggleTreeView: '`'
+    fetch: f
+    ignoreFile: i
+  branches:
+    createPullRequest: o
+    viewPullRequestOptions: O
+    checkoutBranchByName: c
+    forceCheckoutBranch: F
+    rebaseBranch: r
+    renameBranch: R
+    mergeIntoCurrentBranch: M
+    fastForward: f
+    setUpstream: u
+  commits:
+    squashDown: s
+    renameCommit: r
+    renameCommitWithEditor: R
+    viewResetOptions: g
+    markCommitAsFixup: f
+    createFixupCommit: F
+    squashAboveCommits: S
+    moveDownCommit: <c-j>
+    moveUpCommit: <c-k>
+    amendToCommit: A
+    pickCommit: p
+    revertCommit: t
+    cherryPickCopy: C
+    pasteCommits: V
+    tagCommit: T
+    checkoutCommit: <space>
+    resetCherryPick: <c-q>
+    openLogMenu: <c-l>
+    viewBisectOptions: b
+    interactiveRebase: i
+  stash:
+    popStash: g
+    renameStash: r
+  commitMessage:
+    commitMenu: <c-o>
+    aiGenerate: <c-g>
+os:
+  edit: ''
+  editAtLine: ''
+  editAtLineAndWait: ''
+  open: xdg-open {{filename}}
+  openDirInEditor: ''
+  copyToClipboardCmd: xclip -selection clipboard
+customCommands: []
+aiNotes:
+  enabled: true
+

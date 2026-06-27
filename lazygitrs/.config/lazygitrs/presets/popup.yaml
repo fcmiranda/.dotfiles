@@ -37,7 +37,7 @@ refresher:
   fetchInterval: 60
 keybinding:
   universal:
-    quit: q
+    quit: ""
     quit-alt1: <c-c>
     return: <escape>
     quitWithoutChangingDirectory: Q

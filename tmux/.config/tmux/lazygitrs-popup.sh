@@ -10,7 +10,7 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 unset _tmux_style
 
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-    tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d'
+    tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d -c popup'
     tmux set-option -t "$SESSION_NAME" status off
 fi
 

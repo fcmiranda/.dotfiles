@@ -106,9 +106,7 @@ async function main() {
   }
 
   // Echo the context back so we don't break the pipeline
-  if (!['SessionStart', 'PreInvocation'].includes(eventType)) {
-    console.log(JSON.stringify(ctx));
-  }
+  console.log(JSON.stringify(ctx));
   process.exit(0);
 }
 

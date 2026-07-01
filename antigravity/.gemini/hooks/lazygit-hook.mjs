@@ -1,49 +1,9 @@
 #!/usr/bin/env node
 import { execSync } from 'node:child_process';
-import { writeFileSync, readFileSync, appendFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
+import { log, readCtx, getActiveTmuxPane, notifyTmux } from './hook-lib.mjs';
 
-
-function log(msg) {
-  try {
-    appendFileSync('/tmp/lazygit-hook.log', `[${new Date().toISOString()}] ${msg}\n`);
-  } catch (e) {}
-}
-
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk);
-  }
-  const inputStr = Buffer.concat(chunks).toString('utf-8');
-  let ctx = {};
-  if (inputStr.trim()) {
-    try {
-      ctx = JSON.parse(inputStr);
-    } catch (e) {
-      // Ignore parse error, return empty object
-    }
-  }
-  return { inputStr, ctx };
-}
-
-function getActiveTmuxPane() {
-  let tmuxPane = process.env.TMUX_PANE || '';
-  if (!tmuxPane) {
-    try {
-      tmuxPane = execSync('tmux display-message -p "#{pane_id}"', { stdio: 'pipe' }).toString().trim();
-    } catch (e) { }
-  }
-  if (!tmuxPane) {
-    try {
-      const panes = execSync('tmux list-panes -a -F "#{pane_id} #{pane_current_command}"', { stdio: 'pipe' }).toString();
-      const agyPaneLine = panes.split('\n').find(line => line.includes('agy') || line.includes('node'));
-      if (agyPaneLine) {
-        tmuxPane = agyPaneLine.split(' ')[0];
-      }
-    } catch (e) { }
-  }
-  return tmuxPane;
-}
+const LOG_FILE = '/tmp/lazygit-hook.log';
 
 function saveTmuxPane(tmuxPane, workspacePath) {
   if (tmuxPane && workspacePath) {
@@ -55,17 +15,10 @@ function saveTmuxPane(tmuxPane, workspacePath) {
   }
 }
 
-function notifyTmux(pane, message) {
-  if (!pane) return;
-  try {
-    execSync(`tmux display-message -t "${pane}" "${message}"`, { stdio: 'pipe' });
-  } catch (e) { }
-}
-
 async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspacePath) {
-  log(`Starting registerLazygitrs for session ${conversationId} pane ${tmuxPane} in cwd ${process.cwd()}`);
+  log(LOG_FILE, `Starting registerLazygitrs for session ${conversationId} pane ${tmuxPane} in cwd ${process.cwd()}`);
   if (!conversationId) {
-    log(`No conversationId, aborting`);
+    log(LOG_FILE, `No conversationId, aborting`);
     return;
   }
 
@@ -77,7 +30,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   try {
     const stored = readFileSync(sentinel, 'utf-8').trim();
     if (stored === conversationId) {
-      log(`Already registered (sentinel hit), skipping scan`);
+      log(LOG_FILE, `Already registered (sentinel hit), skipping scan`);
       return;
     }
   } catch (e) { /* no sentinel yet */ }
@@ -92,24 +45,24 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   try {
     for (let i = 0; i < 100; i++) {
       API_BASE_URL = `http://127.0.0.1:${port}/session-api`;
-      log(`Checking port and URL: ${API_BASE_URL}`);
+      log(LOG_FILE, `Checking port and URL: ${API_BASE_URL}`);
       let checkRes;
       try {
         checkRes = await fetch(`${API_BASE_URL}/session`);
       } catch (netErr) {
         // Dead port — no point scanning further (ports past the last
         // lazygitrs instance aren't filled in). Stop the scan cleanly.
-        log(`Port ${port} not reachable: ${netErr.message}`);
+        log(LOG_FILE, `Port ${port} not reachable: ${netErr.message}`);
         break;
       }
-      log(`Check session response status: ${checkRes.status}`);
+      log(LOG_FILE, `Check session response status: ${checkRes.status}`);
 
       if (checkRes.ok) {
         const currentSessionData = await checkRes.json();
-        log(`Current session data: ${JSON.stringify(currentSessionData)}`);
+        log(LOG_FILE, `Current session data: ${JSON.stringify(currentSessionData)}`);
         if (currentSessionData) {
           if (currentSessionData.workspacePath && currentSessionData.workspacePath !== workspacePath) {
-            log(`Lazygitrs on ${API_BASE_URL} belongs to a different workspace (${currentSessionData.workspacePath}). Trying next port...`);
+            log(LOG_FILE, `Lazygitrs on ${API_BASE_URL} belongs to a different workspace (${currentSessionData.workspacePath}). Trying next port...`);
             port++;
             continue;
           }
@@ -130,7 +83,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     }
 
     if (!isAlreadyRegistered) {
-      log(`Registering session...`);
+      log(LOG_FILE, `Registering session...`);
       const res = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,27 +96,27 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
         }),
       });
 
-      log(`Register response status: ${res.status}`);
+      log(LOG_FILE, `Register response status: ${res.status}`);
 
       if (!res.ok) {
         bridgeStatus = '⚠️ Lazygitrs registration rejected';
         fallbackWarning = ' (Fallback active)';
-        log(`Registration failed: ${res.statusText}`);
+        log(LOG_FILE, `Registration failed: ${res.statusText}`);
       } else {
         bridgeStatus = '✅ Registered Lazygitrs session';
         notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning} - conversation id: ${conversationId}`);
-        log(`Registration successful`);
+        log(LOG_FILE, `Registration successful`);
       }
     } else {
       bridgeStatus = '✅ Lazygitrs session already registered';
-      log(`Session already registered`);
+      log(LOG_FILE, `Session already registered`);
     }
 
     // Persist registration so subsequent hook invocations skip the scan.
     try { writeFileSync(sentinel, conversationId); } catch (e) {}
 
   } catch (e) {
-    log(`Error in registerLazygitrs: ${e.message}`);
+    log(LOG_FILE, `Error in registerLazygitrs: ${e.message}`);
     // lazygitrs is not running — don't auto-spawn a detached instance,
     // as that risks racing the user's main GUI for the port. Just notify.
     bridgeStatus = '⚠️ Lazygitrs offline';
@@ -174,9 +127,9 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
 
 
 async function main() {
-  const { inputStr, ctx } = await readStdin();
+  const { inputStr, ctx } = await readCtx();
 
-  log(`Hook main called. ctx: ${JSON.stringify(ctx)} PWD: ${process.env.PWD}`);
+  log(LOG_FILE, `Hook main called. ctx: ${JSON.stringify(ctx)} PWD: ${process.env.PWD}`);
 
   const tmuxPane = getActiveTmuxPane();
 

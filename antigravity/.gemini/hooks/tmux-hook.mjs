@@ -1,7 +1,9 @@
+#!/usr/bin/env node
 import { spawnSync, spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { readCtx, getActiveTmuxPane } from './hook-lib.mjs';
 
 /**
  * We wait for a short period before actually sending the 'idle' state.
@@ -71,17 +73,9 @@ async function sendAcpState(paneId, state, message = null) {
 
 async function main() {
   const eventType = process.argv[2];
-  let tmuxPane = process.env.TMUX_PANE || '';
-  if (!tmuxPane) {
-    tmuxPane = spawnSync('tmux', ['display-message', '-p', '#{pane_id}']).stdout?.toString().trim() || '';
-  }
+  const tmuxPane = getActiveTmuxPane();
 
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk);
-  }
-  const inputStr = Buffer.concat(chunks).toString('utf-8');
-  const ctx = inputStr.trim() ? JSON.parse(inputStr) : {};
+  const { ctx } = await readCtx();
 
   if (['SessionStart', 'PreInvocation'].includes(eventType)) {
     await sendAcpState(tmuxPane, 'working');
@@ -111,4 +105,3 @@ async function main() {
 }
 
 main();
-

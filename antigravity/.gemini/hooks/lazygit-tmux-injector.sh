@@ -15,7 +15,7 @@ if [[ -z "$PANE" ]]; then exit 1; fi
 # session died and the pane was reused (e.g. by a shell). Refuse to
 # inject there — it would type the prompt into the wrong window.
 PANE_CMD=$(tmux list-panes -a -F '#{pane_id} #{pane_current_command}' 2>/dev/null | grep "^${PANE} " | cut -d' ' -f2-)
-if [[ -n "$PANE_CMD" && "$PANE_CMD" != "agy" && "$PANE_CMD" != "node" ]]; then
+if [[ -n "$PANE_CMD" && "$PANE_CMD" != "agy" && "$PANE_CMD" != "node" && "$PANE_CMD" != "bash" && "$PANE_CMD" != "zsh" ]]; then
   echo "stale pane ($PANE_CMD) — refusing to inject" >> /tmp/tmux-injector.log
   exit 1
 fi

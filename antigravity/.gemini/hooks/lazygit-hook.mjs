@@ -154,20 +154,6 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   }
 }
 
-function ensureSseBridge(workspacePath) {
-  try {
-    // Kill old instances to prevent ghosts
-    execSync(`pkill -f "lazygit-sse-bridge.sh ${workspacePath}"`, { stdio: 'ignore' });
-  } catch (e) { }
-  
-  try {
-    const sseProcess = spawn('bash', ['/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-sse-bridge.sh', workspacePath], {
-      detached: true,
-      stdio: 'ignore'
-    });
-    sseProcess.unref();
-  } catch (err) { }
-}
 
 async function main() {
   const { inputStr, ctx } = await readStdin();
@@ -194,7 +180,6 @@ async function main() {
 
   await registerLazygitrs(conversationId, tmuxPane, port, workspacePath);
 
-  ensureSseBridge(workspacePath);
 
   // Echo the context back so we don't break the hook pipeline
   if (inputStr.trim()) {

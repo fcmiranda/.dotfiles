@@ -68,7 +68,20 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     log(`No conversationId, aborting`);
     return;
   }
-  
+
+  // Fast path: if we already registered this conversation for this workspace
+  // in a previous hook invocation, skip the HTTP scan entirely. agy fires
+  // this hook on every tool invocation, so this avoids N redundant scans.
+  const safePath = (workspacePath || '').replace(/[^a-zA-Z0-9]/g, '_');
+  const sentinel = `/tmp/agy-registered-${safePath}.sentinel`;
+  try {
+    const stored = readFileSync(sentinel, 'utf-8').trim();
+    if (stored === conversationId) {
+      log(`Already registered (sentinel hit), skipping scan`);
+      return;
+    }
+  } catch (e) { /* no sentinel yet */ }
+
   let bridgeStatus = '✅ Lazygit SSE Bridge online';
   let fallbackWarning = '';
   let port = initialPort;
@@ -80,7 +93,15 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     for (let i = 0; i < 100; i++) {
       API_BASE_URL = `http://127.0.0.1:${port}/session-api`;
       log(`Checking port and URL: ${API_BASE_URL}`);
-      const checkRes = await fetch(`${API_BASE_URL}/session`);
+      let checkRes;
+      try {
+        checkRes = await fetch(`${API_BASE_URL}/session`);
+      } catch (netErr) {
+        // Dead port — no point scanning further (ports past the last
+        // lazygitrs instance aren't filled in). Stop the scan cleanly.
+        log(`Port ${port} not reachable: ${netErr.message}`);
+        break;
+      }
       log(`Check session response status: ${checkRes.status}`);
 
       if (checkRes.ok) {
@@ -98,6 +119,9 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
           foundTarget = true;
           break; // Found the correct workspace
         }
+      } else {
+        // Non-200 from a reachable server — stop scanning.
+        break;
       }
     }
 
@@ -134,6 +158,9 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
       bridgeStatus = '✅ Lazygitrs session already registered';
       log(`Session already registered`);
     }
+
+    // Persist registration so subsequent hook invocations skip the scan.
+    try { writeFileSync(sentinel, conversationId); } catch (e) {}
 
   } catch (e) {
     log(`Error in registerLazygitrs: ${e.message}`);

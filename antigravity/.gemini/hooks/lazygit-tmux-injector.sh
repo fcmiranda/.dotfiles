@@ -1,7 +1,6 @@
 #!/bin/bash
 
-echo "$@" > /tmp/tmux-injector.log
-#!/bin/bash
+echo "$@" >> /tmp/tmux-injector.log
 WORKSPACE_DIR="$1"
 PROMPT="$2"
 
@@ -19,4 +18,4 @@ SINGLE_LINE_PROMPT=$(echo "$PROMPT" | tr '\n' ' ')
 tmux send-keys -t "$PANE" -l "$SINGLE_LINE_PROMPT"
 
 # Now just send a normal Enter!
-tmux send-keys -t "$PANE" muxEnter
+tmux send-keys -t "$PANE" Enter

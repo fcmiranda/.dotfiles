@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { execSync, spawn } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { writeFileSync, readFileSync, appendFileSync } from 'node:fs';
-import { basename } from 'node:path';
+
 
 function log(msg) {
   try {
@@ -137,19 +137,10 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
 
   } catch (e) {
     log(`Error in registerLazygitrs: ${e.message}`);
-    // lazygitrs is probably not running
-    try {
-      const wsPath = workspacePath || process.cwd();
-      const sessionName = 'lazygitrs-' + basename(wsPath);
-      execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
-      bridgeStatus = '✅ Lazygitrs started in bg';
-      fallbackWarning = ` (${sessionName})`;
-      log(`Started background tmux session: ${sessionName}`);
-    } catch (err) {
-      log(`Error starting lazygitrs in background: ${err.message}`);
-      bridgeStatus = '⚠️ Lazygitrs offline';
-      fallbackWarning = ' (Start lazygitrs to integrate)';
-    }
+    // lazygitrs is not running — don't auto-spawn a detached instance,
+    // as that risks racing the user's main GUI for the port. Just notify.
+    bridgeStatus = '⚠️ Lazygitrs offline';
+    fallbackWarning = ' (Start lazygitrs to integrate)';
     notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning}`);
   }
 }

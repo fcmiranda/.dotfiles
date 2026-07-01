@@ -92,7 +92,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
           sessionId: conversationId,
           cli: 'antigravity',
           force: true,
-          notifyCommand: `/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-tmux-injector.sh "${workspacePath}" {{prompt}}`
+          notifyCommand: `/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-tmux-injector.sh {{workspace_path}} {{prompt}}`
         }),
       });
 

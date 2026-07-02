@@ -53,12 +53,16 @@ unset _colors_toml _color11 _color1
 cur_session=$(tmux display-message -p '#S')
 cur_window=$(tmux display-message -p '#I')
 
-tmux list-sessions -F '#S' | grep -v '^popups$' | while IFS= read -r session; do
+tmux list-sessions -F '#S' | grep -Ev '^(popups|lazygitrs-.*|\..*)$' | while IFS= read -r session; do
   printf '#  %s\n' "$session"
 
   tmux list-windows -t "$session" \
       -F '#{window_index}	#{window_name}	#{@ai_agent_state_raw}' \
     | while IFS='	' read -r idx name state; do
+
+    case "$name" in
+      .*) continue ;;
+    esac
 
     if [ "$session" = "$cur_session" ] && [ "$idx" = "$cur_window" ]; then
       mark="${C_CURMARK}•${R}"

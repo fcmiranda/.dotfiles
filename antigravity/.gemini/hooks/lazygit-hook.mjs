@@ -82,17 +82,34 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   }
 
   // Phase 2: If no lazygitrs instance was found anywhere, auto-start one
-  // in a detached tmux session. This is the restored behaviour (removed in
+  // in a detached tmux session or window. This is the restored behaviour (removed in
   // commit 22c13d0, now improved to scan ALL ports before spawning).
   if (!foundTarget) {
     log(LOG_FILE, `No lazygitrs found on any port — auto-starting`);
     try {
       const wsPath = workspacePath || process.cwd();
-      const sessionName = 'lazygitrs-' + basename(wsPath);
-      execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
+      let activeSession = '';
+      if (tmuxPane) {
+        try {
+          activeSession = execSync(`tmux display-message -t "${tmuxPane}" -p '#S'`, { stdio: 'pipe' }).toString().trim();
+        } catch (e) {}
+      }
+
+      let spawnTarget = '';
+      if (activeSession) {
+        const windowName = `.lazygitrs-${basename(wsPath)}`;
+        execSync(`tmux new-window -d -t "${activeSession}:" -n "${windowName}" -c "${wsPath}" "lazygitrs"`);
+        spawnTarget = `${activeSession}:${windowName}`;
+        log(LOG_FILE, `Started background tmux window: ${spawnTarget}`);
+      } else {
+        const sessionName = '.lazygitrs-' + basename(wsPath);
+        execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
+        spawnTarget = sessionName;
+        log(LOG_FILE, `Started background tmux session: ${spawnTarget}`);
+      }
+
       bridgeStatus = '✅ Lazygitrs auto-started';
-      fallbackWarning = ` (${sessionName})`;
-      log(LOG_FILE, `Started background tmux session: ${sessionName}`);
+      fallbackWarning = ` (${spawnTarget})`;
 
       // Wait for the HTTP server to bind, then retry the scan.
       for (let retry = 0; retry < AUTO_START_RETRIES; retry++) {

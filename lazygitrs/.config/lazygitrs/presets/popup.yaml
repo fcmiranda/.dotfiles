@@ -19,8 +19,8 @@ gui:
   showBottomLine: true
   nerdFontsVersion: '3'
   border:
-    default: hidden
-    notes: rounded
+    default: rounded
+    diff: hidden
 git:
   autoFetch: true
   autoRefresh: true

@@ -53,7 +53,7 @@ unset _colors_toml _color11 _color1
 cur_session=$(tmux display-message -p '#S')
 cur_window=$(tmux display-message -p '#I')
 
-tmux list-sessions -F '#S' | grep -Ev '^(popups|lazygitrs-.*|\..*)$' | while IFS= read -r session; do
+tmux list-sessions -F '#S' | grep -Ev '^(\..*|lazygitrs-.*)$' | while IFS= read -r session; do
   printf '#  %s\n' "$session"
 
   tmux list-windows -t "$session" \

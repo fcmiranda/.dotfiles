@@ -13,12 +13,12 @@ unset _tmux_style
 # Create session if it doesn't exist, otherwise add a window if needed
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     tmux new-session -d -s "$SESSION_NAME" -n "$WINDOW_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d -c popup'
-    tmux set-option -t "$SESSION_NAME" status off
 else
     if ! tmux list-windows -t "$SESSION_NAME" -F '#W' 2>/dev/null | grep -q "^${WINDOW_NAME}$"; then
         tmux new-window -t "$SESSION_NAME" -n "$WINDOW_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d -c popup'
     fi
 fi
+tmux set-option -t "$SESSION_NAME" status off
 
 tmux display-popup \
   -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \

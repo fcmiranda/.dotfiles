@@ -102,7 +102,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
         spawnTarget = `${activeSession}:${windowName}`;
         log(LOG_FILE, `Started background tmux window: ${spawnTarget}`);
       } else {
-        const sessionName = '.lazygitrs-' + basename(wsPath);
+        const sessionName = '_lazygitrs-' + basename(wsPath);
         execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
         spawnTarget = sessionName;
         log(LOG_FILE, `Started background tmux session: ${spawnTarget}`);

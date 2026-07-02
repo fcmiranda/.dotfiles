@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 PROJECT_DIR="$1"
 WINDOW_NAME="lzg-$(echo -n "$PROJECT_DIR" | md5sum | cut -d' ' -f1 | head -c 8)"
-SESSION_NAME=".popups"
+SESSION_NAME="_popups"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"

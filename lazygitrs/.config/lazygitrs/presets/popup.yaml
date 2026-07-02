@@ -4,6 +4,7 @@ gui:
   mouseEvents: true
   skipDiscardChangeWarning: false
   sidePanelWidth: 0.3333
+  sideBySide: true
   theme:
     activeBorderColor:
     - green

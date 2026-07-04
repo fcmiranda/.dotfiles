@@ -1,15 +1,13 @@
-create agent, skill, based on akita articles (how to make good questions)
------------------------------------------------------------
-try some sidebar
------------------------------------------------------------
-create tui change sessions/windows like sesh (the same of fzf alt O)
------------------------------------------------------------
-separete sgc into an package
------------------------------------------------------------
 
-create tui omarchy wallpaper tool
-using walker or fuzzel?
+create some themes for lazygitrs
 
+ - Modern
+    main: white
+    starship: lumon
+    
+    create lazygitrs white theme
+
+--------------------------------------------------------------------------------------------
 set wallpaper change over time, ex: day, week, hour
 set wallpaper per workspace
 set wallpaper change that following the day time

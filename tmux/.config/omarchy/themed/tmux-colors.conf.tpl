@@ -12,6 +12,7 @@ set -g pane-border-style "fg={{ color8 }},bg=default"
 # User options for #{@VAR} references in format strings
 set -g @CURRENT_COLOR "{{ color14 }}"
 set -g @PREFIX_COLOR "{{ color13 }}"
+set -g @COPY_COLOR "{{ color3 }}"
 set -g @SESSION_COLOR "{{ color4 }}"
 set -g @SESSION_ACTIVE_FG "{{ background }}"
 set -g @HOST_COLOR "{{ color4 }}"

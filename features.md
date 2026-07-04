@@ -1,3 +1,9 @@
+omarchy-starship-preset
+
+/home/fecavmi/.local/share/omarchy/themes/white
+
+
+---------------------------------------------------------------------------
 
 create some themes for lazygitrs
 

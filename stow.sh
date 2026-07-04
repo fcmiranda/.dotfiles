@@ -36,6 +36,7 @@ readonly IGNORE_DIRS=(
     ".github"
     ".shell"
     "scripts"
+    "docs"
 )
 
 # Colors for output

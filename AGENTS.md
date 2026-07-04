@@ -4,7 +4,7 @@ This repository is a GNU Stow-managed dotfiles worktree. Keep instructions here 
 
 ## Working Model
 
-- Treat each top-level directory as a stow package unless it is `.bare`, `.git`, `.github`, `.shell`, or `scripts`.
+- Treat each top-level directory as a stow package unless it is `.bare`, `.git`, `.github`, `.shell`, `scripts`, or `docs`.
 - Preserve the mirrored home-directory layout inside each package, for example `nvim/.config/nvim/...` maps to `~/.config/nvim/...`.
 - `stow-lock.json` is generated state. Do not edit it manually.
 - The primary worktree is the only tree that should be stowed to `$HOME`. Feature worktrees are sandboxes and should not be stowed.

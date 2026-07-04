@@ -45,51 +45,14 @@ Non-stow directories: `.bare`, `.git`, `.github`, `.shell`, `scripts`.
 - **WM:** Hyprland (via Omarchy)
 - **Package manager:** `yay` / `pacman`
 
-## Notable features
+## Docs
 
-### Click-and-hold to copy text inside tmux
-
-Clicking and dragging (click-and-hold) the mouse over text inside a tmux pane selects it and
-copies it to the system clipboard. **This is a tmux feature.** It is enabled by two pieces of
-[`tmux/.config/tmux/tmux.conf`](tmux/.config/tmux/tmux.conf):
-
-It is enabled by two pieces of [`tmux/.config/tmux/tmux.conf`](tmux/.config/tmux/tmux.conf):
-
-1. Mouse support is turned on globally:
-
-    ```tmux
-    set -g mouse on
-    ```
-
-    With `mouse on`, a click-drag inside a pane enters `copy-mode-vi` and starts a visual
-    selection.
-
-2. On mouse release (`MouseDragEnd1Pane`) the selection is piped to the system clipboard via
-   `xclip`:
-
-    ```tmux
-    bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
-    ```
-
-The same `copy-pipe-and-cancel` binding is also bound to `y` so you can copy from the keyboard
-while in copy mode:
-
-```tmux
-bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
-```
-
-While a selection is active, tmux signals it visually: the active pane border switches to the
-`@COPY_COLOR` color (see `pane-active-border-style` in `tmux.conf`), and the status bar pill
-recolors via `pane_in_mode`.
-
-For Ghostty's own (terminal-level) clipboard bindings, see
-[`ghostty/.config/ghostty/config`](ghostty/.config/ghostty/config): `control+insert` copies the
-terminal selection to the clipboard and `shift+insert` pastes.
-
-#### Requiring `xclip`
-
-The binding shells out to `xclip`, so `xclip` must be installed (`pacman -S xclip`). Without it the
-drag-to-copy will select text but won't populate the system clipboard.
+- [docs/SYSTEM_THEME.md](docs/SYSTEM_THEME.md) — how the Omarchy theme system renders per-app
+  configs from `colors.toml`, and how this repo extends it via overrides + the `theme-set` hook.
+- [docs/FEATURES.md](docs/FEATURES.md) — notable behaviors, including click-and-hold copy inside
+  tmux, agent status in the tmux status bar, and theme-aware styling.
+- [docs/UTILS.md](docs/UTILS.md) — useful commands shipped here and by Omarchy, including how to
+  refresh Hyprland and restart individual components.
 
 ## Useful references
 

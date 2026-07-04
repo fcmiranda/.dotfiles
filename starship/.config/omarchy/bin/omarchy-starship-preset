@@ -8,16 +8,24 @@
 # Usage:
 #   omarchy-starship-preset                  # interactive fzf picker
 #   omarchy-starship-preset --preview-only <name>   # print preset TOML to stdout
+#
+# Interactive controls inside the picker:
+#   ↑↓      navigate presets
+#   Ctrl-L  cycle vim mode mock forward  (insert → normal → visual → insert)
+#   Ctrl-H  cycle vim mode mock backward
+#   Enter   select / open action menu
+#   Esc     quit
+#
+# Environment overrides (for scripting / one-shot previews):
+#   OMARCHY_STARSHIP_PREVIEW_STATUS     exit code mocked in the prompt (default 0)
+#   OMARCHY_STARSHIP_PREVIEW_ZVM_MODE   vim mode to force, ignoring the state file
 
 set -euo pipefail
 
-# ─── paths ────────────────────────────────────────────────────────────────────
+# ─── configurable paths (no temp dir yet; used by --render-preview self-invoke) ─
 
-LIVE_CONFIG="$HOME/.config/omarchy/current/theme/starship.toml"
-CUSTOM_PRESETS="$HOME/.config/omarchy/starship-presets"
-export TMPDIR_PRESETS
-TMPDIR_PRESETS="$(mktemp -d /tmp/omarchy-starship-preset.XXXXXX)"
-trap 'rm -rf "$TMPDIR_PRESETS"' EXIT
+LIVE_CONFIG="${OMARCHY_LIVE_CONFIG:-$HOME/.config/omarchy/current/theme/starship.toml}"
+CUSTOM_PRESETS="${OMARCHY_CUSTOM_PRESETS:-$HOME/.config/omarchy/starship-presets}"
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -32,26 +40,72 @@ _bat_toml() {
   fi
 }
 
+# Human-readable label for a vim mode code; used in the preview header.
+_mode_display() {
+  case "$1" in
+    i) printf 'INSERT';;
+    n) printf 'NORMAL';;
+    v) printf 'VISUAL';;
+    *) printf '%s' "$1";;
+  esac
+}
 
 # Render a pretty preview for an fzf panel: simulated prompt + highlighted TOML.
+#
+# Mock env vars that `eval "$(starship init <shell>)"` would normally set so
+# custom modules gated on them (zvm_insert_* / zvm_normal_* / zvm_visual_*)
+# render:
+#
+#   STARSHIP_CMD_STATUS  exit code of the last command line. The init script
+#                        captures `$?` and passes it via `--status`, but
+#                        `--status` alone is NOT propagated to custom module
+#                        subshells, so we set the var explicitly.
+#   ZVM_MODE             vim mode (i / n / v / r). Read from the shared state
+#                        file written by the cycle-mode helper below, unless
+#                        OMARCHY_STARSHIP_PREVIEW_ZVM_MODE forces an override.
+#
+# STARSHIP_SHELL must NOT be fish: preset `when` scripts are sh/bash syntax
+# and starship runs them via $STARSHIP_SHELL when the module omits `shell`.
+# Fish can't parse them and silently skips the module. Bash wraps ANSI in
+# \[...\]; we strip those wrappers so fzf gets clean ANSI.
 render_preview() {
   local label="$1" file="$2"
-  local name="$label"
 
-  printf '\033[1;36m━━━ %s \033[0m\n\n' "$label"
+  # Resolve the mocked vim mode: explicit env override > shared state file > "i".
+  local mock_zvm="${OMARCHY_STARSHIP_PREVIEW_ZVM_MODE:-}"
+  if [[ -z "$mock_zvm" && -n "${OMARCHY_MODE_FILE:-}" && -f "${OMARCHY_MODE_FILE}" ]]; then
+    mock_zvm="$(cat "${OMARCHY_MODE_FILE}" 2>/dev/null || printf 'i')"
+  fi
+  mock_zvm="${mock_zvm:-i}"
 
-  # Simulate a prompt line using starship itself.
-  # STARSHIP_SHELL=fish gives raw ANSI — no %{...%} (zsh) or \[...\] (bash) wrappers.
-  if STARSHIP_CONFIG="$file" STARSHIP_SHELL=fish starship prompt \
-       --status 0 --jobs 0 \
-       --terminal-width "${FZF_PREVIEW_COLUMNS:-80}" 2>/dev/null; then
+  local mock_status="${OMARCHY_STARSHIP_PREVIEW_STATUS:-0}"
+
+  printf '\033[1;36m━━━ %s \033[38;5;240m·\033[0m \033[1;35m%s\033[0m\n\n' \
+    "$label" "$(_mode_display "$mock_zvm")"
+
+  local rendered
+  if rendered="$(STARSHIP_CONFIG="$file" \
+                  STARSHIP_SHELL=bash \
+                  STARSHIP_CMD_STATUS="$mock_status" \
+                  ZVM_MODE="$mock_zvm" \
+                  starship prompt \
+                    --status "$mock_status" --jobs 0 \
+                    --terminal-width "${FZF_PREVIEW_COLUMNS:-80}" 2>/dev/null)"; then
+    rendered="${rendered//\\[/}"
+    rendered="${rendered//\\]/}"
+    printf '%s\n' "$rendered"
     printf '\n\033[38;5;240m──────────────────────────────────────────────────\033[0m\n\n'
   fi
 
   _bat_toml "$file"
 }
 
-# ─── --render-preview (self-invoked by fzf --preview) ─────────────────────────
+# ─── --render-preview (self-invoked by fzf --preview / change-preview) ─────────
+# Handled BEFORE the temp-dir allocation below: when fzf fires the preview,
+# this branch runs in a fresh shell and reads shared state via the exported
+# OMARCHY_*  env vars. The temp dir must NOT be re-created here, otherwise
+# each preview render would point at a fresh empty state file and Ctrl-L/Ctrl-H
+# could never persist a mode change across renders.
 
 if [[ "${1:-}" == "--render-preview" ]]; then
   render_preview "$3" "$2"
@@ -74,6 +128,46 @@ if [[ "${1:-}" == "--preview-only" ]]; then
   done >&2
   exit 1
 fi
+
+# ─── main flow: temp dirs, state file, cycle helper ──────────────────────────
+
+export TMPDIR_PRESETS
+TMPDIR_PRESETS="$(mktemp -d /tmp/omarchy-starship-preset.XXXXXX)"
+trap 'rm -rf "$TMPDIR_PRESETS"' EXIT
+
+# Re-export paths so --render-preview self-invocations see the same values.
+export OMARCHY_LIVE_CONFIG="$LIVE_CONFIG"
+export OMARCHY_CUSTOM_PRESETS="$CUSTOM_PRESETS"
+
+# Shared vim-mode state file. Initial mode = insert (matches a freshly opened
+# shell). The cycle-mode helper rewrites this file atomically; render_preview
+# reads it on every preview render.
+MODE_FILE="$TMPDIR_PRESETS/mode"
+printf 'i' > "$MODE_FILE"
+export OMARCHY_MODE_FILE="$MODE_FILE"
+
+# Small standalone helper invoked by fzf's --bind execute-silent. Updates
+# $MODE_FILE in place (so the subsequent change-preview re-render picks it up).
+CYCLE_SCRIPT="$TMPDIR_PRESETS/cycle-mode.sh"
+cat > "$CYCLE_SCRIPT" <<'EOF'
+#!/usr/bin/env bash
+set -eu
+MODE_FILE="${1:?missing mode file}"
+DIR="${2:?missing direction (fwd|bwd)}"
+cur="$(cat "$MODE_FILE" 2>/dev/null || printf 'i')"
+[[ -z "$cur" ]] && cur='i'
+case "$DIR:$cur" in
+  fwd:i) next=n ;;
+  fwd:n) next=v ;;
+  fwd:v) next=i ;;
+  bwd:i) next=v ;;
+  bwd:n) next=i ;;
+  bwd:v) next=n ;;
+  *)     next=i ;;
+esac
+printf '%s' "$next" > "$MODE_FILE"
+EOF
+chmod +x "$CYCLE_SCRIPT"
 
 # ─── build item list ──────────────────────────────────────────────────────────
 # Each entry is:  "<display-label>\t<toml-file-path>"
@@ -112,11 +206,13 @@ selection="$(
       --with-nth=1 \
       --preview="$SCRIPT_PATH --render-preview {2} {1}" \
       --preview-window='right:60%:wrap' \
-      --header='  ↑↓ navigate   Enter select   Esc quit' \
+      --header='  ↑↓ navigate   Ctrl-L next mode   Ctrl-H prev mode   Enter select   Esc quit' \
       --header-first \
       --prompt='  starship preset › ' \
       --ansi \
-      --no-multi
+      --no-multi \
+      --bind "ctrl-l:execute-silent($CYCLE_SCRIPT $MODE_FILE fwd)+refresh-preview" \
+      --bind "ctrl-h:execute-silent($CYCLE_SCRIPT $MODE_FILE bwd)+refresh-preview"
 )" || exit 0
 
 [[ -z "$selection" ]] && exit 0

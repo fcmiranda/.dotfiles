@@ -1,5 +1,5 @@
-foreground = "#ffffff"
-background = "#000000"
+foreground = "#000000"
+background = "#efe7d8"
 
 color_text_vim_mode = "#000000"
 color_os = "#1b2d40"

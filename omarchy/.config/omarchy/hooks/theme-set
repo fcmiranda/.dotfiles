@@ -5,7 +5,6 @@
 THEME_NAME="$1"
 OMARCHY_PATH="${OMARCHY_PATH:-$HOME/.local/share/omarchy}"
 CURRENT_THEME_DIR="$HOME/.config/omarchy/current/theme"
-THEME_OVERRIDES_COLORS="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/colors.toml"
 TEMPLATES_DIR="$OMARCHY_PATH/default/themed"
 USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed-overrides"
 
@@ -39,12 +38,6 @@ append_colors_to_sed() {
   done <"$colors_file" >>"$sed_file"
 }
 
-sed_script=$(mktemp)
-
-# Theme overrides first so they take precedence over base theme colors (first-match wins in sed)
-[[ -f $THEME_OVERRIDES_COLORS ]] && append_colors_to_sed "$THEME_OVERRIDES_COLORS" "$sed_script"
-append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
-
 shopt -s nullglob
 
 # if /home/fecavmi/.config/omarchy/current/theme/hyprland.conf exists rename it to /home/fecavmi/.config/omarchy/current/theme/hyprland.omarchy.conf
@@ -61,13 +54,37 @@ for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
   [[ ${rendered_templates[$filename]+_} ]] && continue
   rendered_templates[$filename]=1
 
+  sed_script=$(mktemp)
+
+  # Theme overrides first so they take precedence over base theme colors (first-match wins in sed)
+  if [[ $filename == "starship.toml" ]]; then
+    starship_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/starship/colors.toml"
+    [[ -f $starship_override ]] && append_colors_to_sed "$starship_override" "$sed_script"
+  elif [[ $filename == "hyprland.conf" ]]; then
+    hyprland_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/hyprland/colors.toml"
+    [[ -f $hyprland_override ]] && append_colors_to_sed "$hyprland_override" "$sed_script"
+  fi
+
+  append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
+
   sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"
+  rm "$sed_script"
 done
 
-rm "$sed_script"
-
 # Merge theme override colors into the active theme so subsequent tools see them
-[[ -f $THEME_OVERRIDES_COLORS ]] && cp "$THEME_OVERRIDES_COLORS" "$CURRENT_THEME_DIR/colors.toml"
+starship_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/starship/colors.toml"
+hyprland_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/hyprland/colors.toml"
+if [[ -f $starship_override || -f $hyprland_override ]]; then
+  : >"$CURRENT_THEME_DIR/colors.toml"
+  if [[ -f $starship_override ]]; then
+    cat "$starship_override" >>"$CURRENT_THEME_DIR/colors.toml"
+    echo >>"$CURRENT_THEME_DIR/colors.toml"
+  fi
+  if [[ -f $hyprland_override ]]; then
+    cat "$hyprland_override" >>"$CURRENT_THEME_DIR/colors.toml"
+    echo >>"$CURRENT_THEME_DIR/colors.toml"
+  fi
+fi
 
 # Restart services to apply re-rendered configs
 omarchy-restart-hyprctl

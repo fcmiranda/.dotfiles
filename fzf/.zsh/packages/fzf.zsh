@@ -10,7 +10,18 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ALT-C: Disabled (do not bind Alt-C)
+# CTRL-T: Replaced by Matchmaker (jump preset) — see ~/.zsh/utils/binds.zsh
+# The _jump_widget runs `mm --no-read -o jump` and is the same widget bound
+# to "j<Tab>" via _smart_tab. Rebind ^T in all keymaps to override the
+# fzf-file-widget that key-bindings.zsh just installed.
+# ─────────────────────────────────────────────────────────────────────────────
+if (( $+commands[mm] )) && (( $+functions[_jump_widget] )); then
+    bindkey -M emacs '^T' _jump_widget
+    bindkey -M vicmd '^T' _jump_widget
+    bindkey -M viins '^T' _jump_widget
+fi
+
+# FZF_CTRL_T_COMMAND / FZF_CTRL_T_OPTS are kept for manual fzf-file-widget use.
 # ─────────────────────────────────────────────────────────────────────────────
 export FZF_ALT_C_COMMAND=""
 bindkey -r '\ec'

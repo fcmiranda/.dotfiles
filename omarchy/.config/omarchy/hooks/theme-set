@@ -41,8 +41,11 @@ append_colors_to_sed() {
 shopt -s nullglob
 
 # if /home/fecavmi/.config/omarchy/current/theme/hyprland.conf exists rename it to /home/fecavmi/.config/omarchy/current/theme/hyprland.omarchy.conf
+# but only if it's the original theme file (i.e. does not already source hyprland.omarchy.conf)
 if [[ -f "$CURRENT_THEME_DIR/hyprland.conf" ]]; then
-  cp "$CURRENT_THEME_DIR/hyprland.conf" "$CURRENT_THEME_DIR/hyprland.omarchy.conf"
+  if ! grep -q "hyprland.omarchy.conf" "$CURRENT_THEME_DIR/hyprland.conf"; then
+    cp "$CURRENT_THEME_DIR/hyprland.conf" "$CURRENT_THEME_DIR/hyprland.omarchy.conf"
+  fi
 fi
 
 # Re-render all templates into the active theme dir

@@ -288,6 +288,10 @@ function zvm_after_init() {
     # Bind ctrl-r to atuin-search in insert mode
     bindkey -M viins '^R' atuin-search
 
+    # Bind ctrl-t to matchmaker jump widget
+    bindkey -M viins '^T' _jump_widget
+    bindkey -M vicmd '^T' _jump_widget
+
     # Tab bindings: single Tab = smart tab (j<Tab> → zcd, else complete)
     #               double Tab = accept autosuggestion
     bindkey -M viins '^I' _smart_tab

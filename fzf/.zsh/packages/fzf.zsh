@@ -123,3 +123,6 @@ frg() {
         awk -F: '{print $1, $2}')
     [[ -n "$file" ]] && ${EDITOR:-vim} "$file" +"$line"
 }
+
+# Override Ctrl+T to use Matchmaker jump preset instead of FZF file widget
+bindkey '^T' _jump_widget

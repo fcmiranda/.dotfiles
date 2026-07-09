@@ -31,6 +31,8 @@ _jump_widget() {
     zle reset-prompt
 }
 zle -N _jump_widget
+bindkey '^T' _jump_widget
+
 
 _smart_tab() {
     if [[ "$BUFFER" == "j" ]]; then

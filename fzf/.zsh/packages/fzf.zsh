@@ -41,20 +41,13 @@ export FZF_CTRL_R_OPTS="
 "
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ALT-C: cd into selected directory
+# ALT-C: Disabled (do not bind Alt-C)
 # ─────────────────────────────────────────────────────────────────────────────
-if command -v fd &> /dev/null; then
-    export FZF_ALT_C_COMMAND='fd --type d --strip-cwd-prefix --hidden --follow --exclude .git'
-else
-    export FZF_ALT_C_COMMAND='find . -type d -not -path "*/\.git/*"'
-fi
+export FZF_ALT_C_COMMAND=""
+bindkey -r '\ec'
+bindkey -M viins -r '\ec' 2>/dev/null || true
+bindkey -M vicmd -r '\ec' 2>/dev/null || true
 
-export FZF_ALT_C_OPTS="
-    --preview='eza --tree --level=2 --icons --color=always {}'
-    --preview-window=right:60%
-    --bind='ctrl-/:toggle-preview'
-    --header='ALT-C: cd into directory'
-"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Useful FZF functions

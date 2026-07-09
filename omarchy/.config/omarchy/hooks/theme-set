@@ -65,6 +65,12 @@ for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
     [[ -f $hyprland_override ]] && append_colors_to_sed "$hyprland_override" "$sed_script"
   fi
 
+  # Append original theme colors if available, falling back to current theme colors
+  if [[ -f "$HOME/.config/omarchy/themes/$THEME_NAME/colors.toml" ]]; then
+    append_colors_to_sed "$HOME/.config/omarchy/themes/$THEME_NAME/colors.toml" "$sed_script"
+  elif [[ -f "$OMARCHY_PATH/themes/$THEME_NAME/colors.toml" ]]; then
+    append_colors_to_sed "$OMARCHY_PATH/themes/$THEME_NAME/colors.toml" "$sed_script"
+  fi
   append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
 
   sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"

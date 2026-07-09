@@ -4,7 +4,7 @@ cursor = "#000000"
 
 # Primary colors
 foreground = "#000000"
-background = "#2d353b"
+background = "#dfdfdf"
 
 # Selection colors
 selection_foreground = "#ffffff"

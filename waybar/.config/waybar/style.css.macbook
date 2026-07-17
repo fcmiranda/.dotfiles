@@ -14,19 +14,7 @@ window#waybar {
   margin: 0;
 }
 
-/* Style the left and right sides nicely as floating pills */
-window#waybar.top .modules-left {
-  background-color: @main-bg;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 2px 10px;
-  margin: 5px 0 5px 10px;
-}
 
 window#waybar.top .modules-right {
-  background-color: @main-bg;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 2px 10px;
-  margin: 5px 10px 5px 0;
+  padding: 0 20px 0 0;
 }

@@ -135,14 +135,14 @@ layout_slots() {
     return 1
   fi
 
-  list_w=$(( mw * 28 / 100 ))
+  list_w=$(( mw * 20 / 100 ))
   list_h=$(( mh * 72 / 100 ))
   list_x=$(( mx + mw * 4 / 100 ))
   list_y=$(( my + mh * 14 / 100 ))
 
-  prev_w=$(( mw * 62 / 100 ))
+  prev_w=$(( mw * 70 / 100 ))
   prev_h=$(( mh * 72 / 100 ))
-  prev_x=$(( mx + mw * 36 / 100 ))
+  prev_x=$(( mx + mw * 28 / 100 ))
   prev_y=$(( my + mh * 14 / 100 ))
 }
 

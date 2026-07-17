@@ -1,0 +1,260 @@
+#!/bin/bash
+
+# omarchy:summary=Pick a theme background using matchmaker TUI
+# omarchy:group=menu
+# omarchy:name=backgrounds
+
+set -euo pipefail
+
+export PATH="${OMARCHY_PATH:-$HOME/.local/share/omarchy}/bin:$PATH"
+
+format_name() {
+  local name=$1
+  # remove extension
+  name="${name%.*}"
+  # remove leading numbers
+  name="${name#*-}"
+  name="${name# }"
+  # replace dashes with spaces
+  name="${name//-/ }"
+  # title case
+  printf '%s\n' "$name" | awk '{
+    for(i=1; i<=NF; i++) {
+      $i = toupper(substr($i,1,1)) substr($i,2)
+    }
+    print
+  }'
+}
+
+collect_backgrounds() {
+  local theme_name=""
+  if [[ -f $HOME/.config/omarchy/current/theme.name ]]; then
+    theme_name="$(< "$HOME/.config/omarchy/current/theme.name")"
+  fi
+
+  local dirs=(
+    "$HOME/.config/omarchy/current/theme/backgrounds"
+  )
+  if [[ -n $theme_name ]]; then
+    dirs+=("$HOME/.config/omarchy/backgrounds/$theme_name")
+  fi
+
+  declare -g -A backgrounds_by_label
+  declare -g -a labels
+  declare -g -a paths
+  backgrounds_by_label=()
+  labels=()
+  paths=()
+
+  local wallpaper_dir
+  for wallpaper_dir in "${dirs[@]}"; do
+    [[ -d $wallpaper_dir ]] || continue
+
+    local background
+    while IFS= read -r background; do
+      [[ -n $background ]] || continue
+      local filename="${background##*/}"
+      [[ -n ${backgrounds_by_label[$filename]:-} ]] && continue
+
+      local label
+      label="$(format_name "$filename")"
+      backgrounds_by_label[$filename]="$background"
+      labels+=("$label")
+      paths+=("$background")
+    done < <(find -L "$wallpaper_dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.bmp' -o -iname '*.webp' \) 2>/dev/null | sort)
+  done
+}
+
+client_address_for_pid() {
+  local pid=$1 i addr
+  for i in $(seq 1 50); do
+    addr=$(hyprctl clients -j 2>/dev/null | jq -r --argjson p "$pid" '.[] | select(.pid == $p) | .address' | head -1)
+    if [[ -n $addr && $addr != "null" ]]; then
+      printf '%s\n' "$addr"
+      return 0
+    fi
+    sleep 0.05
+  done
+  return 1
+}
+
+client_address_for_class_or_title() {
+  local search=$1 i addr
+  for i in $(seq 1 50); do
+    addr=$(hyprctl clients -j 2>/dev/null | jq -r --arg s "$search" '
+      .[] | select(.class == $s or .initialClass == $s or .title == $s) | .address
+    ' | head -1)
+    if [[ -n $addr && $addr != "null" ]]; then
+      printf '%s\n' "$addr"
+      return 0
+    fi
+    sleep 0.05
+  done
+  return 1
+}
+
+position_address() {
+  local addr=$1 x=$2 y=$3 w=$4 h=$5
+  if ! command -v hyprctl >/dev/null 2>&1; then
+    return 0
+  fi
+  [[ -n $addr && $addr != "null" ]] || return 1
+  hyprctl dispatch setfloating "address:$addr" >/dev/null 2>&1 || true
+  hyprctl dispatch resizewindowpixel "exact $w $h,address:$addr" >/dev/null 2>&1 || true
+  hyprctl dispatch movewindowpixel "exact $x $y,address:$addr" >/dev/null 2>&1 || true
+}
+
+position_pid() {
+  local pid=$1 x=$2 y=$3 w=$4 h=$5 addr
+  addr=$(client_address_for_pid "$pid") || return 1
+  position_address "$addr" "$x" "$y" "$w" "$h"
+}
+
+position_class_or_title() {
+  local search=$1 x=$2 y=$3 w=$4 h=$5 addr
+  addr=$(client_address_for_class_or_title "$search") || return 1
+  position_address "$addr" "$x" "$y" "$w" "$h"
+}
+
+focused_monitor_geometry() {
+  hyprctl monitors -j 2>/dev/null | jq -r '
+    (map(select(.focused == true)) + .)[0]
+    | "\(.x | floor) \(.y | floor) \((.width / .scale) | floor) \((.height / .scale) | floor)"
+  ' | head -1
+}
+
+layout_slots() {
+  local mx my mw mh
+  local geom
+  geom=$(focused_monitor_geometry)
+  if [[ -z $geom ]]; then
+    return 1
+  fi
+  read -r mx my mw mh <<<"$geom"
+  if [[ -z $mw ]] || (( mw < 100 )); then
+    return 1
+  fi
+
+  list_w=$(( mw * 28 / 100 ))
+  list_h=$(( mh * 72 / 100 ))
+  list_x=$(( mx + mw * 4 / 100 ))
+  list_y=$(( my + mh * 14 / 100 ))
+
+  prev_w=$(( mw * 62 / 100 ))
+  prev_h=$(( mh * 72 / 100 ))
+  prev_x=$(( mx + mw * 36 / 100 ))
+  prev_y=$(( my + mh * 14 / 100 ))
+}
+
+run_matchmaker_picker() {
+  local mm_bin="$HOME/.cargo/bin/mm"
+  local config_file="$HOME/.config/matchmaker/presets/backgrounds.toml"
+
+  if [[ ! -x $mm_bin ]]; then
+    notify-send "Background selector" "matchmaker binary not found or not executable at $mm_bin"
+    exit 1
+  fi
+
+  if [[ ! -f $config_file ]]; then
+    notify-send "Background selector" "Preset config file not found at $config_file"
+    exit 1
+  fi
+
+  collect_backgrounds
+  if (( ${#paths[@]} == 0 )); then
+    notify-send "Background selector" "No background images found"
+    exit 1
+  fi
+
+  imv -c "
+    bind Escape quit
+    bind q quit
+    overlay
+  " "${paths[@]}" >/dev/null 2>&1 &
+  local imv_pid=$!
+  echo "$imv_pid" > "/tmp/imv-$USER.pid"
+
+  cleanup() {
+    rm -f "/tmp/imv-$USER.pid"
+    imv-msg "$imv_pid" quit >/dev/null 2>&1 || kill "$imv_pid" >/dev/null 2>&1 || true
+  }
+  trap cleanup EXIT
+
+  (
+    if layout_slots; then
+      sleep 0.1
+      position_pid "$imv_pid" "$prev_x" "$prev_y" "$prev_w" "$prev_h"
+      if position_class_or_title "org.omarchy.bgpicker" "$list_x" "$list_y" "$list_w" "$list_h" || \
+         position_class_or_title "Background" "$list_x" "$list_y" "$list_w" "$list_h"; then
+        # Ensure the picker window gets focus
+        sleep 0.1
+        local term_addr
+        term_addr=$(client_address_for_class_or_title "org.omarchy.bgpicker") || \
+          term_addr=$(client_address_for_class_or_title "Background")
+        if [[ -n $term_addr && $term_addr != "null" ]]; then
+          hyprctl dispatch focuswindow "address:$term_addr" >/dev/null 2>&1 || true
+        fi
+      fi
+    fi
+  ) &
+
+  local bg_dir="$HOME/.config/omarchy/current/theme/backgrounds"
+  local selected
+  if [[ -d $bg_dir ]]; then
+    selected=$(cd "$bg_dir" && "$mm_bin" --no-read --config "$config_file")
+  else
+    selected=$("$mm_bin" --no-read --config "$config_file")
+  fi
+
+  if [[ -n $selected ]]; then
+    local path="${selected#*$'\t'}"
+    path="${path#\'}"
+    path="${path%\'}"
+    path="${path#\"}"
+    path="${path%\"}"
+
+    if [[ -f $path ]]; then
+      omarchy-theme-bg-set "$path"
+    else
+      local expanded_path
+      expanded_path=$(eval echo "$path" 2>/dev/null || echo "$path")
+      if [[ -f $expanded_path ]]; then
+        omarchy-theme-bg-set "$expanded_path"
+      fi
+    fi
+  fi
+}
+
+main() {
+  if [[ ${1:-} == "--in-terminal" ]]; then
+    run_matchmaker_picker
+    exit 0
+  fi
+
+  if [[ ! -t 0 || ! -t 1 ]]; then
+    if omarchy-cmd-present xdg-terminal-exec; then
+      local inner
+      inner="export PATH=$(printf '%q' "$PATH"); $(printf '%q' "${BASH_SOURCE[0]}") --in-terminal"
+      local spawn_pid=""
+      if command -v uwsm-app >/dev/null 2>&1; then
+        setsid uwsm-app -- xdg-terminal-exec --app-id=org.omarchy.bgpicker --title="Background" \
+          -e bash -c "$inner" >/dev/null 2>&1 &
+        spawn_pid=$!
+      else
+        setsid xdg-terminal-exec --app-id=org.omarchy.bgpicker --title="Background" \
+          -e bash -c "$inner" >/dev/null 2>&1 &
+        spawn_pid=$!
+      fi
+      sleep 0.4
+      if [[ -n $spawn_pid ]] && kill -0 "$spawn_pid" 2>/dev/null; then
+        exit 0
+      fi
+      notify-send "Background selector" "Terminal picker failed to launch" 2>/dev/null || true
+    fi
+    exit 1
+  fi
+
+  run_matchmaker_picker
+}
+
+main "$@"

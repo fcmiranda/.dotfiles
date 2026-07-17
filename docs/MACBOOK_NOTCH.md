@@ -57,6 +57,7 @@ To achieve this dynamically, we introduced a hardware detection script:
 
 The MacBook-specific Waybar config splits the panel into two distinct blocks on the left and right, leaving a completely blank gap in the middle where the physical notch sits.
 
+* **Thinner Bar Height:** The height of the bar is set to `32` (decreased from `36`) to make the bar thinner, allowing window content and application borders to sit closer to the top and align cleanly with the notch boundary.
 * **Modules Left (`modules-left`):**
   - Displays the Omarchy launcher menu, workspaces tracker, active Spotify track, and the OpenCode state.
 * **Modules Center (`modules-center`):**
@@ -73,9 +74,9 @@ The MacBook-specific Waybar config splits the panel into two distinct blocks on 
 
 ---
 
-## 4. Floating Pill & Spacer Styling (`style.css.macbook`)
+## 4. Minimalist Spacer & Edge Alignment (`style.css.macbook`)
 
-To make the split status bar look premium and fit the notch aesthetics, the stylesheet modifies the panel structure into floating pills.
+To optimize screen space and bring window borders closer to the notch area, the floating background capsules (pills) are removed, leaving a clean, integrated status line.
 
 * **Base Import:**
   - Imports the original style rules so we don't duplicate code:
@@ -83,7 +84,7 @@ To make the split status bar look premium and fit the notch aesthetics, the styl
     @import "style.css.default";
     ```
 * **Transparent Panel:**
-  - Sets the global Waybar container background to transparent to ensure only the pills are visible:
+  - Sets the global Waybar container background to transparent so the items blend directly:
     ```css
     window#waybar {
       background: transparent;
@@ -100,22 +101,10 @@ To make the split status bar look premium and fit the notch aesthetics, the styl
       margin: 0;
     }
     ```
-* **Floating Pill Styling:**
-  - Standardizes the left and right groups into distinct pill widgets:
+* **Edge Margin/Padding Adjustment:**
+  - Removes the background capsules to let modules float naturally and adds a right-edge padding adjustment to align the system tray/clock properly at the screen border:
     ```css
-    window#waybar.top .modules-left {
-      background-color: @main-bg;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 2px 10px;
-      margin: 5px 0 5px 10px;
-    }
-
     window#waybar.top .modules-right {
-      background-color: @main-bg;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 2px 10px;
-      margin: 5px 10px 5px 0;
+      padding: 0 20px 0 0;
     }
     ```

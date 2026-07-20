@@ -88,25 +88,10 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     log(LOG_FILE, `No lazygitrs found on any port — auto-starting`);
     try {
       const wsPath = workspacePath || process.cwd();
-      let activeSession = '';
-      if (tmuxPane) {
-        try {
-          activeSession = execSync(`tmux display-message -t "${tmuxPane}" -p '#S'`, { stdio: 'pipe' }).toString().trim();
-        } catch (e) {}
-      }
-
-      let spawnTarget = '';
-      if (activeSession) {
-        const windowName = `.lazygitrs-${basename(wsPath)}`;
-        execSync(`tmux new-window -d -t "${activeSession}:" -n "${windowName}" -c "${wsPath}" "lazygitrs"`);
-        spawnTarget = `${activeSession}:${windowName}`;
-        log(LOG_FILE, `Started background tmux window: ${spawnTarget}`);
-      } else {
-        const sessionName = '_lazygitrs-' + basename(wsPath);
-        execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
-        spawnTarget = sessionName;
-        log(LOG_FILE, `Started background tmux session: ${spawnTarget}`);
-      }
+      const sessionName = '_lazygitrs-' + basename(wsPath);
+      execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
+      const spawnTarget = sessionName;
+      log(LOG_FILE, `Started background tmux session: ${spawnTarget}`);
 
       bridgeStatus = '✅ Lazygitrs auto-started';
       fallbackWarning = ` (${spawnTarget})`;

@@ -8,37 +8,6 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # FZF Configuration
 # ─────────────────────────────────────────────────────────────────────────────
-# Note: FZF_DEFAULT_COMMAND and FZF_DEFAULT_OPTS are defined in ~/.zshenv
-# so they're available to all subshells (including yazi's shell commands)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CTRL-T: Paste selected files/directories onto command line
-# ─────────────────────────────────────────────────────────────────────────────
-if command -v fd &> /dev/null; then
-    export FZF_CTRL_T_COMMAND='fd --type f --type d --strip-cwd-prefix --hidden --follow --exclude .git'
-else
-    export FZF_CTRL_T_COMMAND='find . -type f -o -type d -not -path "*/\.git/*"'
-fi
-
-# --preview='sesh preview {} && eza --tree --level=2 --icons --color=always {} || bat --style=numbers --color=always --line-range=:300 {}'
-export FZF_CTRL_T_OPTS="
-    --preview='[[ -d {} ]] && eza --tree --level=2 --icons --color=always {} || bat --style=numbers --color=always --line-range=:300 {}'
-    --preview-window=right:60%
-    --bind='ctrl-/:toggle-preview'
-    --header='CTRL-T: Select files/directories'
-"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CTRL-R: Search command history
-# ─────────────────────────────────────────────────────────────────────────────
-export FZF_CTRL_R_OPTS="
-    --preview='echo {}'
-    --preview-window=down:3:wrap:hidden
-    --bind='ctrl-/:toggle-preview'
-    --bind='ctrl-y:execute-silent(echo -n {2..} | xclip -selection clipboard)+abort'
-    --header='CTRL-R: Search history | CTRL-Y: Copy to clipboard'
-    --color=header:italic
-"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ALT-C: Disabled (do not bind Alt-C)
@@ -52,59 +21,6 @@ bindkey -M vicmd -r '\ec' 2>/dev/null || true
 # ─────────────────────────────────────────────────────────────────────────────
 # Useful FZF functions
 # ─────────────────────────────────────────────────────────────────────────────
-
-# fkill - kill process with fzf
-fkill() {
-    local pid
-    pid=$(ps -ef | sed 1d | fzf -m --header='Select process to kill' | awk '{print $2}')
-    if [[ -n "$pid" ]]; then
-        echo "$pid" | xargs kill -${1:-9}
-    fi
-}
-
-# fe - open file with default editor
-fe() {
-    local file
-    file=$(fzf --query="$1" --select-1 --exit-0 \
-        --preview='bat --style=numbers --color=always --line-range=:300 {}')
-    [[ -n "$file" ]] && ${EDITOR:-vim} "$file"
-}
-
-# fcd - cd to selected directory
-fcd() {
-    local dir
-    dir=$(fd --type d --hidden --follow --exclude .git 2>/dev/null | fzf +m \
-        --preview='eza --tree --level=2 --icons --color=always {}')
-    [[ -n "$dir" ]] && cd "$dir"
-}
-
-# fh - search command history and execute
-fh() {
-    eval $(history | fzf +s --tac | sed 's/ *[0-9]* *//')
-}
-
-# fbr - checkout git branch
-fbr() {
-    local branches branch
-    branches=$(git branch --all | grep -v HEAD) &&
-    branch=$(echo "$branches" | fzf -d $((2 + $(wc -l <<< "$branches"))) +m) &&
-    git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
-}
-
-# fco - checkout git commit
-fco() {
-    local commits commit
-    commits=$(git log --oneline --color=always) &&
-    commit=$(echo "$commits" | fzf --ansi +m) &&
-    git checkout $(echo "$commit" | awk '{print $1}')
-}
-
-# fga - git add with fzf
-fga() {
-    local files
-    files=$(git status -s | fzf -m --preview='git diff --color=always {2}' | awk '{print $2}')
-    [[ -n "$files" ]] && echo "$files" | xargs git add
-}
 
 # frg - ripgrep with fzf (search file contents)
 frg() {

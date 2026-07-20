@@ -18,10 +18,15 @@ export function log(file, msg) {
  * the agy hook pipeline keeps flowing.
  */
 export async function readCtx() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk);
+  if (process.stdin.isTTY) {
+    return { inputStr: '', ctx: {} };
   }
+  const chunks = [];
+  try {
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk);
+    }
+  } catch (e) {}
   const inputStr = Buffer.concat(chunks).toString('utf-8');
   let ctx = {};
   if (inputStr.trim()) {
@@ -63,5 +68,18 @@ export function notifyTmux(pane, message) {
   if (!pane) return;
   try {
     execSync(`tmux display-message -t "${pane}" "${message}"`, { stdio: 'pipe' });
+  } catch (e) {}
+}
+
+/** Set or unset the @lazygitrs_icon tmux window option. Never throws. */
+export function setLazygitrsIcon(pane, icon) {
+  if (!pane) return;
+  try {
+    if (icon) {
+      execSync(`tmux set-option -w -t "${pane}" @lazygitrs_icon "${icon}"`, { stdio: 'pipe' });
+    } else {
+      execSync(`tmux set-option -w -t "${pane}" -u @lazygitrs_icon`, { stdio: 'pipe' });
+    }
+    execSync(`tmux refresh-client -S`, { stdio: 'pipe' });
   } catch (e) {}
 }

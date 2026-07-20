@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { execSync } from 'node:child_process';
-import { writeFileSync, readFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { basename } from 'node:path';
-import { log, readCtx, getActiveTmuxPane, notifyTmux } from './hook-lib.mjs';
+import { log, readCtx, getActiveTmuxPane, notifyTmux, setLazygitrsIcon } from './hook-lib.mjs';
 
 const LOG_FILE = '/tmp/lazygit-hook.log';
 const CANDIDATE_PORTS = [47657, 47658, 47659, 47660, 47661];
@@ -29,14 +29,27 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     return;
   }
 
-  // Fast path: skip the scan if we already registered this conversation.
+  // Fast path: verify if we already registered this conversation and if server is still up.
   const safePath = (workspacePath || '').replace(/[^a-zA-Z0-9]/g, '_');
   const sentinel = `/tmp/agy-registered-${safePath}.sentinel`;
   try {
     const stored = readFileSync(sentinel, 'utf-8').trim();
     if (stored === conversationId) {
-      log(LOG_FILE, `Already registered (sentinel hit), skipping scan`);
-      return;
+      try {
+        const checkRes = await fetch(`http://127.0.0.1:${initialPort}/session-api/session`);
+        if (checkRes.ok) {
+          const currentSessionData = await checkRes.json();
+          if (currentSessionData && currentSessionData.sessionId === conversationId) {
+            log(LOG_FILE, `Already registered (sentinel hit & verified), keeping icon`);
+            setLazygitrsIcon(tmuxPane, '#[fg=#a6e3a1]#[fg=default]');
+            return;
+          }
+        }
+      } catch (e) {
+        log(LOG_FILE, `Sentinel hit but server unverified: ${e.message}`);
+      }
+      // Server is no longer reachable or session changed - clear stale sentinel!
+      try { unlinkSync(sentinel); } catch (e) {}
     }
   } catch (e) { /* no sentinel yet */ }
 
@@ -127,6 +140,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     log(LOG_FILE, `Could not find or start lazygitrs for workspace ${workspacePath}`);
     bridgeStatus = '⚠️ Lazygitrs offline';
     fallbackWarning = ' (Start lazygitrs to integrate)';
+    setLazygitrsIcon(tmuxPane, '');
     notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning}`);
     return;
   }
@@ -152,16 +166,19 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
       if (!res.ok) {
         bridgeStatus = '⚠️ Lazygitrs registration rejected';
         fallbackWarning = ' (Fallback active)';
+        setLazygitrsIcon(tmuxPane, '');
         log(LOG_FILE, `Registration failed: ${res.statusText}`);
       } else {
         if (!bridgeStatus.startsWith('✅ Lazygitrs auto-started')) {
           bridgeStatus = '✅ Registered Lazygitrs session';
         }
+        setLazygitrsIcon(tmuxPane, '#[fg=#a6e3a1]#[fg=default]');
         notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning} - conversation id: ${conversationId}`);
         log(LOG_FILE, `Registration successful`);
       }
     } else {
       bridgeStatus = '✅ Lazygitrs session already registered';
+      setLazygitrsIcon(tmuxPane, '#[fg=#a6e3a1]#[fg=default]');
       log(LOG_FILE, `Session already registered`);
     }
 
@@ -174,10 +191,40 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
 }
 
 
+async function unregisterLazygitrs(conversationId, tmuxPane, initialPort, workspacePath) {
+  log(LOG_FILE, `Unregistering lazygitrs session ${conversationId} pane ${tmuxPane}...`);
+  const safePath = (workspacePath || '').replace(/[^a-zA-Z0-9]/g, '_');
+  const sentinel = `/tmp/agy-registered-${safePath}.sentinel`;
+  try { unlinkSync(sentinel); } catch (e) {}
+
+  setLazygitrsIcon(tmuxPane, '');
+
+  if (!conversationId) return;
+
+  let port = initialPort;
+  try {
+    const portFile = `${workspacePath}/.lazygitrs.port`;
+    port = parseInt(readFileSync(portFile, 'utf-8').trim(), 10) || initialPort;
+  } catch (e) {}
+
+  try {
+    await fetch(`http://127.0.0.1:${port}/session-api`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'unregister', sessionId: conversationId }),
+    });
+    log(LOG_FILE, `Unregistered session ${conversationId} from port ${port}`);
+  } catch (e) {
+    log(LOG_FILE, `Unregister call failed: ${e.message}`);
+  }
+}
+
+
 async function main() {
+  const eventType = process.argv[2] || 'PreInvocation';
   const { inputStr, ctx } = await readCtx();
 
-  log(LOG_FILE, `Hook main called. ctx: ${JSON.stringify(ctx)} PWD: ${process.env.PWD}`);
+  log(LOG_FILE, `Hook main called [${eventType}]. ctx: ${JSON.stringify(ctx)} PWD: ${process.env.PWD}`);
 
   const tmuxPane = getActiveTmuxPane();
 
@@ -197,8 +244,11 @@ async function main() {
     port = parseInt(readFileSync(portFile, 'utf-8').trim(), 10) || 47657;
   } catch (e) {}
 
-  await registerLazygitrs(conversationId, tmuxPane, port, workspacePath);
-
+  if (['SessionEnd', 'Exit', 'Unregister'].includes(eventType)) {
+    await unregisterLazygitrs(conversationId, tmuxPane, port, workspacePath);
+  } else {
+    await registerLazygitrs(conversationId, tmuxPane, port, workspacePath);
+  }
 
   // Echo the context back so we don't break the hook pipeline
   if (inputStr.trim()) {

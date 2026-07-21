@@ -125,6 +125,44 @@ Custom ZLE widgets extend Vi mode with smart, unified surround text objects so y
 - **Insert Mode Default**: Every new command prompt starts in Vi Insert mode (`_zvm_custom_zle_line_init`).
 - **History Navigation**: `Ctrl+K` / `Ctrl+J` and Up/Down arrows perform prefix-aware history searches; `Ctrl+R` opens Atuin; `Ctrl+T` triggers the Matchmaker jump widget.
 
+## Automatic Monitor Management via Kanshi
+
+Display profiles and hotplug events are automatically handled by [`kanshi`](https://github.com/emersion/kanshi), a Wayland monitor daemon.
+
+### How it Works
+
+- **Autostart**: `kanshi` is launched on session start via [`hypr/.config/hypr/autostart.conf`](../hypr/.config/hypr/autostart.conf):
+  ```ini
+  exec-once = kanshi
+  ```
+- **Hotplug Detection**: `kanshi` listens to Wayland output events. When an external monitor (or Ultrawide display) is plugged in or disconnected, it automatically applies matching display profiles without restarting Hyprland.
+- **Profile Layouts**: Managed in the [`kanshi`](../kanshi) package (target: `~/.config/kanshi/config`). Example profile configuration from [`kanshi/.config/kanshi/config.ultrawide`](../kanshi/.config/kanshi/config.ultrawide):
+
+  ```kanshi
+  # External Ultrawide connected: disable laptop screen, set HDMI resolution & reserved space
+  profile {
+      output "eDP-1" disable
+      output "HDMI-A-1" mode 2560x1080 position 0,0
+      exec hyprctl keyword monitor "HDMI-A-1,addreserved,-10,0,0,0"
+  }
+
+  # Standalone laptop: enable internal display
+  profile {
+      output "eDP-1" enable
+  }
+  ```
+
+### Useful Commands
+
+- Inspect active display output names & modes:
+  ```bash
+  hyprctl monitors
+  ```
+- Manually reload or restart kanshi daemon:
+  ```bash
+  killall kanshi && kanshi &
+  ```
+
 ## Theme-aware styling everywhere
 
 Every visible component (Hyprland, waybar, fuzzel, walker, mako, ghostty, kitty, nvim, btop,

@@ -52,6 +52,40 @@ external scripts and surfaced in `window-status-format` / `window-status-current
 bell segment is cleared automatically a few seconds after it's set. See `tmux/.config/tmux/tmux.conf`
 for the exact option wiring.
 
+## Scrollback capture to Neovim
+
+You can capture the full scrollback history of the current tmux pane (with ANSI colors preserved)
+and open it directly in Neovim for searching, copying, or inspection.
+
+### Keybinding (`Prefix + C-e`)
+
+In [`tmux/.config/tmux/tmux.conf`](../tmux/.config/tmux/tmux.conf), pressing `Prefix` (`Ctrl+Space`) then `Ctrl+e` (`C-e`) captures the active pane's scrollback buffer:
+
+```tmux
+bind-key C-e run-shell "tmux capture-pane -epS - | grep -vE '|||' | sed '/^$/d' > /tmp/tmux_scrollback.ansi && tmux new-window 'nvim -c \"BaleiaColorize\" -c \"setlocal nomodified nomodifiable\" -c \"normal G\" /tmp/tmux_scrollback.ansi'"
+```
+
+How it works:
+1. `tmux capture-pane -epS -` exports the full pane scrollback history, retaining ANSI color escape codes.
+2. Filters out prompt icons (`grep -vE ...`) and empty lines (`sed '/^$/d'`), saving to `/tmp/tmux_scrollback.ansi`.
+3. Spawns a new tmux window running Neovim, colorizing ANSI escape sequences with [`baleia.nvim`](../nvim/.config/nvim/lua/plugins/baleia.lua) via `:BaleiaColorize`, setting the buffer as read-only (`nomodified nomodifiable`), and jumping to the bottom (`G`).
+
+### Shell alias (`scrollback`)
+
+A zsh alias is provided in [`zsh/.zsh/utils/aliases.zsh`](../zsh/.zsh/utils/aliases.zsh):
+
+```zsh
+alias scrollback='tmux capture-pane -epS - > /tmp/tmux_scrollback.ansi && nvim -c "BaleiaColorize" -c "normal G" /tmp/tmux_scrollback.ansi'
+```
+
+Executing `scrollback` inside any terminal session dumps the pane history and opens it in Neovim with full ANSI color formatting.
+
+### History limit & Vi mode
+
+Tmux scrollback buffer behavior is configured in [`tmux/.config/tmux/tmux.conf`](../tmux/.config/tmux/tmux.conf):
+- `set-option -g history-limit 10000`: Expands scrollback buffer to 10,000 lines per pane.
+- `setw -g mode-keys vi`: Enables Vi navigation keybindings in copy mode.
+
 ## Theme-aware styling everywhere
 
 Every visible component (Hyprland, waybar, fuzzel, walker, mako, ghostty, kitty, nvim, btop,

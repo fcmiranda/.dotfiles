@@ -1,12 +1,13 @@
 active_provider: opencode # default; uses opencode CLI free models
 providers:
   opencode:
-    model: "opencode/minimax-m2.5-free" # Uses opencode CLI - no API key needed
+    model: "opencode/deepseek-v4-flash-free" # Uses opencode CLI - no API key needed
     fallback_models:
-      - "opencode/minimax-m2.5-free"
-      - "opencode/ling-2.6-flash-free"
-      - "opencode/hy3-preview-free"
-      - "opencode/nemotron-3-super-free"
+      - "opencode/deepseek-v4-flash-free"
+      - "opencode/mimo-v2.5-free"
+      - "opencode/hy3-free"
+      - "opencode/nemotron-3-ultra-free"
+      - "opencode/north-mini-code-free"
     num_suggestions: 10
   copilot:
     api_key: "$GITHUB_TOKEN"   # Uses GitHub token; token is exchanged internally

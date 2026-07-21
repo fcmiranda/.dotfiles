@@ -50,7 +50,7 @@ Non-stow directories: `.bare`, `.git`, `.github`, `.shell`, `scripts`.
 - [docs/SYSTEM_THEME.md](docs/SYSTEM_THEME.md) — how the Omarchy theme system renders per-app
   configs from `colors.toml`, and how this repo extends it via overrides + the `theme-set` hook.
 - [docs/FEATURES.md](docs/FEATURES.md) — notable behaviors, including click-and-hold copy inside
-  tmux, scrollback capture to Neovim, agent status in the tmux status bar, and theme-aware styling.
+  tmux, scrollback capture to Neovim, Zsh Vi mode (`vi-cmd-mode`) with custom surrounds and Starship integration, agent status in the tmux status bar, and theme-aware styling.
 - [docs/UTILS.md](docs/UTILS.md) — useful commands shipped here and by Omarchy, including how to
   refresh Hyprland and restart individual components.
 

@@ -31,7 +31,7 @@ git:
     signOff: false
     autoWrapCommitMessage: true
     autoWrapWidth: 72
-    generateCommand: ''
+    generateCommand: 'lazycommit commit --message-only --silent-empty'
   merging:
     manualCommit: false
     args: ''
@@ -94,11 +94,10 @@ keybinding:
     recentRepos: <enter>
     allBranchesLogGraph: a
   files:
-    commitChanges: c
-    generateAICommit: <c-g>
+    commitChanges: "C"
+    generateAICommit: "G"
     commitChangesWithoutHook: w
     amendLastCommit: A
-    commitChangesWithEditor: C
     toggleStagedAll: a
     stashAllChanges: s
     viewStashOptions: S

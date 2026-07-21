@@ -10,12 +10,25 @@ These come from the [`utils`](../utils) stow package.
 | Command | Purpose |
 |---------|---------|
 | `stow-it <path> [package]` | Adopt an existing file or dir into the dotfiles repo and stow it. Resolves the real path, moves it under `~/.dotfiles/main/<package>/...`, and runs `stow.sh -a <package>`. |
+| `battery-threshold [pct]` | Set hardware battery charge threshold (e.g., `80`) to extend battery lifespan (`battery` package). |
+| `perf-toggle` | Toggle CPU energy performance profile between performance, balanced, and power-saver (`battery` package). |
+| `battery-health` | Display battery health stats, current capacity, and cycle count (`battery` package). |
 | `omarchy-style-waybar-position <top\|bottom\|left\|right>` | Move Waybar to a different screen edge. |
 | `gpucheck [--fix] [--watch]` | NVIDIA / Intel GPU, driver, and energy-performance diagnostics. |
 | `gpu-toggle` | Switch between NVIDIA dedicated and Intel integrated GPU via EnvyControl. Requires sudo and a reboot. |
 | `killothers [--dry-run] [--force] [--signal SIGNAL]` | Kill processes owned by *other* users while preserving the current user's session. |
 | `memtop [--kill] [--report] [--watch] [--top N]` | Interactive memory analyzer and process killer. |
 | `git` | Thin wrapper around `/usr/bin/git` (unsets `LD_LIBRARY_PATH` before execving real git). |
+
+## Zsh Shell Helpers
+
+Defined in [`zsh/.zsh/utils/functions.zsh`](../zsh/.zsh/utils/functions.zsh):
+
+| Command / Function | Purpose |
+|-------------------|---------|
+| `killport <port>` | Find and terminate any process or Docker container listening on specified TCP port (e.g. `killport 3000`). |
+| `dotadd <package> [files...]` | Copy file(s) into `~/.dotfiles/main/<package>/` with correct stow structure and trigger restow automatically. |
+| `wtr [old-name] <new-name>` | Rename a git worktree directory and its branch atomically. |
 
 ## Stow management
 

@@ -163,6 +163,32 @@ Display profiles and hotplug events are automatically handled by [`kanshi`](http
   killall kanshi && kanshi &
   ```
 
+## Smart Tab Completion & Directory Jump (`_smart_tab`)
+
+The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh) is augmented with context-aware logic (`_smart_tab`):
+
+- **Shortcuts**:
+  - `j<Tab>`: Clears input and triggers `_jump_widget` (Matchmaker / zoxide directory selection).
+  - `h<Tab>`: Clears input and triggers `_zcd_widget` (zoxide directory navigation).
+- **Autosuggestions**: If an autosuggestion ghost text is active, `<Tab>` accepts the suggestion immediately.
+- **Direct Hotkey (`Ctrl+T`)**: Directly opens the Matchmaker jump picker interface.
+
+## Ghostty Terminal Enhancements
+
+Configurations in [`ghostty/.config/ghostty/config`](../ghostty/.config/ghostty/config) provide several advanced terminal features:
+
+- **CSI u Key Escapes**: Maps `Ctrl+1` through `Ctrl+9` and `Ctrl+~` to explicit CSI u escape codes (e.g. `\x1b[49;5u`), ensuring terminal multiplexers like `tmux` reliably capture window navigation keybindings.
+- **Hyprland Performance (`epoll`)**: Sets `async-backend = epoll` to eliminate event loop latency under Hyprland.
+- **Custom Shaders**: Includes GPU GLSL shader effects (`cursor_frozen.glsl` / `cursor_blaze.glsl`) for custom visual cursor rendering.
+
+## Battery Management & CPU Power Profiles
+
+Hardware battery health and CPU energy management scripts shipped in the [`battery`](../battery) stow package (`battery/.local/bin/`):
+
+- **Charging Thresholds (`battery-threshold`)**: Sets hardware battery charge limits (e.g. 80%) to minimize battery degradation when plugged in long-term.
+- **CPU Performance Toggle (`perf-toggle`)**: Switches CPU energy-performance hints between `performance`, `balanced`, and `power-saver` modes on the fly.
+- **Waybar Status (`perf-waybar`)**: Integrates live power state and battery condition into the Waybar status bar.
+
 ## Theme-aware styling everywhere
 
 Every visible component (Hyprland, waybar, fuzzel, walker, mako, ghostty, kitty, nvim, btop,

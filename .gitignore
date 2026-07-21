@@ -5,6 +5,5 @@ stow-lock.json
 # APM dependencies
 apm_modules/
 
-
 .lazygitrs*
 .lines.json

@@ -2,15 +2,17 @@
 # window-picker-mm.sh — cross-session window picker with OpenCode state using mm
 # All sessions and their windows, grouped, with color-coded AI state and live preview.
 
+REAL_SCRIPT=$(readlink -f "$0" 2>/dev/null || realpath "$0")
+
 if [ "$1" = "--fullscreen" ]; then
   if ! [ -t 1 ]; then
-    exec tmux split-window -Z "$0" --fullscreen
+    exec tmux split-window -Z "$REAL_SCRIPT" --fullscreen
   fi
-elif [ -z "$TMUX_POPUP" ]; then
-  exec tmux display-popup -b rounded -w 80% -h 35% -y 30 -E "TMUX_POPUP=1 $0"
+elif [ -z "${TMUX_POPUP:-}" ]; then
+  exec tmux display-popup -b rounded -w 80% -h 35% -y 30 -E "TMUX_POPUP=1 $REAL_SCRIPT"
 fi
 
-SCRIPT_DIR=$(dirname "$0")
+SCRIPT_DIR=$(dirname "$REAL_SCRIPT")
 ITEMS_SCRIPT="${SCRIPT_DIR}/window-picker-items.sh"
 _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 [ -f "$_tmux_style" ] || _tmux_style="${SCRIPT_DIR}/tmux-style.sh"

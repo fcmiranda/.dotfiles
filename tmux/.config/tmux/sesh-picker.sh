@@ -24,7 +24,7 @@ unset _tmux_style
 
 echo "[$(date)] sesh list --icons | mm -o $SCRIPT_DIR/sesh-picker.toml --color \"${TMUX_COLOR_SPEC:-}\"" >> /tmp/sesh-picker-mm.log
 
-sesh list --icons | grep -Ev '(_lazygitrs|[[:space:]]+[._])' | ~/.cargo/bin/mm \
+sesh list --icons | grep -Ev '(_lazygitrs|_popups|[[:space:]]+\.)' | ~/.cargo/bin/mm \
   -o "$SCRIPT_DIR/sesh-picker.toml" \
   --color "${TMUX_COLOR_SPEC:-}" \
 | (read chosen && [ -n "$chosen" ] && sesh connect "$chosen"); true

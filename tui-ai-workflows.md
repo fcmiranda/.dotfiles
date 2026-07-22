@@ -6,7 +6,7 @@
 
 - [Current Setup Overview](#current-setup-overview)
 - [Navigation Layers](#navigation-layers)
-- [OpenCode Bell Notification](#opencode-bell-notification)
+- [AI Agent Bell Notification & ACPD Architecture](#ai-agent-bell-notification--acpd-architecture)
 - [Window Picker](#window-picker)
 - [Workflow Comparison](#workflow-comparison)
   - [A. Sesh + Tmux Windows (Current)](#a-sesh--tmux-windows-current)
@@ -27,7 +27,7 @@ The stack currently spans **4 navigation layers**, each with its own reach:
 |-------|------|-------|-------------|
 | **Desktop** | Hyprland + Walker/Fuzzel | Any app, any workspace | `Super+Space`, `Super+Shift+K` |
 | **Terminal** | Ghostty | Spawns tmux context | `Super+Return` |
-| **Session** | sesh + tmux | Switch between project sessions | `Alt+s`, `prefix+K/P/T` |
+| **Session** | sesh + tmux + matchmaker | Switch between project sessions | `Alt+s`, `prefix+T` |
 | **Window** | tmux windows | Switch within a session (editor, AI, git, etc.) | `Ctrl+0-9` (no prefix) |
 
 ### Current Keybinding Map
@@ -43,22 +43,21 @@ The stack currently spans **4 navigation layers**, each with its own reach:
 ├─────────────────────────────────────────────────────────────────┤
 │ TMUX SESSION (sesh)                                             │
 │  Alt+s ............... Sesh picker (from zsh, fzf, 40% height)  │
-│  prefix+K ............ Sesh picker (gum, small popup)           │
-│  prefix+P ............ Sesh picker (fzf, large popup, preview)  │
-│  prefix+T ............ Sesh picker (fzf-tmux, 80x70% overlay)  │
+│  prefix+T ............ Sesh picker (Matchmaker, 80x35% popup)   │
 │  prefix+L ............ Last session (sesh last)                 │
 │  prefix+H / L ....... Prev / next session                      │
 ├─────────────────────────────────────────────────────────────────┤
 │ TMUX WINDOW                                                     │
 │  Ctrl+0-9 ........... Jump to window 0-9 (NO prefix)            │
+│  Ctrl+Shift+0-9 ..... Move window to position 0-9 (NO prefix)   │
 │  prefix+l / h ........ Next / prev window                       │
 │  prefix+Tab .......... Last window                              │
 ├─────────────────────────────────────────────────────────────────┤
 │ TMUX POPUP                                                      │
-│  prefix+i ............ OpenCode bell popup (attach notif window)│
-│  prefix+O ............ Window picker (all sessions, fzf+preview)│
+│  prefix+i ............ AI Agent bell popup (attach notif window)│
+│  prefix+s / S ........ Window picker (Matchmaker + acpd state)  │
 │  prefix+B ............ btop (90x90%)                            │
-│  prefix+G ............ lazygit (90x90%)                         │
+│  prefix+g ............ lazygit (lazygitrs-popup)                │
 │  prefix+Y ............ yazi (90x90%)                            │
 │  prefix+N ............ nvim (90x90%)                            │
 └─────────────────────────────────────────────────────────────────┘
@@ -96,18 +95,22 @@ The stack currently spans **4 navigation layers**, each with its own reach:
 
 ---
 
-## OpenCode Bell Notification
+## AI Agent Bell Notification & ACPD Architecture
 
-**Binding**: `prefix+i` → `opencode-bell-popup.sh`
+**Binding**: `prefix+i` → `ai-agent-bell-popup.sh`
 
-When OpenCode finishes, needs a question answered, or requires permission, `hooker.ts` fires a bell and sets `@opencode_last_bell` to the pane reference. The bell message appears in the tmux status-right and clears after 7 seconds.
+AI agent state management is centralized by **`acpd`** (Agent Client Protocol Daemon), a headless Rust daemon listening at `127.0.0.1:4040`. Thin client hooks (`hooker.ts` for OpenCode, `tmux-hook.mjs` for Antigravity / Gemini CLI) send state events (`working`, `idle`, `awaiting_input`, `permission`, `error`, `closed`) to `acpd`.
 
-`prefix+i` opens a **90×90% rounded popup** that attaches directly to the notifying OpenCode window — no window hunting needed.
+When an AI agent finishes (`idle`), asks a question (`awaiting_input`), or requests permission (`permission`), `acpd`'s `TmuxAdapter` sets `@ai_agent_last_bell` to the notifying pane reference and updates `@ai_agent_bell` in the tmux status-right (auto-cleared after 7 seconds).
+
+Pressing `prefix+i` runs `ai-agent-bell-popup.sh`:
+- If you are on the **same tmux session**, it switches windows directly to the notifying pane.
+- If you are on a **different session**, it opens a **90×90% rounded popup** that attaches directly to the notifying window — no window hunting needed.
 
 ```
 ┌─ dotfiles › opencode  │  prefix+q close ──────────────────────┐
 │                                                                │
-│  [the actual opencode terminal window, fully interactive]      │
+│  [the actual AI terminal window, fully interactive]            │
 │                                                                │
 │  ✓ Task complete. What would you like to do next?             │
 │  >                                                             │
@@ -115,67 +118,66 @@ When OpenCode finishes, needs a question answered, or requires permission, `hook
 └────────────────────────────────────────────────────────────────┘
 ```
 
-**Flow**:
+**Architecture & Flow**:
 
 ```
-hooker.ts detects idle/question/permission
-  │
-  ├─ sets @opencode_last_bell = pane reference
-  ├─ sets @opencode_bell = styled status-right message
-  └─ clears bell after 7s
+AI Clients (OpenCode / Antigravity / ACP JSON-RPC)
+  │ (HTTP POST http://127.0.0.1:4040/api/status or /rpc)
+  ▼
+acpd Daemon (Rust, systemd user service)
+  ├── TmuxAdapter    → animated tab spinner, @ai_agent_state, @ai_agent_bell
+  ├── WaybarAdapter  → writes acpd-waybar-state.json + pkill -RTMIN+13 waybar
+  └── Notifications  → desktop notifications (libnotify)
 
-User sees bell in status bar → presses prefix+i
+User sees bell in status bar / Waybar → presses prefix+i
   │
-  └─ opencode-bell-popup.sh
-       ├─ reads @opencode_last_bell to find pane
-       ├─ resolves session + window index
-       └─ opens 90×90% popup → tmux attach-session
-
-User responds to AI, then presses prefix+q to close
+  └─ ai-agent-bell-popup.sh
+       ├─ reads @ai_agent_last_bell to find target pane
+       ├─ same session? → select-window directly
+       └─ different session? → 90×90% popup attach-session
 ```
 
-**State icons shown in tmux window tabs**:
+**State icons shown in tmux window tabs & pickers**:
 
 | Icon | State | Meaning |
 |------|-------|---------|
-| `⣾` (spinning) | busy | AI is processing |
+| `󰑮` (animated spinner) | busy / working | AI is processing (animated frames driven by `acpd`) |
 | `󱥂` | idle | finished, response ready |
-| `󱜻` | question | AI needs your input |
-| `󰨄` | retry | retrying after error |
+| `󱜻` | question / awaiting_input | AI needs your input |
+| `󰨄` | error / retry | error occurred / retrying |
 | `󱅭` | permission | needs tool permission |
 
 ---
 
 ## Window Picker
 
-**Binding**: `prefix+O` → `window-picker.sh`
+**Binding**: `prefix+s` (popup 80×35%) / `prefix+S` (fullscreen split) → `window-picker.sh`
 
-A cross-session window picker that lists **all sessions and all their windows** in a single fzf popup (80×50%, rounded magenta border). Each window row shows:
-- AI state icon on the left (color-coded, matches status bar)
-- Current/inactive dot marker
+A cross-session window picker powered by **Matchmaker** (`mm`). It lists **all sessions and all their windows** grouped by session, with real-time AI state icons and live pane previews. Each window row shows:
+- Color-coded AI state icon on the right (set by `acpd` via `@ai_agent_state_raw`)
+- Current window dot marker (`•` for active, `·` for inactive)
 - Window index and name
-- Live preview of the pane on the right (50%)
+- Live preview of the pane on the right side
 
 ```
 ┌─ 󰧞  windows ──────────────────────────────────────────────────┐
 │                                          ┆                     │
-│   dotfiles                               ┆  [pane preview]     │
-│   ⣾ ● 2  opencode                        ┆                     │
-│   · 1  nvim                              ┆  > analyzing...     │
-│   · 0  zsh                               ┆                     │
+│  #  dotfiles                             ┆  [pane preview]     │
+│     • 2  opencode  󰑮                      ┆                     │
+│     · 1  nvim                            ┆  > analyzing...     │
+│     · 0  zsh                             ┆                     │
 │                                          ┆                     │
-│   webapp                                 ┆                     │
-│   󱥂 · 2  opencode                        ┆                     │
-│   · 1  nvim                              ┆                     │
+│  #  webapp                               ┆                     │
+│     · 2  opencode  󱥂                      ┆                     │
+│     · 1  nvim                            ┆                     │
 │                                          ┆                     │
 └────────────────────────────────────────────────────────────────┘
 ```
 
 **Behaviour**:
-- Session headers are **visible but not selectable** — navigation skips over them automatically (uses `focus` event + `$FZF_ACTION` to skip in the correct direction)
-- Selecting a window runs `tmux switch-client -t session:index`
-- Preview shows the live pane for windows, and a window list summary for session headers
-- Works across all sessions — one picker to rule them all
+- Session headers (`#  session`) are rendered as non-selectable group headers.
+- Selecting a window executes `tmux switch-client -t session:index`.
+- Real-time updates: `window-picker-items.sh` reads live tmux window options (`@ai_agent_state_raw`) set by `acpd`.
 
 ---
 
@@ -198,15 +200,15 @@ Session: dotfiles          Session: webapp          Session: api
 |--------|-------|
 | **Keypresses to reach AI** | **1** (Ctrl+2 if in same session) or **2** (Alt+s → pick session, then Ctrl+2) |
 | **Context switch cost** | Low — windows preserve scroll, state, CWD |
-| **Visual awareness** | Status bar shows window names + OpenCode spinner icon |
-| **AI notification** | prefix+i jumps to OpenCode bell window (1 keypress from prefix) |
-| **Discovery** | sesh picker shows all sessions with icons; fzf for filtering |
+| **Visual awareness** | Status bar & Waybar show window names + acpd animated spinner icon |
+| **AI notification** | prefix+i jumps to AI agent bell window (1 keypress from prefix) |
+| **Discovery** | sesh picker (Alt+s / prefix+T) shows all sessions with Matchmaker filtering |
 | **Multi-project** | Excellent — each project is an isolated session |
 
 **Strengths**:
 - Ctrl+0-9 is instant (no prefix, no picker, no delay)
-- OpenCode hooker.ts provides live status in tmux status bar
-- `prefix+i` to jump to AI notification = reactive workflow
+- acpd daemon provides real-time state, animated spinners in tabs, and Waybar status updates across agents
+- `prefix+i` to jump to AI notification = reactive workflow (same session jump or 90x90% popup attach)
 - sesh picker from desktop (Super+Shift+K) means you can reach any session from anywhere
 
 **Weaknesses**:
@@ -491,8 +493,8 @@ flowchart TB
         end
         subgraph Prefix["🔑 Prefix Access"]
             P1["prefix+i → AI notification jump"]
-            P2["prefix+o → AI sidebar toggle"]
-            P3["prefix+K/P/T → sesh pickers"]
+            P2["prefix+s/S → Matchmaker window picker"]
+            P3["prefix+T → Matchmaker sesh picker"]
         end
     end
 
@@ -510,7 +512,7 @@ flowchart TB
     Q2 --> T1
     Q3 --> T2
     P1 --> T1
-    P2 --> T3
+    P2 --> T1
     P3 --> T1
 ```
 
@@ -534,12 +536,13 @@ stateDiagram-v2
         AIFloat --> Editor: Alt+o
         Editor --> AISidebar: prefix+o
         AISidebar --> Editor: prefix+o
-        AIWindow --> OtherSession: Alt+s
-        Editor --> Popup: prefix+G/B/Y
+        AIWindow --> OtherSession: Alt+s / prefix+T
+        Editor --> WindowPicker: prefix+s / S
+        Editor --> Popup: prefix+g/B/Y
         Popup --> Editor: q / Esc
     }
 
-    AIWindow --> AINotification: hooker.ts bell
+    AIWindow --> AINotification: acpd bell notification
     AINotification --> AIWindow: prefix+i
 ```
 
@@ -571,11 +574,12 @@ The current setup already has excellent navigation. The single highest-leverage 
 
 | Binding | Action | Pattern | When |
 |---------|--------|---------|------|
-| `Ctrl+2` | Jump to AI window | A (window) | Same session, quick switch |
+| `Ctrl+0-9` | Direct window jump | A (window) | Same session, instant switch |
+| `prefix+s / S` | Matchmaker Window Picker | A (window) | See AI states across sessions |
+| `prefix+i` | AI notification jump | A (window) | Reactive — AI finished / input needed |
+| `Alt+s` / `prefix+T` | Sesh picker | A (session) | Different project |
 | `Alt+o` | Toggle AI float | B (float) | Quick question, small screen |
 | `prefix+o` | Toggle AI sidebar | C (sidebar) | Extended pair programming |
-| `Alt+s` | Sesh picker | A (session) | Different project |
-| `prefix+i` | AI notification jump | A (window) | Reactive — AI finished |
 | `Super+Shift+K` | Desktop sesh picker | D (desktop) | From any desktop context |
 
 This gives you **every pattern accessible by muscle memory**, each optimized for a different situation.

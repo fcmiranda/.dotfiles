@@ -8,8 +8,9 @@ After deeply analyzing your `tui-ai-workflows.md`, your `tmux.conf`, your Hyprla
 
 Your current architecture solves problems that most developers haven't even realized they have yet.
 
-*   **The State Machine (`hooker.ts`)**: This is the crown jewel of your setup. Instead of staring at a window waiting for an AI to finish, you've extracted the AI's state (busy, idle, question, permission) and piped it into the tmux status bar and desktop notifications. This transforms the AI from a synchronous blocking task into an asynchronous background worker.
-*   **Reactive Navigation (`prefix+i`)**: Connecting the `hooker.ts` bell directly to a popup that attaches to the specific pane requiring attention is brilliant. It completely eliminates the "hunt for the notification" phase.
+*   **The Centralized ACP Daemon (`acpd`) & Thin Hooks**: This is the crown jewel of your setup. Instead of heavy individual client scripts, a headless Rust daemon (`acpd` on `127.0.0.1:4040`) centralizes AI state management across agents (OpenCode via `hooker.ts`, Antigravity via `tmux-hook.mjs`). `acpd` drives animated spinners in tmux tabs, updates status bar indicators (`@ai_agent_state` / `@ai_agent_state_raw`), updates Waybar in real time (`acpd-waybar-state.json`), and triggers desktop notifications.
+*   **Reactive Navigation (`prefix+i`)**: Connecting the `acpd` bell directly to `ai-agent-bell-popup.sh` via `prefix+i` attaches directly to the specific pane requiring attention. It completely eliminates the "hunt for the notification" phase across sessions.
+*   **Matchmaker Window Picker (`prefix+s` / `prefix+S`)**: Powered by Matchmaker (`mm`), `prefix+s` (popup) and `prefix+S` (fullscreen) list all sessions and windows with color-coded AI state icons (`󰑮` working spinner, `󱥂` idle, `󱜻` question, `󰨄` error, `󱅭` permission) and live pane previews.
 *   **Desktop-to-Session Unification (`Super+Shift+K`)**: Using Walker/Fuzzel to jump straight into a specific project's tmux session from the desktop layer drastically reduces context-switching latency.
 
 ## 2. The Friction Points ("The Thinking Trap")

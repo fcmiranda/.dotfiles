@@ -1,19 +1,13 @@
 #!/usr/bin/env node
-import { readCtx, getActiveTmuxPane } from './hook-lib.mjs';
+import { readCtx, getActiveTmuxPane, getAcpdHeaders } from './hook-lib.mjs';
 
-/**
- * We wait for a short period before actually sending the 'idle' state.
- * If the AI invokes another tool immediately after the previous one finishes,
- * this delay prevents the tmux status icon from flickering between "working" and "idle".
- * A new "working" state will update the timestamp in the state file and cancel this pending idle.
- */
 async function sendAcpState(paneId, state, message = null) {
   if (!paneId) return;
 
   try {
     await fetch('http://127.0.0.1:4040/api/status', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAcpdHeaders(),
       body: JSON.stringify({
         pane_id: paneId,
         state,

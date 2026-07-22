@@ -83,3 +83,29 @@ export function setLazygitrsIcon(pane, icon) {
     execSync(`tmux refresh-client -S`, { stdio: 'pipe' });
   } catch (e) {}
 }
+
+import { readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+export function getAcpdToken() {
+  try {
+    const xdgRuntime = process.env.XDG_RUNTIME_DIR;
+    const uid = process.getuid?.() || 1000;
+    const tokenPath = xdgRuntime
+      ? join(xdgRuntime, 'acpd', 'token')
+      : join(tmpdir(), `acpd-${uid}`, 'token');
+    return readFileSync(tokenPath, 'utf8').trim();
+  } catch (e) {
+    return null;
+  }
+}
+
+export function getAcpdHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getAcpdToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}

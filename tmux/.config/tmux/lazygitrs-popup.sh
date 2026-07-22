@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 PROJECT_DIR="$1"
+
+if ! git -C "$PROJECT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    tmux display-message "Not in a git repository"
+    exit 0
+fi
+
 WINDOW_NAME="lzg-$(echo -n "$PROJECT_DIR" | md5sum | cut -d' ' -f1 | head -c 8)"
 SESSION_NAME="_popups"
+
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"

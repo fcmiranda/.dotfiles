@@ -5,7 +5,7 @@ import { basename } from 'node:path';
 import { log, readCtx, getActiveTmuxPane, notifyTmux, setLazygitrsIcon } from './hook-lib.mjs';
 
 const LOG_FILE = '/tmp/lazygit-hook.log';
-const CANDIDATE_PORTS = [47657, 47658, 47659, 47660, 47661];
+const CANDIDATE_PORTS = Array.from({ length: 100 }, (_, i) => 47657 + i);
 const AUTO_START_RETRIES = 10;
 const AUTO_START_DELAY_MS = 500;
 
@@ -61,7 +61,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   let port = initialPort;
 
   // Phase 1: Scan candidate ports. Try the port from .lazygitrs.port
-  // first, then the sequential range 47657-47661.
+  // first, then the sequential range 47657-47756.
   const portsToScan = [...new Set([initialPort, ...CANDIDATE_PORTS])];
   for (const p of portsToScan) {
     API_BASE_URL = `http://127.0.0.1:${p}/session-api`;

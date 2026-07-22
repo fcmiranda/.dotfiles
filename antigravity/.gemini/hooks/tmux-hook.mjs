@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-import { spawnSync, spawn } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { readCtx, getActiveTmuxPane } from './hook-lib.mjs';
 
 /**
@@ -11,60 +7,19 @@ import { readCtx, getActiveTmuxPane } from './hook-lib.mjs';
  * this delay prevents the tmux status icon from flickering between "working" and "idle".
  * A new "working" state will update the timestamp in the state file and cancel this pending idle.
  */
-function sendDelayedIdleState(paneId, stateFile, message) {
-  const now = Date.now().toString();
-  writeFileSync(stateFile, now);
-
-  const payload = JSON.stringify({ pane_id: paneId, state: 'idle', message });
-
-  const code = `
-    setTimeout(async () => {
-      try {
-        const fs = require('fs');
-        const ts = fs.readFileSync(process.env.STATE_FILE, 'utf8');
-        if (ts === process.env.NOW) {
-          await fetch('http://127.0.0.1:4040/api/status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: process.env.PAYLOAD
-          });
-        }
-      } catch (e) {}
-    }, 650);
-  `;
-
-  const child = spawn(process.execPath, ['-e', code], {
-    detached: true,
-    stdio: 'ignore',
-    env: {
-      ...process.env,
-      STATE_FILE: stateFile,
-      NOW: now,
-      PAYLOAD: payload
-    }
-  });
-  child.unref();
-}
-
 async function sendAcpState(paneId, state, message = null) {
   if (!paneId) return;
-
-  try {
-    const stateFile = join(tmpdir(), `acpd-tmux-state-${paneId.replace('%', '')}.txt`);
-
-    if (state === 'idle') {
-      sendDelayedIdleState(paneId, stateFile, message);
-      return;
-    } else {
-      writeFileSync(stateFile, Date.now().toString());
-    }
-  } catch (e) { }
 
   try {
     await fetch('http://127.0.0.1:4040/api/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pane_id: paneId, state, message }),
+      body: JSON.stringify({
+        pane_id: paneId,
+        state,
+        message,
+        timestamp: Date.now()
+      }),
     });
   } catch (e) {
     // Ignore errors so the agent doesn't crash if the acpd daemon is down

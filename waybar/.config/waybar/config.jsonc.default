@@ -21,6 +21,7 @@
     "network",
     "pulseaudio",
     "cpu",
+    "custom/ai-usagebar",
     "custom/perf",
     "battery"
   ],
@@ -279,5 +280,15 @@
     "format": "{}",
     "tooltip": true,
     "signal": 13
+  },
+  "custom/ai-usagebar": {
+    "exec": "$HOME/.cargo/bin/ai-usagebar --json",
+    "return-type": "json",
+    "interval": 60,
+    "tooltip": true,
+    "on-click": "omarchy-launch-or-focus-tui $HOME/.cargo/bin/ai-usagebar-tui",
+    "on-scroll-up": "$HOME/.cargo/bin/ai-usagebar --cycle-next",
+    "on-scroll-down": "$HOME/.cargo/bin/ai-usagebar --cycle-prev",
+    "signal": 14
   }
 }

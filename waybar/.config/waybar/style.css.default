@@ -79,3 +79,8 @@
 #custom-opencode.retry {
   color: #f9e2af;
 }
+
+#custom-ai-usagebar {
+  margin-left: 8px;
+}
+

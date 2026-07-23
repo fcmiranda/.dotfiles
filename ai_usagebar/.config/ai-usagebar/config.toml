@@ -1,0 +1,6 @@
+[ui]
+primary = "antigravity"
+
+[antigravity]
+enabled = true
+

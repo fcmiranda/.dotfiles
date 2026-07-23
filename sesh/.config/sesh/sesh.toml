@@ -1,3 +1,7 @@
+[[wildcard]]
+pattern = "~/*"
+windows = ["ai"]
+
 [[session]]
 name = "Downloads 📥"
 path = "~/Downloads"

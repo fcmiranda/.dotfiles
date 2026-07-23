@@ -7,7 +7,7 @@ end
 
 function GetEntries()
   local entries = {}
-  local handle = io.popen("/usr/bin/sesh list -d -c -t -T -z 2>/dev/null")
+  local handle = io.popen("sesh list -d -c -t -T -z 2>/dev/null")
   if not handle then
     return entries
   end
@@ -15,7 +15,7 @@ function GetEntries()
   for session in handle:lines() do
     if session and session ~= "" then
       local escaped = shell_escape(session)
-      local action = "/usr/bin/sesh connect --switch -- " .. escaped .. " || /usr/bin/uwsm-app -- /usr/bin/xdg-terminal-exec -e /usr/bin/sesh connect -- " .. escaped
+      local action = "sesh connect --switch -- " .. escaped .. " || /usr/bin/uwsm-app -- /usr/bin/xdg-terminal-exec -e sesh connect -- " .. escaped
 
       table.insert(entries, {
         Text = session,

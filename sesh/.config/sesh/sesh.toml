@@ -1,6 +1,6 @@
 [[wildcard]]
-pattern = "~/*"
-windows = ["ai"]
+pattern = "~/**"
+startup_command = "agy"
 
 [[session]]
 name = "Downloads 📥"

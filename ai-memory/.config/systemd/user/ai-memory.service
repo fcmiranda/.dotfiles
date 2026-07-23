@@ -1,0 +1,11 @@
+[Unit]
+Description=ai-memory background daemon
+After=network.target
+
+[Service]
+ExecStart=/home/fecavmi/.cargo/bin/ai-memory serve --transport http
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

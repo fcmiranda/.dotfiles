@@ -1,8 +1,8 @@
 [[wildcard]]
 pattern = "~/**"
-startup_command = "agy"
+startup_command = "agy -c"
 
 [[session]]
 name = "Downloads 📥"
 path = "~/Downloads"
-startup_command = "yazi"ZZ
+startup_command = "yazi"

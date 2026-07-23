@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "revision": 108,
+  "revision": 111,
   "session": {
-    "sessionId": "295d5971-9a28-47a1-a2c9-9b188cebf6c3",
+    "sessionId": "2047f1f6-1f8b-47de-94bf-8c96aad81b7d",
     "cli": "antigravity",
     "notifyCommand": "/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-tmux-injector.sh {{workspace_path}} {{prompt}}"
   },

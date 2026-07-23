@@ -45,7 +45,10 @@ install_packages \
     apm-unix \
     wf-recorder \
     herdr \
-    ripdrag
+    ripdrag \
+    ai-memory \
+    ai-jail \
+    ai-usagebar
 
 install_plugins \
     zsh-plugins \

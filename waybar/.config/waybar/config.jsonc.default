@@ -8,7 +8,6 @@
     "group/pill#left"
   ],
   "modules-center": [
-    "clock",
     "custom/update",
     "custom/spotify",
     "custom/screenrecording-indicator",
@@ -23,7 +22,8 @@
     "cpu",
     "custom/ai-usagebar",
     "custom/perf",
-    "battery"
+    "battery",
+    "clock"
   ],
   "group/pill#left": {
     "orientation": "inherit",
@@ -100,8 +100,8 @@
     "on-click": "omarchy-launch-or-focus-tui btop"
   },
   "clock": {
-    "format": "{:L%a %H:%M}",
-    "format-alt": "{:L%d %B W%V %Y}",
+    "format": "{:%a %H:%M}",
+    "format-alt": "{:%d %B W%V %Y}",
     "tooltip": false,
     "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
   },

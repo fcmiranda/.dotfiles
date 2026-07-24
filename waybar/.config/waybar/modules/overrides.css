@@ -3,7 +3,7 @@
  */
 
 .modules-left {
-    margin-left: 0px;
+    margin-left: 0;
 }
 
 window#waybar.top .modules-left,
@@ -14,6 +14,12 @@ window#waybar.bottom .modules-left {
 
 .modules-right {
     margin-right: 8px;
+}
+
+window#waybar.top .modules-right,
+window#waybar.bottom .modules-right {
+    margin-right: 0;
+    padding-right: 15px;
 }
 
 #workspaces button {
@@ -31,7 +37,7 @@ window#waybar.bottom .modules-left {
 
 #workspaces button.empty {
     opacity: 0.5;
-    background-image: radial-gradient(circle, currentColor 3px,  transparent 0px);
+    background-image: radial-gradient(circle, currentColor 3px, transparent 0px);
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -64,6 +70,10 @@ window#waybar.bottom .modules-left {
 
 #custom-expand-icon {
     margin-right: 20px;
+}
+
+#battery {
+    margin-left: 16px;
 }
 
 #clock {

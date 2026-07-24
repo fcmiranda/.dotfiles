@@ -14,7 +14,6 @@
     "custom/opencode"
   ],
   "modules-right": [
-    "custom/cava",
     "group/tray-expander",
     "bluetooth",
     "network",

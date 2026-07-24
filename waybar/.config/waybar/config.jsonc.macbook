@@ -15,7 +15,6 @@
   "modules-right": [
     "custom/screenrecording-indicator",
     "custom/update",
-    "custom/cava",
     "group/tray-expander",
     "bluetooth",
     "network",

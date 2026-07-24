@@ -42,24 +42,48 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
+# Exit immediately if custom/cava is not configured in waybar
+if ! grep -q "custom/cava" "$HOME/.config/waybar/config.jsonc" 2>/dev/null; then
+    cleanup
+    exit 0
+fi
+
 # Kill cava if it's already running
 cleanup
 
 while true; do
+    if ! grep -q "custom/cava" "$HOME/.config/waybar/config.jsonc" 2>/dev/null; then
+        cleanup
+        exit 0
+    fi
+
     if [ -f "$disabled_file" ]; then
         echo "󰗅"
         sleep 1
         continue
     fi
 
+    LAST_CHECK=0
+    IS_PLAYING=0
+
     # Read stdout from cava, show bars only when music is playing.
-    # The toggle script kills this cava process so the loop can re-check disabled_file.
+    # playerctl is checked once per second instead of 30x/sec to prevent high CPU usage from process forks.
     cava -p "$config_file" | sed -u "$dict" | while IFS= read -r line; do
+        NOW=$SECONDS
+        if [ $((NOW - LAST_CHECK)) -ge 1 ]; then
+            LAST_CHECK=$NOW
+            if playerctl status 2>/dev/null | grep -q "Playing"; then
+                IS_PLAYING=1
+            else
+                IS_PLAYING=0
+            fi
+        fi
+
         if [ -f "$disabled_file" ]; then
             echo "󰗅"
             pkill -f "cava -p $config_file" 2>/dev/null
             break
-        elif playerctl status 2>/dev/null | grep -q "Playing"; then
+        elif [ "$IS_PLAYING" -eq 1 ]; then
             echo "$line"
         else
             echo ""

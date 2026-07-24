@@ -1,6 +1,19 @@
 [ui]
 primary = "antigravity"
 
+[anthropic]
+enabled = false
+
+[openai]
+enabled = false
+
+[zai]
+enabled = false
+
+[openrouter]
+enabled = false
+
 [antigravity]
 enabled = true
+
 

@@ -23,7 +23,7 @@ sess=$(tmux display-message -t "$pane" -p '#S' 2>/dev/null)
 win_idx=$(tmux display-message -t "$pane" -p '#I' 2>/dev/null)
 win_name=$(tmux display-message -t "$pane" -p '#W' 2>/dev/null)
 
-TITLE=" $sess › $win_name  │  prefix+q close"
+TITLE=" $sess › $win_name  │  prefix+i close"
 
 # If current client is already on the same session, jump directly to the window.
 current_sess=$(tmux display-message -p '#S' 2>/dev/null)
@@ -33,6 +33,15 @@ if [ "$current_sess" = "$sess" ]; then
   exit 0
 fi
 
+POPUP_SESS="_popups"
+if ! tmux has-session -t "$POPUP_SESS" 2>/dev/null; then
+  tmux new-session -d -s "$POPUP_SESS" -n "bell"
+fi
+
+tmux unlink-window -t "$POPUP_SESS:bell" 2>/dev/null || true
+tmux link-window -s "$sess:$win_idx" -t "$POPUP_SESS:bell" 2>/dev/null || true
+tmux set-option -t "$POPUP_SESS" status off 2>/dev/null || true
+
 tmux popup \
   -S "fg=$TMUX_POPUP_BORDER_COLOR" \
   -s "fg=$TMUX_POPUP_TEXT_COLOR" \
@@ -41,4 +50,5 @@ tmux popup \
   -h "$TMUX_POPUP_HEIGHT" \
   -b rounded \
   -E \
-  "tmux set-option -t \"$sess\" status off >/dev/null 2>&1; tmux attach-session -t \"$sess:$win_idx\"; tmux set-option -t \"$sess\" status on >/dev/null 2>&1"
+  "tmux attach-session -t \"$POPUP_SESS:bell\"; tmux unlink-window -t \"$POPUP_SESS:bell\" >/dev/null 2>&1"
+

@@ -200,7 +200,42 @@ O `ai-jail` isola o ambiente enquanto o `agy` conecta automaticamente ao servido
 
 ---
 
-## 7. Solução de Problemas Rápidos
+## 7. Como Atualizar o ai-jail e o ai-memory
+
+Para manter suas ferramentas atualizadas com os últimos recursos e correções de segurança:
+
+### Atualizando o ai-jail
+
+* **Em sistemas aarch64 (ou compilação via Cargo):**
+  ```bash
+  cargo install --git https://github.com/akitaonrails/ai-jail
+  ```
+* **Em sistemas x86_64 (via AUR no Arch Linux):**
+  ```bash
+  yay -Syu ai-jail-bin
+  ```
+
+---
+
+### Atualizando o ai-memory
+
+* **Em sistemas aarch64 (ou compilação via Cargo):**
+  ```bash
+  cargo install --git https://github.com/akitaonrails/ai-memory ai-memory-cli
+  ```
+* **Em sistemas x86_64 (via AUR no Arch Linux):**
+  ```bash
+  yay -Syu ai-memory-bin
+  ```
+
+> ⚠️ **Importante:** Após atualizar o `ai-memory`, reinicie o serviço em segundo plano para carregar a nova versão:
+> ```bash
+> systemctl --user restart ai-memory
+> ```
+
+---
+
+## 8. Solução de Problemas Rápidos
 
 * **Erro `Connection refused (os error 111)`:**
   Significa que o serviço do systemd está parado. Inicie-o com:
@@ -208,5 +243,6 @@ O `ai-jail` isola o ambiente enquanto o `agy` conecta automaticamente ao servido
 
 * **Mensagem `another launcher owns this workstream`:**
   Outro processo ou terminal ficou aguardando no prompt `Select [1]:`. Responda o prompt no terminal aberto ou force uma nova workstream com `--new <nome>`.
+
 
 

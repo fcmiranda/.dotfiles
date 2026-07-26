@@ -200,7 +200,42 @@ ai-jail agy
 
 ---
 
-## 7. Quick Troubleshooting
+## 7. How to Update ai-jail and ai-memory
+
+To keep both tools updated with the latest security fixes and features:
+
+### Updating ai-jail
+
+* **On aarch64 systems (or Cargo builds):**
+  ```bash
+  cargo install --git https://github.com/akitaonrails/ai-jail
+  ```
+* **On x86_64 systems (via AUR on Arch Linux):**
+  ```bash
+  yay -Syu ai-jail-bin
+  ```
+
+---
+
+### Updating ai-memory
+
+* **On aarch64 systems (or Cargo builds):**
+  ```bash
+  cargo install --git https://github.com/akitaonrails/ai-memory ai-memory-cli
+  ```
+* **On x86_64 systems (via AUR on Arch Linux):**
+  ```bash
+  yay -Syu ai-memory-bin
+  ```
+
+> ⚠️ **Important:** After updating `ai-memory`, restart the background service to load the new binary:
+> ```bash
+> systemctl --user restart ai-memory
+> ```
+
+---
+
+## 8. Quick Troubleshooting
 
 * **Error `Connection refused (os error 111)`:**
   The systemd background service is stopped. Start it with:
@@ -208,5 +243,6 @@ ai-jail agy
 
 * **Message `another launcher owns this workstream`:**
   Another process/terminal is waiting at the `Select [1]:` prompt. Respond to the open terminal prompt or force a new workstream using `--new <name>`.
+
 
 

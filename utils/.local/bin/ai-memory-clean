@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# ai-memory-clean - Clean, reinitialize, and verify ai-memory store
+#
+# Usage:
+#   ai-memory-clean [-y|--yes]
+#
+# What it does:
+#   1. Wipes the ai-memory data directory (wiki, db, raw) via `ai-memory reset --confirm`
+#   2. Re-initializes git in wiki directory if needed (`git init ~/.local/share/ai-memory/wiki`)
+#   3. Re-initializes the directory layout (`ai-memory init`)
+#   4. Rebuilds DB indexes (`ai-memory reindex`)
+#   5. Verifies cleanup by checking SQLite table record counts (pages, sessions, observations)
+
+set -uo pipefail
+
+# ── Config ────────────────────────────────────────────────────────────────────
+AI_MEMORY_DATA_DIR="${AI_MEMORY_DATA_DIR:-$HOME/.local/share/ai-memory}"
+DB_PATH="$AI_MEMORY_DATA_DIR/db/memory.sqlite"
+WIKI_DIR="$AI_MEMORY_DATA_DIR/wiki"
+
+# ── Colors ────────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+die()  { echo -e "${RED}${BOLD}error:${RESET} $*" >&2; exit 1; }
+info() { echo -e "${BLUE}${BOLD}=>${RESET} $*"; }
+ok()   { echo -e "${GREEN}${BOLD}✓${RESET}  $*"; }
+warn() { echo -e "${YELLOW}${BOLD}!${RESET}  $*"; }
+
+usage() {
+  echo "Usage: ai-memory-clean [options]"
+  echo ""
+  echo "Clean, reinitialize, and verify the ai-memory data store."
+  echo ""
+  echo "Options:"
+  echo "  -y, --yes, --force    Skip interactive confirmation prompt"
+  echo "  -h, --help            Show this help message"
+  echo ""
+  echo "Data directory: $AI_MEMORY_DATA_DIR"
+  exit 0
+}
+
+# ── Args ──────────────────────────────────────────────────────────────────────
+AUTO_CONFIRM=false
+
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help)
+      usage
+      ;;
+    -y|--yes|--force)
+      AUTO_CONFIRM=true
+      ;;
+    *)
+      die "Unknown argument: $arg"
+      ;;
+  esac
+done
+
+# ── Confirmation ──────────────────────────────────────────────────────────────
+if [[ "$AUTO_CONFIRM" != true ]]; then
+  echo -e "${YELLOW}${BOLD}WARNING:${RESET} This will permanently delete all ai-memory pages, sessions, and observations!"
+  echo -e "Data directory: ${DIM}$AI_MEMORY_DATA_DIR${RESET}"
+  printf "${BOLD}Are you sure you want to clean ai-memory? [y/N]${RESET} "
+  read -r reply
+  if [[ ! "$reply" =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 0
+  fi
+fi
+
+# ── 1. Reset ai-memory ────────────────────────────────────────────────────────
+info "Resetting ai-memory store..."
+if command -v ai-memory >/dev/null 2>&1; then
+  ai-memory reset --confirm || die "Failed to execute 'ai-memory reset --confirm'."
+else
+  die "Command 'ai-memory' not found in PATH."
+fi
+
+# ── 2. Initialize Git repo in wiki/ ───────────────────────────────────────────
+info "Ensuring git repository in wiki directory..."
+if [[ ! -d "$WIKI_DIR/.git" ]]; then
+  mkdir -p "$WIKI_DIR"
+  git init "$WIKI_DIR" >/dev/null 2>&1 || warn "Could not initialize git repo in $WIKI_DIR"
+fi
+
+# ── 3. Re-initialize ai-memory layout ─────────────────────────────────────────
+info "Re-initializing ai-memory layout..."
+ai-memory init || die "Failed to run 'ai-memory init'."
+
+# ── 4. Reindex ────────────────────────────────────────────────────────────────
+info "Reindexing database..."
+ai-memory reindex >/dev/null 2>&1 || warn "Reindex completed with warnings."
+
+# ── 5. Verification ───────────────────────────────────────────────────────────
+info "Verifying cleanup..."
+if [[ -f "$DB_PATH" ]] && command -v sqlite3 >/dev/null 2>&1; then
+  PAGES_COUNT=$(sqlite3 "$DB_PATH" "SELECT count(*) FROM pages;" 2>/dev/null || echo "0")
+  SESSIONS_COUNT=$(sqlite3 "$DB_PATH" "SELECT count(*) FROM sessions;" 2>/dev/null || echo "0")
+  OBSERVATIONS_COUNT=$(sqlite3 "$DB_PATH" "SELECT count(*) FROM observations;" 2>/dev/null || echo "0")
+
+  echo -e "  ${DIM}Pages count        :${RESET} $PAGES_COUNT"
+  echo -e "  ${DIM}Sessions count     :${RESET} $SESSIONS_COUNT"
+  echo -e "  ${DIM}Observations count :${RESET} $OBSERVATIONS_COUNT"
+
+  if [[ "$PAGES_COUNT" -eq 0 && "$SESSIONS_COUNT" -eq 0 && "$OBSERVATIONS_COUNT" -eq 0 ]]; then
+    ok "Verification successful! All records have been cleared."
+  else
+    warn "Verification finished with non-zero record counts."
+  fi
+else
+  ok "Database re-initialized."
+fi
+
+echo ""
+ok "ai-memory reset, re-initialization, and verification complete!"

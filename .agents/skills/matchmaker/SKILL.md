@@ -38,12 +38,12 @@ This is the most important performance decision:
 
 ### Fast: Pipe directly from your script (preferred)
 ```bash
-# Generate list in bash, pipe to mm — no shell startup in mm
-my_items | mm -o my-preset x=""
+# Generate list in bash, pipe to mm — no start.command in preset needed
+my_items | mm -o my-preset
 ```
-- `x=""` clears any `start.command` from the preset so mm uses stdin
-- **No shell subprocess is spawned** — mm reads stdin immediately
-- Items appear instantly, even with 0 startup delay
+- Omit `[start.command]` in the preset so mm reads from stdin directly
+- **No shell subprocess is spawned by mm** — mm reads stdin immediately
+- Items appear instantly, with 0 startup delay
 
 ### Slow: start.command in TOML (avoid unless necessary)
 ```toml

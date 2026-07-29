@@ -48,9 +48,6 @@ names = [
 mode = "nav"
 additional_commands = []
 
-[start.command]
-cmd = ""
-
 [binds]
 "ctrl-j"    = "Down"
 "ctrl-k"    = "Up"

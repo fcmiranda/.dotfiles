@@ -32,10 +32,7 @@ build_input() {
 }
 
 # -- Run matchmaker, pipe input directly (no shell startup in preset) --
-SELECTED=$(build_input | "$MM_BIN" \
-  -o "${PRESET_OVERRIDE}" \
-  x="" \
-  2>/dev/null)
+SELECTED=$(build_input | "$MM_BIN" -o "${PRESET_OVERRIDE}" 2>/dev/null)
 
 [[ -z "$SELECTED" ]] && exit 0
 

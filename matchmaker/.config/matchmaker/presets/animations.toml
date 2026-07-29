@@ -5,8 +5,18 @@ nav_color = "Cyan"
 
 [tui]
 percentage = 80
-min = 10
+min = 15
 max = 100
+
+[results]
+wrap = false
+
+[results.style]
+fg = "White"
+
+[results.current_style]
+fg = "Cyan"
+modifier = "BOLD"
 
 [preview]
 show = true
@@ -20,7 +30,8 @@ type = "Rounded"
 [[preview.layout]]
 command = "if [ -f {2} ]; then cp {2} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
 side = "right"
-percentage = 65
+percentage = 50
+min = 25
 
 [columns]
 split = "\t"

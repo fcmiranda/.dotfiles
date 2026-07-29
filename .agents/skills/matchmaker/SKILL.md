@@ -36,14 +36,22 @@ Layer multiple overrides: `mm -o base -o extra`.
 
 This is the most important performance decision:
 
-### 🚀 Fastest: Native Directory Context (`cd target_dir && mm --nav --sort`)
+### 🚀 Fastest: Standalone Config Execution (`mm --no-read --config "$preset_file"`)
+```bash
+# Instant load used by Omarchy menus — bypasses base config reading & TOML merging
+(cd ~/.config/hypr/animations && mm --no-read --config ~/.config/matchmaker/presets/animations.toml)
+```
+- **`--config` vs `-o`**: `--config` completely **bypasses reading `~/.config/matchmaker/config.toml`** and skips TOML tree merging in Rust. Loads the preset directly as a 1-step standalone config (<1ms).
+- **`--no-read`**: Tells mm to skip reading stdin and immediately run the `[start.command]`.
+- **0 subprocesses, 0 merge latency** — instant TUI initialization.
+
+### Fast: Native Directory Context (`cd target_dir && mm --nav --sort`)
 ```bash
 # Change directory context and let mm scan natively in Rust
 (cd ~/.config/hypr/animations && mm -o my-preset --nav --sort)
 ```
-- **0 subprocesses, 0 pipe overhead** — mm uses its native Rust file scanner directly
-- **Instant load** — files appear immediately in nav mode
-- Ideal for pickers operating on a folder of preset files or configs
+- Uses mm's native Rust file scanner directly.
+- Ideal for pickers operating on a folder of files.
 
 ### Fast: Pipe directly from your script
 ```bash
@@ -53,13 +61,27 @@ my_items | mm -o my-preset
 - Omit `[start.command]` in the preset so mm reads from stdin directly
 - **No shell subprocess is spawned by mm** — mm reads stdin immediately
 
-### Slow: start.command in TOML (avoid unless necessary)
-```toml
+### Zero-Fork Shell Loop Pattern (No Subprocesses)
+When generating list items inside `[start.command] cmd`, avoid spawning external sub-processes (`head`, `sed`, `awk`) inside loops. Use pure shell built-ins:
+
+```sh
 [start.command]
-cmd = 'some-shell-script'  # spawns sh -c → noticeable delay
+cmd = '''
+ANIM_DIR="$HOME/.config/hypr/animations"
+for file in $ANIM_DIR/*.conf; do
+  [ -f "$file" ] || continue
+  read -r title < "$file" || true
+  title="${title#\#}"
+  title="${title# }"
+  [ -z "$title" ] && title="${file##*/}"
+  printf "%s\t%s\n" "$title" "$file"
+done
+'''
 ```
-Use `start.command` only when the command generates a very large stream (logs, git history)
-where you want mm to start displaying results before generation finishes.
+- `read -r title < "$file"` reads the first line using shell built-in (0 forks)
+- `${title#\#}` strips `#` using parameter expansion (0 forks)
+- `${file##*/}` extracts filename using parameter expansion (0 forks)
+- **0 sub-processes spawned** — runs in <0.1ms.
 
 ### Rule of thumb
 - **Small/static lists** (< 1000 items): pipe from script, use `x=""`

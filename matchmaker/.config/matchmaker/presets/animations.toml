@@ -1,24 +1,12 @@
-# Hyprland Animation Switcher — Matchmaker preset
-# Input is piped from hypr-anim (no shell startup here = instant load)
-
 [ui]
 nav_mode = true
 nav_bar = "Plain"
 nav_color = "Cyan"
 
 [tui]
-percentage = 70
-min = 12
-max = 60
-
-[query]
-prompt = " Animations > "
-prompt_style.fg = "Cyan"
-status_inline = true
-
-[results]
-icons = false
-wrap = false
+percentage = 80
+min = 10
+max = 100
 
 [preview]
 show = true
@@ -26,35 +14,44 @@ wrap = true
 
 [preview.border]
 title_fg = "Cyan"
-color = "Cyan"
+color = "Blue"
 type = "Rounded"
 
 [[preview.layout]]
-# bat provides syntax highlighting for hyprlang config files (paging=never prevents hanging on less)
-command = "bat --paging=never --style=header,grid,numbers --color=always {1} 2>/dev/null || cat {1}"
+command = "if [ -f {2} ]; then bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
 side = "right"
 percentage = 65
-min = 40
 
-# Input is piped in by hypr-anim — no command needed here
+[columns]
+split = "\t"
+names = [
+  "label",
+  { name = "path", hidden = true }
+]
+
+[start.command]
+cmd = '''
+ANIM_DIR="$HOME/.config/hypr/animations"
+mkdir -p "$ANIM_DIR"
+for file in "$ANIM_DIR"/*.conf; do
+  [ -f "$file" ] || continue
+  filename=$(basename "$file")
+  title=$(head -n 1 "$file" | sed 's/^# //')
+  [ -z "$title" ] && title="$filename"
+  printf "%s\t%s\n" "$title" "$file"
+done
+'''
+
+[query]
+prompt = "Hyprland Animations > "
+prompt_style.fg = "Cyan"
+
 [start]
 mode = "nav"
-additional_commands = []
 
 [binds]
-"enter"     = "Accept"
-"esc"       = "Quit"
-"q"         = "Quit"
-"ctrl-j"    = "Down"
-"ctrl-k"    = "Up"
-"j"         = "Down"
-"k"         = "Up"
-
-# nav mode binds
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
 "nav^^enter" = "Accept"
-"nav^^q"     = "Quit"
-"nav^^esc"   = "Quit"
-"nav^^g"     = "Pos(0)"
-"nav^^G"     = "Pos(-1)"
-"nav^^j"     = "Down"
-"nav^^k"     = "Up"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"

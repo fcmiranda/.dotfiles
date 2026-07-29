@@ -25,7 +25,7 @@ format_name() {
 }
 
 collect_animations() {
-  local anim_dir="$HOME/.config/hypr/animations"
+  local anim_dir="$HOME/.dotfiles/main/hypr/.config/hypr/animations"
 
   declare -g -A animations_by_label
   declare -g -a labels
@@ -51,14 +51,14 @@ collect_animations() {
     animations_by_label[$filename]="$file"
     labels+=("$title")
     paths+=("$file")
-  done < <(find -L "$anim_dir/" -maxdepth 1 -type f -name '*.conf' 2>/dev/null | sort)
+  done < <(find "$anim_dir" -maxdepth 1 -type f -name '*.conf' 2>/dev/null | sort)
 }
 
 run_matchmaker_picker() {
   local mm_bin
   mm_bin=$(command -v mm || echo "$HOME/.local/bin/mm")
   local config_file="$HOME/.config/matchmaker/presets/animations.toml"
-  local anim_dir="$HOME/.config/hypr/animations"
+  local anim_dir="$HOME/.dotfiles/main/hypr/.config/hypr/animations"
   local config_dest="$HOME/.config/hypr/animations.conf"
 
   if [[ ! -x $mm_bin ]]; then

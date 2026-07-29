@@ -6,16 +6,18 @@
 
 set -euo pipefail
 
+DEBUG_LOG="/tmp/hypr-anim-debug.log"
+
+log_debug() {
+  echo "[DEBUG $(date '+%H:%M:%S')] $*" >> "$DEBUG_LOG"
+}
+
 format_name() {
   local name=$1
-  # remove extension
   name="${name%.*}"
-  # remove leading numbers
   name="${name#*-}"
   name="${name# }"
-  # replace dashes with spaces
   name="${name//-/ }"
-  # title case
   printf '%s\n' "$name" | awk '{
     for(i=1; i<=NF; i++) {
       $i = toupper(substr($i,1,1)) substr($i,2)
@@ -51,38 +53,52 @@ collect_animations() {
     animations_by_label[$filename]="$file"
     labels+=("$title")
     paths+=("$file")
+    log_debug "Found preset: $title -> $file"
   done < <(find "$anim_dir" -maxdepth 1 -type f -name '*.conf' 2>/dev/null | sort)
 }
 
 run_matchmaker_picker() {
+  log_debug "Starting run_matchmaker_picker..."
   local mm_bin
   mm_bin=$(command -v mm || echo "$HOME/.local/bin/mm")
   local config_file="$HOME/.config/matchmaker/presets/animations.toml"
   local anim_dir="$HOME/.dotfiles/main/hypr/.config/hypr/animations"
   local config_dest="$HOME/.config/hypr/animations.conf"
 
+  log_debug "mm_bin=$mm_bin"
+  log_debug "config_file=$config_file"
+  log_debug "anim_dir=$anim_dir"
+
   if [[ ! -x $mm_bin ]]; then
+    log_debug "ERROR: mm_bin not executable"
     command -v notify-send >/dev/null 2>&1 && notify-send "Animation selector" "matchmaker binary not found at $mm_bin"
     exit 1
   fi
 
   if [[ ! -f $config_file ]]; then
+    log_debug "ERROR: config_file not found"
     command -v notify-send >/dev/null 2>&1 && notify-send "Animation selector" "Preset config file not found at $config_file"
     exit 1
   fi
 
   collect_animations
+  log_debug "Total presets found: ${#paths[@]}"
+
   if (( ${#paths[@]} == 0 )); then
+    log_debug "ERROR: No presets found"
     command -v notify-send >/dev/null 2>&1 && notify-send "Animation selector" "No animation preset files found"
     exit 1
   fi
 
   local selected
   if [[ -d $anim_dir ]]; then
-    selected=$(cd "$anim_dir" && "$mm_bin" --no-read --config "$config_file" 2>/dev/null || true)
+    log_debug "Executing mm with preset $config_file in $anim_dir..."
+    selected=$(cd "$anim_dir" && "$mm_bin" -o "$config_file" 2>>"$DEBUG_LOG" || true)
   else
-    selected=$("$mm_bin" --no-read --config "$config_file" 2>/dev/null || true)
+    selected=$("$mm_bin" -o "$config_file" 2>>"$DEBUG_LOG" || true)
   fi
+
+  log_debug "Raw selected output: '$selected'"
 
   if [[ -n $selected ]]; then
     local path="${selected#*$'\t'}"
@@ -90,6 +106,8 @@ run_matchmaker_picker() {
     path="${path%\'}"
     path="${path#\"}"
     path="${path%\"}"
+
+    log_debug "Parsed path: '$path'"
 
     if [[ -f $path ]]; then
       cp "$path" "$config_dest"
@@ -99,28 +117,27 @@ run_matchmaker_picker() {
       title=$(head -n 1 "$path" | sed 's/^# *//')
       [[ -z $title ]] && title="$(format_name "${path##*/}")"
 
+      log_debug "Successfully applied preset: $title"
+
       if command -v notify-send >/dev/null 2>&1; then
         notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animation Applied" "$title"
       fi
       echo "✨ Animation '$title' applied successfully!"
     else
-      local expanded_path
-      expanded_path=$(eval echo "$path" 2>/dev/null || echo "$path")
-      if [[ -f $expanded_path ]]; then
-        cp "$expanded_path" "$config_dest"
-        hyprctl reload >/dev/null 2>&1
-      fi
+      log_debug "ERROR: Path not found: '$path'"
     fi
   fi
 }
 
 main() {
+  log_debug "main invoked with args: '$*'"
   if [[ ${1:-} == "--in-terminal" ]]; then
     run_matchmaker_picker
     exit 0
   fi
 
   if [[ ! -t 0 || ! -t 1 ]]; then
+    log_debug "Not in TTY, launching terminal wrapper..."
     local inner="export PATH=$(printf '%q' "$PATH"); $(printf '%q' "${BASH_SOURCE[0]}") --in-terminal"
     if command -v uwsm-app >/dev/null 2>&1; then
       setsid uwsm-app -- xdg-terminal-exec --app-id=org.omarchy.animpicker --title="Animation Switcher" \

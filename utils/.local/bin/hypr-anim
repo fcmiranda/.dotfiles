@@ -33,10 +33,10 @@ if [ -f "$PRESET_PATH" ]; then
     [ -z "$TITLE" ] && TITLE=$(basename "$PRESET_PATH")
 
     if command -v notify-send >/dev/null 2>&1; then
-        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animação Aplicada" "$TITLE"
+        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animation Applied" "$TITLE"
     fi
-    echo "✨ Animação '$TITLE' aplicada com sucesso!"
+    echo "✨ Animation '$TITLE' applied successfully!"
 else
-    echo "Erro: Arquivo de preset não encontrado: $PRESET_PATH" >&2
+    echo "Error: Preset file not found: $PRESET_PATH" >&2
     exit 1
 fi

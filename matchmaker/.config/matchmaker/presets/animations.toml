@@ -5,18 +5,8 @@ nav_color = "Cyan"
 
 [tui]
 percentage = 80
-min = 15
+min = 10
 max = 100
-
-[results]
-wrap = false
-
-[results.style]
-fg = "White"
-
-[results.current_style]
-fg = "Cyan"
-modifier = "BOLD"
 
 [preview]
 show = true
@@ -30,8 +20,7 @@ type = "Rounded"
 [[preview.layout]]
 command = "if [ -f {2} ]; then cp {2} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
 side = "right"
-percentage = 50
-min = 25
+percentage = 65
 
 [columns]
 split = "\t"
@@ -42,28 +31,27 @@ names = [
 
 [start.command]
 cmd = '''
-ANIM_DIR="$HOME/.dotfiles/main/hypr/.config/hypr/animations"
-for file in $ANIM_DIR/*.conf; do
+ANIM_DIR="$HOME/.config/hypr/animations"
+mkdir -p "$ANIM_DIR"
+for file in "$ANIM_DIR"/*.conf; do
   [ -f "$file" ] || continue
   filename=$(basename "$file")
-  title=$(head -n 1 "$file" | sed 's/^# *//')
+  title=$(head -n 1 "$file" | sed 's/^# //')
   [ -z "$title" ] && title="$filename"
   printf "%s\t%s\n" "$title" "$file"
 done
 '''
 
 [query]
-prompt = " Hyprland Animations > "
+prompt = "Hyprland Animations > "
+prompt_style.fg = "Cyan"
 
 [start]
 mode = "nav"
-additional_commands = []
 
 [binds]
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
-"nav^^g" = "Pos(0)"
-"nav^^G" = "Pos(-1)"
+"nav^^enter" = "Accept"
 "nav^^q" = "Quit"
 "nav^^esc" = "Quit"
-"nav^^enter" = "Accept"

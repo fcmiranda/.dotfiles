@@ -36,14 +36,22 @@ Layer multiple overrides: `mm -o base -o extra`.
 
 This is the most important performance decision:
 
-### Fast: Pipe directly from your script (preferred)
+### 🚀 Fastest: Native Directory Context (`cd target_dir && mm --nav --sort`)
 ```bash
-# Generate list in bash, pipe to mm — no start.command in preset needed
+# Change directory context and let mm scan natively in Rust
+(cd ~/.config/hypr/animations && mm -o my-preset --nav --sort)
+```
+- **0 subprocesses, 0 pipe overhead** — mm uses its native Rust file scanner directly
+- **Instant load** — files appear immediately in nav mode
+- Ideal for pickers operating on a folder of preset files or configs
+
+### Fast: Pipe directly from your script
+```bash
+# Generate list in bash, pipe to mm
 my_items | mm -o my-preset
 ```
 - Omit `[start.command]` in the preset so mm reads from stdin directly
 - **No shell subprocess is spawned by mm** — mm reads stdin immediately
-- Items appear instantly, with 0 startup delay
 
 ### Slow: start.command in TOML (avoid unless necessary)
 ```toml

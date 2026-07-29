@@ -31,17 +31,10 @@ type = "Rounded"
 
 [[preview.layout]]
 # bat provides syntax highlighting for hyprlang config files
-command = "bat --style=header,grid,numbers --color=always --language=ini {2} 2>/dev/null || cat {2}"
+command = "bat --style=header,grid,numbers --color=always {1} 2>/dev/null || cat {1}"
 side = "right"
 percentage = 65
 min = 40
-
-[columns]
-split = "\t"
-names = [
-  "label",
-  { name = "path", hidden = true }
-]
 
 # Input is piped in by hypr-anim — no command needed here
 [start]

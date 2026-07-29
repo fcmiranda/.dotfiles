@@ -1,59 +1,34 @@
 #!/usr/bin/env bash
-# hypr-anim — Hyprland Animation Preset Switcher
-# Uses matchmaker (mm) TUI with live syntax-highlighted preview via bat
+# hypr-anim — Native ultra-fast Hyprland Animation Preset Switcher powered by matchmaker
 
 ANIM_DIR="${HOME}/.config/hypr/animations"
 CONFIG_DEST="${HOME}/.config/hypr/animations.conf"
 PRESET_OVERRIDE="${HOME}/.config/matchmaker/presets/animations.toml"
-ACTIVE=$(readlink -f "$CONFIG_DEST" 2>/dev/null || realpath "$CONFIG_DEST" 2>/dev/null)
 
 MM_BIN=$(command -v mm) || { echo "Error: matchmaker (mm) not found in PATH" >&2; exit 1; }
 
-# -- Build input: "ICON  Label\tpath" lines, one per preset file --
-build_input() {
-  local -i idx=0
-  local icons=("󰎁" "󰌌" "" "" "" "󰒲")
+cd "$ANIM_DIR" || exit 1
 
-  for file in "${ANIM_DIR}"/*.conf; do
-    [[ -f "$file" ]] || continue
-
-    # Read first comment line as title (strip leading "# ")
-    local title
-    title=$(head -n 1 "$file" | sed 's/^# *//')
-    [[ -z "$title" ]] && title=$(basename "$file" .conf)
-
-    local icon="${icons[$idx]:-}"
-    local active_marker=""
-    [[ "$(realpath "$file")" == "$ACTIVE" ]] && active_marker=" 󰄴"
-
-    printf "%s  %s%s\t%s\n" "$icon" "$title" "$active_marker" "$file"
-    (( idx++ ))
-  done
-}
-
-# -- Run matchmaker, pipe input directly (no shell startup in preset) --
-SELECTED=$(build_input | "$MM_BIN" -o "${PRESET_OVERRIDE}" 2>/dev/null)
+# Run matchmaker natively in directory context (blazing fast Rust scanner)
+SELECTED=$("$MM_BIN" -o "${PRESET_OVERRIDE}" --nav --sort 2>/dev/null)
 
 [[ -z "$SELECTED" ]] && exit 0
 
-# Extract the tab-separated path column
-PRESET_PATH=$(printf '%s' "$SELECTED" | awk -F'\t' '{print $2}')
-[[ -z "$PRESET_PATH" ]] && PRESET_PATH="$SELECTED"
+PRESET_PATH="${ANIM_DIR}/${SELECTED}"
 
-if [[ ! -f "$PRESET_PATH" ]]; then
-  echo "Error: preset file not found: ${PRESET_PATH}" >&2
-  exit 1
+if [[ -f "$PRESET_PATH" ]]; then
+    cp "$PRESET_PATH" "$CONFIG_DEST"
+    hyprctl reload >/dev/null 2>&1
+
+    TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# *//')
+    [[ -z "$TITLE" ]] && TITLE=$(basename "$PRESET_PATH" .conf)
+
+    command -v notify-send >/dev/null 2>&1 && \
+        notify-send -a "Hyprland" -i "preferences-desktop-theme" \
+            "Animation Applied" "$TITLE"
+
+    echo "Animation '${TITLE}' applied."
+else
+    echo "Error: preset file not found: ${PRESET_PATH}" >&2
+    exit 1
 fi
-
-# Apply preset
-cp "$PRESET_PATH" "$CONFIG_DEST"
-hyprctl reload >/dev/null 2>&1
-
-TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# *//')
-[[ -z "$TITLE" ]] && TITLE=$(basename "$PRESET_PATH" .conf)
-
-command -v notify-send >/dev/null 2>&1 && \
-  notify-send -a "Hyprland" -i "preferences-desktop-theme" \
-    "Animation Applied" "$TITLE"
-
-echo "Animation '${TITLE}' applied."

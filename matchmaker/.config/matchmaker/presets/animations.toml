@@ -18,7 +18,7 @@ color = "Blue"
 type = "Rounded"
 
 [[preview.layout]]
-command = "if [ -f {2} ]; then bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
+command = "if [ -f {2} ]; then cp {2} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
 side = "right"
 percentage = 65
 

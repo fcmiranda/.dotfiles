@@ -21,7 +21,7 @@ run_picker() {
     fi
 
     local selected
-    selected=$(cd "$ANIM_DIR" && "$MM_BIN" --no-read --config "$PRESET_FILE" 2>/dev/null || true)
+    selected=$(cd "$ANIM_DIR" && "$MM_BIN" -o "$PRESET_FILE" 2>/dev/null || true)
 
     [[ -z "$selected" ]] && exit 0
 

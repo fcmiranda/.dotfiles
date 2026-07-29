@@ -30,6 +30,7 @@ names = [
 ]
 
 [start.command]
+separator = "\n"
 cmd = '''
 ANIM_DIR="$HOME/.config/hypr/animations"
 mkdir -p "$ANIM_DIR"

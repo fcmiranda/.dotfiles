@@ -9,27 +9,24 @@ MM_BIN=$(command -v mm) || { echo "Error: matchmaker (mm) not found in PATH" >&2
 
 cd "$ANIM_DIR" || exit 1
 
-# Run matchmaker natively in directory context (blazing fast Rust scanner)
+# Run matchmaker natively in directory context
 SELECTED=$("$MM_BIN" -o "${PRESET_OVERRIDE}" --nav --sort 2>/dev/null)
 
 [[ -z "$SELECTED" ]] && exit 0
 
-SELECTED=$(echo "$SELECTED" | tr -d '\r\n')
+# Strip ANSI escape codes and clean control chars
+CLEAN_SELECTED=$(echo "$SELECTED" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r\n\t' | xargs)
+FILENAME=$(basename "$CLEAN_SELECTED")
 
-if [[ "$SELECTED" = /* ]]; then
-    PRESET_PATH="$SELECTED"
-else
-    PRESET_PATH="${ANIM_DIR}/${SELECTED#./}"
-fi
+PRESET_PATH="${ANIM_DIR}/${FILENAME}"
+REAL_PATH=$(realpath "$PRESET_PATH" 2>/dev/null || echo "$PRESET_PATH")
 
-PRESET_PATH=$(realpath "$PRESET_PATH" 2>/dev/null || echo "$PRESET_PATH")
-
-if [[ -f "$PRESET_PATH" ]]; then
-    cp "$PRESET_PATH" "$CONFIG_DEST"
+if [[ -f "$REAL_PATH" ]]; then
+    cp "$REAL_PATH" "$CONFIG_DEST"
     hyprctl reload >/dev/null 2>&1
 
-    TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# *//')
-    [[ -z "$TITLE" ]] && TITLE=$(basename "$PRESET_PATH" .conf)
+    TITLE=$(head -n 1 "$REAL_PATH" | sed 's/^# *//')
+    [[ -z "$TITLE" ]] && TITLE=$(basename "$REAL_PATH" .conf)
 
     command -v notify-send >/dev/null 2>&1 && \
         notify-send -a "Hyprland" -i "preferences-desktop-theme" \
@@ -37,6 +34,6 @@ if [[ -f "$PRESET_PATH" ]]; then
 
     echo "Animation '${TITLE}' applied."
 else
-    echo "Error: preset file not found: ${PRESET_PATH}" >&2
+    echo "Error: preset file not found: ${REAL_PATH}" >&2
     exit 1
 fi

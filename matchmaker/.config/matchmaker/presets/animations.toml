@@ -42,6 +42,9 @@ mode = "nav"
 additional_commands = []
 
 [binds]
+"enter"     = "Accept"
+"esc"       = "Quit"
+"q"         = "Quit"
 "ctrl-j"    = "Down"
 "ctrl-k"    = "Up"
 "j"         = "Down"

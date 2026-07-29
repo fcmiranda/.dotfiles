@@ -14,7 +14,15 @@ SELECTED=$("$MM_BIN" -o "${PRESET_OVERRIDE}" --nav --sort 2>/dev/null)
 
 [[ -z "$SELECTED" ]] && exit 0
 
-PRESET_PATH="${ANIM_DIR}/${SELECTED}"
+SELECTED=$(echo "$SELECTED" | tr -d '\r\n')
+
+if [[ "$SELECTED" = /* ]]; then
+    PRESET_PATH="$SELECTED"
+else
+    PRESET_PATH="${ANIM_DIR}/${SELECTED#./}"
+fi
+
+PRESET_PATH=$(realpath "$PRESET_PATH" 2>/dev/null || echo "$PRESET_PATH")
 
 if [[ -f "$PRESET_PATH" ]]; then
     cp "$PRESET_PATH" "$CONFIG_DEST"

@@ -17,6 +17,10 @@ title_fg = "Cyan"
 color = "Blue"
 type = "Rounded"
 
+[previewer]
+debounce_ms = 10
+delay_clear = true
+
 [[preview.layout]]
 command = "if [ -f {2} ]; then cp {2} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
 side = "right"
@@ -35,9 +39,10 @@ ANIM_DIR="$HOME/.config/hypr/animations"
 mkdir -p "$ANIM_DIR"
 for file in "$ANIM_DIR"/*.conf; do
   [ -f "$file" ] || continue
-  filename=$(basename "$file")
-  title=$(head -n 1 "$file" | sed 's/^# //')
-  [ -z "$title" ] && title="$filename"
+  read -r title < "$file" || true
+  title="${title#\#}"
+  title="${title# }"
+  [ -z "$title" ] && title="${file##*/}"
   printf "%s\t%s\n" "$title" "$file"
 done
 '''

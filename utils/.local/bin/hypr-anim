@@ -19,18 +19,19 @@ SELECTED_LINE=$("$MM_BIN" --no-read -o "$PRESET_FILE")
 # Exit if canceled or empty
 [ -z "$SELECTED_LINE" ] && exit 0
 
-# Extract file path from tab-separated output
-PRESET_PATH=$(echo "$SELECTED_LINE" | awk -F'\t' '{print $2}')
-
-# Fallback if output line is direct path
+# Extract file path using pure bash built-in parameter expansion (zero forks)
+PRESET_PATH="${SELECTED_LINE#*$'\t'}"
 [ -z "$PRESET_PATH" ] && PRESET_PATH="$SELECTED_LINE"
 
 if [ -f "$PRESET_PATH" ]; then
     cp "$PRESET_PATH" "$CONFIG_DEST"
     hyprctl reload >/dev/null 2>&1
 
-    TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# //')
-    [ -z "$TITLE" ] && TITLE=$(basename "$PRESET_PATH")
+    # Read title using pure shell built-in (zero forks)
+    read -r TITLE < "$PRESET_PATH" || true
+    TITLE="${TITLE#\#}"
+    TITLE="${TITLE# }"
+    [ -z "$TITLE" ] && TITLE="${PRESET_PATH##*/}"
 
     if command -v notify-send >/dev/null 2>&1; then
         notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animation Applied" "$TITLE"

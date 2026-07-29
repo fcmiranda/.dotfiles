@@ -17,6 +17,9 @@
 
    
 
+
+
+
 {󱑺.󱑺}
 {.}
 {.}
@@ -45,3 +48,12 @@ Ondas:    Sombra: ░ ▒ ▓  Degraus:    Extra: 
  nf-ple-left_half_circle_thick
  nf-ple-left_hard_divider_inverse
  nf-ple-trapezoid_top_bottom
+ nf-ple-hard_divider_inverse
+ nf-ple-hard_divider_inverse
+ nf-ple-ice_waveform
+ nf-ple-pixelated_squares_small
+ nf-ple-right_half_circle_thick
+ nf-ple-left_hard_divider_inverse
+ nf-ple-left_hard_divider_inverse
+ nf-ple-trapezoid_bottom_top
+

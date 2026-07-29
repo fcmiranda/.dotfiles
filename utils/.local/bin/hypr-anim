@@ -13,8 +13,8 @@ if [ ! -x "$MM_BIN" ]; then
     exit 1
 fi
 
-# Run matchmaker TUI with the animations preset
-SELECTED_LINE=$("$MM_BIN" --no-read -o "$PRESET_FILE")
+# Run matchmaker TUI with the animations preset (standalone config load)
+SELECTED_LINE=$(cd "$ANIM_DIR" && "$MM_BIN" --no-read --config "$PRESET_FILE")
 
 # Exit if canceled or empty
 [ -z "$SELECTED_LINE" ] && exit 0

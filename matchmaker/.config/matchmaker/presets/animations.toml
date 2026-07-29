@@ -18,7 +18,7 @@ color = "Blue"
 type = "Rounded"
 
 [previewer]
-debounce_ms = 10
+debounce_ms = 15
 delay_clear = true
 
 [[preview.layout]]
@@ -36,8 +36,7 @@ names = [
 [start.command]
 cmd = '''
 ANIM_DIR="$HOME/.config/hypr/animations"
-mkdir -p "$ANIM_DIR"
-for file in "$ANIM_DIR"/*.conf; do
+for file in $ANIM_DIR/*.conf; do
   [ -f "$file" ] || continue
   read -r title < "$file" || true
   title="${title#\#}"
@@ -48,15 +47,17 @@ done
 '''
 
 [query]
-prompt = "Hyprland Animations > "
-prompt_style.fg = "Cyan"
+prompt = " Hyprland Animations > "
 
 [start]
 mode = "nav"
+additional_commands = []
 
 [binds]
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
-"nav^^enter" = "Accept"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"
 "nav^^q" = "Quit"
 "nav^^esc" = "Quit"
+"nav^^enter" = "Accept"

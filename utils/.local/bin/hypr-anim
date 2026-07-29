@@ -1,42 +1,62 @@
 #!/usr/bin/env bash
-# TUI Hyprland Animation Switcher using Matchmaker (mm)
+# hypr-anim — Hyprland Animation Preset Switcher
+# Uses matchmaker (mm) TUI with live syntax-highlighted preview via bat
 
-ANIM_DIR="$HOME/.config/hypr/animations"
-CONFIG_DEST="$HOME/.config/hypr/animations.conf"
-PRESET_FILE="$HOME/.config/matchmaker/presets/animations.toml"
+ANIM_DIR="${HOME}/.config/hypr/animations"
+CONFIG_DEST="${HOME}/.config/hypr/animations.conf"
+PRESET_OVERRIDE="${HOME}/.config/matchmaker/presets/animations.toml"
+ACTIVE=$(readlink -f "$CONFIG_DEST" 2>/dev/null || realpath "$CONFIG_DEST" 2>/dev/null)
 
-# Ensure matchmaker binary is accessible
-MM_BIN=$(command -v mm || echo "$HOME/.local/bin/mm")
+MM_BIN=$(command -v mm) || { echo "Error: matchmaker (mm) not found in PATH" >&2; exit 1; }
 
-if [ ! -x "$MM_BIN" ]; then
-    echo "Error: matchmaker (mm) binary not found!" >&2
-    exit 1
+# -- Build input: "ICON  Label\tpath" lines, one per preset file --
+build_input() {
+  local -i idx=0
+  local icons=("󰎁" "󰌌" "" "" "" "󰒲")
+
+  for file in "${ANIM_DIR}"/*.conf; do
+    [[ -f "$file" ]] || continue
+
+    # Read first comment line as title (strip leading "# ")
+    local title
+    title=$(head -n 1 "$file" | sed 's/^# *//')
+    [[ -z "$title" ]] && title=$(basename "$file" .conf)
+
+    local icon="${icons[$idx]:-}"
+    local active_marker=""
+    [[ "$(realpath "$file")" == "$ACTIVE" ]] && active_marker=" 󰄴"
+
+    printf "%s  %s%s\t%s\n" "$icon" "$title" "$active_marker" "$file"
+    (( idx++ ))
+  done
+}
+
+# -- Run matchmaker, pipe input directly (no shell startup in preset) --
+SELECTED=$(build_input | "$MM_BIN" \
+  -o "${PRESET_OVERRIDE}" \
+  x="" \
+  2>/dev/null)
+
+[[ -z "$SELECTED" ]] && exit 0
+
+# Extract the tab-separated path column
+PRESET_PATH=$(printf '%s' "$SELECTED" | awk -F'\t' '{print $2}')
+[[ -z "$PRESET_PATH" ]] && PRESET_PATH="$SELECTED"
+
+if [[ ! -f "$PRESET_PATH" ]]; then
+  echo "Error: preset file not found: ${PRESET_PATH}" >&2
+  exit 1
 fi
 
-# Run matchmaker TUI with the animations preset
-SELECTED_LINE=$("$MM_BIN" -o "$PRESET_FILE")
+# Apply preset
+cp "$PRESET_PATH" "$CONFIG_DEST"
+hyprctl reload >/dev/null 2>&1
 
-# Exit if canceled or empty
-[ -z "$SELECTED_LINE" ] && exit 0
+TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# *//')
+[[ -z "$TITLE" ]] && TITLE=$(basename "$PRESET_PATH" .conf)
 
-# Extract file path from tab-separated output
-PRESET_PATH=$(echo "$SELECTED_LINE" | awk -F'\t' '{print $2}')
+command -v notify-send >/dev/null 2>&1 && \
+  notify-send -a "Hyprland" -i "preferences-desktop-theme" \
+    "Animation Applied" "$TITLE"
 
-# Fallback if output line is direct path
-[ -z "$PRESET_PATH" ] && PRESET_PATH="$SELECTED_LINE"
-
-if [ -f "$PRESET_PATH" ]; then
-    cp "$PRESET_PATH" "$CONFIG_DEST"
-    hyprctl reload >/dev/null 2>&1
-    
-    TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# //')
-    [ -z "$TITLE" ] && TITLE=$(basename "$PRESET_PATH")
-
-    if command -v notify-send >/dev/null 2>&1; then
-        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animação Aplicada" "$TITLE"
-    fi
-    echo "✨ Animação '$TITLE' aplicada com sucesso!"
-else
-    echo "Erro: Arquivo de preset não encontrado: $PRESET_PATH" >&2
-    exit 1
-fi
+echo "Animation '${TITLE}' applied."

@@ -14,7 +14,7 @@ if [ ! -x "$MM_BIN" ]; then
 fi
 
 # Run matchmaker TUI with the animations preset
-SELECTED_LINE=$("$MM_BIN" -o "$PRESET_FILE")
+SELECTED_LINE=$("$MM_BIN" --no-read -o "$PRESET_FILE")
 
 # Exit if canceled or empty
 [ -z "$SELECTED_LINE" ] && exit 0

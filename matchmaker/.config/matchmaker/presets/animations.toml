@@ -18,29 +18,44 @@ color = "Blue"
 type = "Rounded"
 
 [[preview.layout]]
-command = "if [ -f {1} ]; then cp {1} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {1} 2>/dev/null || cat {1}; fi"
+command = "if [ -f {2} ]; then cp {2} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
 side = "right"
 percentage = 65
 
+[columns]
+split = "\t"
+names = [
+  "label",
+  { name = "path", hidden = true }
+]
+
 [start.command]
-separator = "\n"
-cmd = "ls -1 $HOME/.config/hypr/animations/*.conf | xargs -n1 basename"
+cmd = '''
+{
+  for file in "$HOME/.config/hypr/animations"/*.conf; do
+    [ -f "$file" ] || continue
+    filename="${file##*/}"
+    title=$(head -n 1 "$file" | sed 's/^# *//')
+    if [ -z "$title" ]; then
+      title=$(echo "$filename" | sed 's/\.conf$//;s/^[0-9]*[ -]*//;s/-/ /g')
+    fi
+    printf "%s\t%s\n" "$title" "$file"
+  done
+}
+'''
 
 [query]
 prompt = " Hyprland Animations > "
-prompt_style.fg = "Cyan"
 
 [start]
 mode = "nav"
-input_separator = "\n"
-output_separator = "\n"
+additional_commands = []
 
 [binds]
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
-"enter" = "Accept"
-"esc" = "Quit"
-"q" = "Quit"
-"nav^^enter" = "Accept"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"
 "nav^^q" = "Quit"
 "nav^^esc" = "Quit"
+"nav^^enter" = "Accept"

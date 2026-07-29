@@ -51,7 +51,7 @@ collect_animations() {
     animations_by_label[$filename]="$file"
     labels+=("$title")
     paths+=("$file")
-  done < <(find -L "$anim_dir" -maxdepth 1 -type f -name '*.conf' 2>/dev/null | sort)
+  done < <(find -L "$anim_dir/" -maxdepth 1 -type f -name '*.conf' 2>/dev/null | sort)
 }
 
 run_matchmaker_picker() {

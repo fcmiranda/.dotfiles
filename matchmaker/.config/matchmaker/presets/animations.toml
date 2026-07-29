@@ -32,16 +32,8 @@ names = [
 [start.command]
 cmd = '''
 {
-  for file in "$HOME/.config/hypr/animations"/*.conf; do
-    [ -f "$file" ] || continue
-    filename="${file##*/}"
-    title=$(head -n 1 "$file" | sed 's/^# *//')
-    if [ -z "$title" ]; then
-      title=$(echo "$filename" | sed 's/\.conf$//;s/^[0-9]*[ -]*//;s/-/ /g')
-    fi
-    printf "%s\t%s\n" "$title" "$file"
-  done
-}
+  find -L "$HOME/.config/hypr/animations/" -maxdepth 1 -type f -name '*.conf' 2>/dev/null | sort
+} | awk '{ fullpath = $0; filename = fullpath; sub(/.*\//, "", filename); label = filename; sub(/\.conf$/, "", label); sub(/^[0-9]+-?/, "", label); gsub(/-/, " ", label); n = split(label, words, " "); label = ""; for (i = 1; i <= n; i++) { word = words[i]; word = toupper(substr(word, 1, 1)) substr(word, 2); label = label (i > 1 ? " " : "") word }; print label "\t" fullpath }'
 '''
 
 [query]

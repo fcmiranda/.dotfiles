@@ -18,33 +18,16 @@ color = "Blue"
 type = "Rounded"
 
 [[preview.layout]]
-command = "if [ -f {2} ]; then cp {2} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {2} 2>/dev/null || cat {2}; fi"
+command = "if [ -f {1} ]; then cp {1} ~/.config/hypr/animations.conf 2>/dev/null && hyprctl reload >/dev/null 2>&1; bat --paging=never --style=header,grid,numbers --color=always {1} 2>/dev/null || cat {1}; fi"
 side = "right"
 percentage = 65
 
-[columns]
-split = "\t"
-names = [
-  "label",
-  { name = "path", hidden = true }
-]
-
 [start.command]
 separator = "\n"
-cmd = '''
-ANIM_DIR="$HOME/.config/hypr/animations"
-mkdir -p "$ANIM_DIR"
-for file in "$ANIM_DIR"/*.conf; do
-  [ -f "$file" ] || continue
-  filename=$(basename "$file")
-  title=$(head -n 1 "$file" | sed 's/^# //')
-  [ -z "$title" ] && title="$filename"
-  printf "%s\t%s\n" "$title" "$file"
-done
-'''
+cmd = "ls -1 $HOME/.config/hypr/animations/*.conf | xargs -n1 basename"
 
 [query]
-prompt = "Hyprland Animations > "
+prompt = " Hyprland Animations > "
 prompt_style.fg = "Cyan"
 
 [start]

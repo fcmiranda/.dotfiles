@@ -1,5 +1,5 @@
 #!/bin/bash
-# hypr-anim — Fast TUI Hyprland Animation Switcher using matchmaker
+# hypr-anim — Simple & fast TUI Hyprland Animation Switcher using matchmaker
 
 set -euo pipefail
 
@@ -25,21 +25,11 @@ run_picker() {
 
     [[ -z "$selected" ]] && exit 0
 
-    # Clean ANSI escape sequences and carriage returns
-    selected=$(echo "$selected" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r')
+    # Clean filename
+    local filename
+    filename=$(echo "$selected" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r\n' | xargs -n1 basename)
 
-    local path="${selected#*$'\t'}"
-    path="${path#\'}"
-    path="${path%\'}"
-    path="${path#\"}"
-    path="${path%\"}"
-    path=$(echo "$path" | xargs)
-
-    if [[ ! -f $path ]]; then
-        local fname
-        fname=$(basename "$path")
-        path="$ANIM_DIR/$fname"
-    fi
+    local path="$ANIM_DIR/$filename"
 
     if [[ -f $path ]]; then
         cp "$path" "$CONFIG_DEST"
@@ -47,7 +37,7 @@ run_picker() {
 
         local title
         title=$(head -n 1 "$path" | sed 's/^# *//')
-        [[ -z "$title" ]] && title=$(basename "$path" .conf)
+        [[ -z "$title" ]] && title="$filename"
 
         if command -v notify-send >/dev/null 2>&1; then
             notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animation Applied" "$title"

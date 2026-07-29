@@ -30,8 +30,8 @@ color = "Cyan"
 type = "Rounded"
 
 [[preview.layout]]
-# bat provides syntax highlighting for hyprlang config files
-command = "bat --style=header,grid,numbers --color=always {1} 2>/dev/null || cat {1}"
+# bat provides syntax highlighting for hyprlang config files (paging=never prevents hanging on less)
+command = "bat --paging=never --style=header,grid,numbers --color=always {1} 2>/dev/null || cat {1}"
 side = "right"
 percentage = 65
 min = 40

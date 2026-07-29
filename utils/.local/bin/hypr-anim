@@ -1,42 +1,70 @@
-#!/usr/bin/env bash
-# TUI Hyprland Animation Switcher using Matchmaker (mm)
+#!/bin/bash
+# hypr-anim — Fast TUI Hyprland Animation Switcher using matchmaker
+
+set -euo pipefail
 
 ANIM_DIR="$HOME/.config/hypr/animations"
 CONFIG_DEST="$HOME/.config/hypr/animations.conf"
 PRESET_FILE="$HOME/.config/matchmaker/presets/animations.toml"
 
-# Ensure matchmaker binary is accessible
 MM_BIN=$(command -v mm || echo "$HOME/.local/bin/mm")
 
-if [ ! -x "$MM_BIN" ]; then
-    echo "Error: matchmaker (mm) binary not found!" >&2
-    exit 1
-fi
-
-# Run matchmaker TUI with the animations preset
-SELECTED_LINE=$("$MM_BIN" -o "$PRESET_FILE")
-
-# Exit if canceled or empty
-[ -z "$SELECTED_LINE" ] && exit 0
-
-# Extract file path from tab-separated output
-PRESET_PATH=$(echo "$SELECTED_LINE" | awk -F'\t' '{print $2}')
-
-# Fallback if output line is direct path
-[ -z "$PRESET_PATH" ] && PRESET_PATH="$SELECTED_LINE"
-
-if [ -f "$PRESET_PATH" ]; then
-    cp "$PRESET_PATH" "$CONFIG_DEST"
-    hyprctl reload >/dev/null 2>&1
-
-    TITLE=$(head -n 1 "$PRESET_PATH" | sed 's/^# //')
-    [ -z "$TITLE" ] && TITLE=$(basename "$PRESET_PATH")
-
-    if command -v notify-send >/dev/null 2>&1; then
-        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animation Applied" "$TITLE"
+run_picker() {
+    if [[ ! -x $MM_BIN ]]; then
+        command -v notify-send >/dev/null 2>&1 && notify-send "Animation Switcher" "matchmaker binary not found at $MM_BIN"
+        exit 1
     fi
-    echo "✨ Animation '$TITLE' applied successfully!"
-else
-    echo "Error: Preset file not found: $PRESET_PATH" >&2
-    exit 1
-fi
+
+    if [[ ! -f $PRESET_FILE ]]; then
+        command -v notify-send >/dev/null 2>&1 && notify-send "Animation Switcher" "Preset config file not found at $PRESET_FILE"
+        exit 1
+    fi
+
+    local selected
+    selected=$(cd "$ANIM_DIR" && "$MM_BIN" --no-read --config "$PRESET_FILE" 2>/dev/null || true)
+
+    [[ -z "$selected" ]] && exit 0
+
+    local path="${selected#*$'\t'}"
+    path="${path#\'}"
+    path="${path%\'}"
+    path="${path#\"}"
+    path="${path%\"}"
+
+    if [[ -f $path ]]; then
+        cp "$path" "$CONFIG_DEST"
+        hyprctl reload >/dev/null 2>&1
+
+        local title
+        title=$(head -n 1 "$path" | sed 's/^# *//')
+        [[ -z "$title" ]] && title=$(basename "$path" .conf)
+
+        if command -v notify-send >/dev/null 2>&1; then
+            notify-send -a "Hyprland" -i "preferences-desktop-theme" "Animation Applied" "$title"
+        fi
+        echo "✨ Animation '$title' applied successfully!"
+    fi
+}
+
+main() {
+    if [[ ${1:-} == "--in-terminal" ]]; then
+        run_picker
+        exit 0
+    fi
+
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        local inner="export PATH=$(printf '%q' "$PATH"); $(printf '%q' "${BASH_SOURCE[0]}") --in-terminal"
+        if command -v uwsm-app >/dev/null 2>&1; then
+            setsid uwsm-app -- xdg-terminal-exec --app-id=hypr-anim-tui --title="Animation Switcher" \
+                -e bash -c "$inner" >/dev/null 2>&1 &
+        else
+            setsid xdg-terminal-exec --app-id=hypr-anim-tui --title="Animation Switcher" \
+                -e bash -c "$inner" >/dev/null 2>&1 &
+        fi
+        exit 0
+    fi
+
+    run_picker
+}
+
+main "$@"

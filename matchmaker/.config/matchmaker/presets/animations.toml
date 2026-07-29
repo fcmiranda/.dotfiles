@@ -49,10 +49,15 @@ prompt_style.fg = "Cyan"
 
 [start]
 mode = "nav"
+input_separator = "\n"
+output_separator = "\n"
 
 [binds]
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
+"enter" = "Accept"
+"esc" = "Quit"
+"q" = "Quit"
 "nav^^enter" = "Accept"
 "nav^^q" = "Quit"
 "nav^^esc" = "Quit"

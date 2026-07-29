@@ -25,11 +25,21 @@ run_picker() {
 
     [[ -z "$selected" ]] && exit 0
 
+    # Clean ANSI escape sequences and carriage returns
+    selected=$(echo "$selected" | sed -r 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\r')
+
     local path="${selected#*$'\t'}"
     path="${path#\'}"
     path="${path%\'}"
     path="${path#\"}"
     path="${path%\"}"
+    path=$(echo "$path" | xargs)
+
+    if [[ ! -f $path ]]; then
+        local fname
+        fname=$(basename "$path")
+        path="$ANIM_DIR/$fname"
+    fi
 
     if [[ -f $path ]]; then
         cp "$path" "$CONFIG_DEST"

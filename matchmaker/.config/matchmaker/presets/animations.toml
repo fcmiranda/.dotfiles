@@ -42,9 +42,14 @@ names = [
 
 [start.command]
 cmd = '''
-{
-  find "$HOME/.dotfiles/main/hypr/.config/hypr/animations" -type f -name '*.conf' 2>/dev/null | sort
-} | awk '{ fullpath = $0; filename = fullpath; sub(/.*\//, "", filename); label = filename; sub(/\.conf$/, "", label); sub(/^[0-9]+-?/, "", label); gsub(/-/, " ", label); n = split(label, words, " "); label = ""; for (i = 1; i <= n; i++) { word = words[i]; word = toupper(substr(word, 1, 1)) substr(word, 2); label = label (i > 1 ? " " : "") word }; print label "\t" fullpath }'
+ANIM_DIR="$HOME/.dotfiles/main/hypr/.config/hypr/animations"
+for file in $ANIM_DIR/*.conf; do
+  [ -f "$file" ] || continue
+  filename=$(basename "$file")
+  title=$(head -n 1 "$file" | sed 's/^# *//')
+  [ -z "$title" ] && title="$filename"
+  printf "%s\t%s\n" "$title" "$file"
+done
 '''
 
 [query]

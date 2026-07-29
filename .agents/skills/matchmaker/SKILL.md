@@ -65,7 +65,9 @@ where you want mm to start displaying results before generation finishes.
 
 ```toml
 [start.command]
-cmd = 'fd --print0'
+# Note: both 'cmd' and 'command' keys work as aliases for the shell command
+cmd = 'fd --print0'      # 'cmd' is the short alias
+# command = 'fd --print0'  # 'command' also works (used in jump.toml)
 separator = "\\0"          # null-byte separator (safe for filenames)
 
 [columns]
@@ -77,7 +79,8 @@ names = [
 ```
 
 Column references in commands use `{1}`, `{2}`, etc. (1-indexed).  
-`{=}` = full line. `{=#}` = 0-based row index.
+`{=}` = full line. `{=1}` = first column (alternative syntax). `{=#}` = 0-based row index.  
+`{item}` = item label (useful as a preview border title). `{+1}` = all selected items, column 1.
 
 ### Nav Mode (keyboard-driven browsing)
 
@@ -103,6 +106,26 @@ mode = "nav"         # start in nav mode
 
 Nav mode vs query mode: nav mode is for browsing (vim-style hjkl), query mode is for typing.
 Press any printable character to switch to query mode. Press `esc` to return to nav.
+
+Two ways to define nav-mode-only binds — both work:
+
+```toml
+# Option A: nav^^ prefix inside [binds]
+[binds]
+"nav^^j" = "Down"
+"nav^^enter" = "Accept"
+
+# Option B: separate [ui.nav_binds] section (no prefix needed)
+[ui.nav_binds]
+"j" = "Down"
+"enter" = "Accept"
+"l" = ["ChDir({=})", "@reload_local"]   # @reload_local refreshes after chdir
+"h" = ["ChDir(..)", "@reload_local"]
+"~" = ["ChDir(/home/user)", "Pos(0)", "@reload_local"]
+"o" = "ExecuteSilent(xdg-open {=1})"    # {=1} = first column only
+```
+
+Use `[ui.nav_binds]` when you have many nav-specific binds; `nav^^` is simpler for a few.
 
 ### Preview Panel
 
@@ -295,9 +318,28 @@ done
 additional_commands = ["", "zoxide query -l 2>/dev/null | tr '\\n' '\\0'"]
 
 [binds]
-"@reloadnext" = "ReloadNext"
-"ctrl-z"      = "@reloadnext"
+"@reloadnext" = "ReloadNext"   # define semantic alias first
+"ctrl-z"      = "@reloadnext"  # then bind key to alias
+
+# Also works in ui.nav_binds for nav-mode-only cycling
+[ui.nav_binds]
+"ctrl-z" = "@reloadnext"
+"z"      = "@reloadnext"
 ```
+
+### Breadcrumb (path display in file browser)
+```toml
+[breadcrumb]
+show = true
+separator = "/"
+style.fg = "Cyan"
+style.modifier = "BOLD"
+separator_style.fg = "Cyan"
+# current_folder_only = true   # show only last segment
+# truncate_length = 3          # max segments
+# width_pct = 80               # max % of terminal width
+```
+Breadcrumb automatically updates when `ChDir` is triggered.
 
 ### Execute action without leaving mm
 ```toml

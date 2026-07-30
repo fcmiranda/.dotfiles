@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# window-picker-mm.sh — cross-session window picker with OpenCode state using mm
+# window-picker.sh — cross-session window picker with OpenCode state using mm
 # All sessions and their windows, grouped, with color-coded AI state and live preview.
 
 REAL_SCRIPT=$(readlink -f "$0" 2>/dev/null || realpath "$0")
@@ -29,16 +29,21 @@ ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
 START_IDX=$("$ITEMS_SCRIPT" | awk '!/^#/ {n++} /•/ {print n-1; exit}')
 [ -z "$START_IDX" ] && START_IDX=0
 
-"$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
+chosen=$("$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT" \
   results.spinner="$TMUX_SPINNER_NAME" \
   binds.Synced="Pos($START_IDX)|||Unbind(Synced)" \
   --color "spinner:$TMUX_SPINNER_COLOR" \
   --color "$TMUX_COLOR_SPEC" \
-  --group-prefix '#' \
-| (read chosen && [ -n "$chosen" ] && \
-    session=$(printf '%s' "$chosen" | cut -f4) && \
-    idx=$(printf '%s' "$chosen" | cut -f2) && \
-    [ -n "$idx" ] && \
-    tmux switch-client -t "${session}:${idx}"); true
+  --group-prefix '#')
+
+if [ -n "$chosen" ]; then
+  session=$(printf '%s' "$chosen" | head -n1 | cut -f4)
+  idx=$(printf '%s' "$chosen" | head -n1 | cut -f2)
+  if [ -n "$session" ] && [ -n "$idx" ]; then
+    tmux switch-client -t "${session}:${idx}" 2>/dev/null || true
+  fi
+fi
+
+exit 0

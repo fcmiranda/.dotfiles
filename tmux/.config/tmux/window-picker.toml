@@ -25,7 +25,8 @@ max = 9999
 spinner_prefix = "@SPIN@"
 spinner_inline = true
 current_prefix = " "
-unselected_prefix = ""
+unselected_prefix = "  "
+multi_prefix = "󰄲 "
 row_connection = "Disjoint"
 column_spacing = 0
 
@@ -44,6 +45,11 @@ show = false
 nav_mode = true
 nav_focus_on_start = "picker"
 
+[ui.nav_binds]
+"space" = "Toggle"
+"d"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+"D"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+
 [ui.border]
 sides = ""
 
@@ -61,3 +67,6 @@ percentage = 80
 
 [binds]
 Start = ["ToggleColumn(title)", "ToggleColumn(name)", "ToggleColumn(session)", "ToggleColumn(idx)"]
+"space" = "Toggle"
+"d"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+"D"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]

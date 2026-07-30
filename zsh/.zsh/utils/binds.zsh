@@ -10,8 +10,7 @@ bindkey '^?' backward-delete-char  # Backspace
 bindkey '^[[1;5D' backward-word  # Ctrl+Left Arrow
 bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
-# Single Tab: "j<Tab>"→zcd, trailing space→fzf-tab,
-#             ghost text present→autosuggest-accept, else→fzf-tab
+# Single Tab: ghost text present→autosuggest-accept, else→_jump_widget
 _jump_widget() {
     local result
 
@@ -35,20 +34,19 @@ bindkey '^T' _jump_widget
 
 
 _smart_tab() {
-    if [[ "$BUFFER" == "j" ]]; then
-        BUFFER=""
-        CURSOR=0
+    if [[ -z "$BUFFER" ]]; then
+        # Empty command line → open matchmaker jump widget directly
         zle _jump_widget
     elif [[ "$BUFFER" == "h" ]]; then
         BUFFER=""
         CURSOR=0
         zle _zcd_widget
     elif [[ -n "$POSTDISPLAY" ]]; then
-        # Ghost text visible → accept it
+        # Ghost text visible → accept autosuggestion
         zle autosuggest-accept
     else
-        # No ghost text, no trailing space → open completion
-        zle _jump_widget
+        # Command line has text → standard completion (fzf-tab)
+        zle expand-or-complete
     fi
 }
 zle -N _smart_tab

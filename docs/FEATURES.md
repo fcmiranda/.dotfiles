@@ -167,11 +167,12 @@ Display profiles and hotplug events are automatically handled by [`kanshi`](http
 
 The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh) is augmented with context-aware logic (`_smart_tab`):
 
-- **Shortcuts**:
-  - `j<Tab>`: Clears input and triggers `_jump_widget` (Matchmaker / zoxide directory selection).
-  - `h<Tab>`: Clears input and triggers `_zcd_widget` (zoxide directory navigation).
-- **Autosuggestions**: If an autosuggestion ghost text is active, `<Tab>` accepts the suggestion immediately.
-- **Direct Hotkey (`Ctrl+T`)**: Directly opens the Matchmaker jump picker interface.
+- **Context-Aware Behaviors**:
+  - **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker / Zoxide directory selection) for zero-friction directory jumping without pre-typing `j`.
+  - **Active Command Line (`<Tab>` with text, e.g., `ls /path`)**: Executes standard Zsh completion (`expand-or-complete` / `fzf-tab`) without interrupting command argument completion.
+  - **Shortcut (`h<Tab>`)**: Clears input and triggers `_zcd_widget` (Zoxide directory navigation).
+- **Autosuggestions**: If ghost text is active, `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
+- **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker jump picker interface at any prompt state.
 
 ## Ghostty Terminal Enhancements
 

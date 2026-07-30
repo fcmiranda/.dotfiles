@@ -292,8 +292,8 @@ function zvm_after_init() {
     bindkey -M viins '^T' _jump_widget
     bindkey -M vicmd '^T' _jump_widget
 
-    # Tab bindings: single Tab = smart tab (j<Tab> → zcd, else complete)
-    #               double Tab = accept autosuggestion
+    # Tab bindings: empty line Tab = matchmaker jump widget
+    #               active line Tab = expand-or-complete (fzf-tab) / accept autosuggestion
     bindkey -M viins '^I' _smart_tab
 
     # ==========================================================================

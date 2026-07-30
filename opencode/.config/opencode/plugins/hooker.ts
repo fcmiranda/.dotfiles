@@ -1,5 +1,30 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import { execSync } from "child_process"
+import { readFileSync } from "fs"
+import { tmpdir } from "os"
+import { join } from "path"
+
+function getAcpdToken(): string | null {
+  try {
+    const xdgRuntime = process.env.XDG_RUNTIME_DIR
+    const uid = process.getuid?.() ?? 1000
+    const tokenPath = xdgRuntime
+      ? join(xdgRuntime, "acpd", "token")
+      : join(tmpdir(), `acpd-${uid}`, "token")
+    return readFileSync(tokenPath, "utf8").trim()
+  } catch {
+    return null
+  }
+}
+
+function getAcpdHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" }
+  const token = getAcpdToken()
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`
+  }
+  return headers
+}
 
 /**
  * Thin Client Plugin that:
@@ -11,7 +36,9 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
   if (tmuxPane) {
     process.on("exit", () => {
       try {
-        execSync(`curl -s -X POST http://127.0.0.1:4040/api/status -H "Content-Type: application/json" -d '{"pane_id":"${tmuxPane}","state":"closed"}'`);
+        const token = getAcpdToken()
+        const authHeader = token ? `-H "Authorization: Bearer ${token}"` : ""
+        execSync(`curl -s -X POST http://127.0.0.1:4040/api/status ${authHeader} -H "Content-Type: application/json" -d '{"pane_id":"${tmuxPane}","state":"closed"}'`);
       } catch {
         // Ignore errors on exit
       }
@@ -28,7 +55,7 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
     try {
       await fetch("http://127.0.0.1:4040/api/status", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAcpdHeaders(),
         body: JSON.stringify({ pane_id: tmuxPane, state, message }),
       })
     } catch {

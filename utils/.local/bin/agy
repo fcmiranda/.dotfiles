@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# agy — PATH wrapper for Antigravity CLI
+# Ensures Tmux state and lazygitrs icon are cleared gracefully on exit,
+# even when invoked via ai-jail agy, subshells, or scripts.
+
+if [ -n "$TMUX_PANE" ]; then
+  SCRIPT_DIR="$HOME/.dotfiles/main/antigravity/.gemini/hooks"
+  trap '
+    curl -s -X POST http://127.0.0.1:4040/api/status -H "Content-Type: application/json" -d "{\"pane_id\":\"'"$TMUX_PANE"'\",\"state\":\"closed\"}" > /dev/null 2>&1 || true
+    node "'"$SCRIPT_DIR"'/lazygit-hook.mjs" Unregister </dev/null > /dev/null 2>&1 || true
+    tmux set-option -w -t "'"$TMUX_PANE"'" -u @lazygitrs_icon > /dev/null 2>&1 || true
+    tmux refresh-client -S > /dev/null 2>&1 || true
+  ' EXIT INT TERM
+fi
+
+# Execute the real agy binary (without exec so trap fires on exit)
+if [ -x "$HOME/.local/bin/agy-bin" ]; then
+  "$HOME/.local/bin/agy-bin" "$@"
+  exit $?
+else
+  REAL_AGY=$(which -a agy 2>/dev/null | grep -v "$HOME/.local/bin/agy" | head -n 1)
+  "$REAL_AGY" "$@"
+  exit $?
+fi

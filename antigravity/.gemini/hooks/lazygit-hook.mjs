@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { basename } from 'node:path';
 import { log, readCtx, getActiveTmuxPane, notifyTmux, setLazygitrsIcon } from './hook-lib.mjs';
@@ -102,9 +102,24 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     try {
       const wsPath = workspacePath || process.cwd();
       const sessionName = '_lazygitrs-' + basename(wsPath);
-      execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
-      const spawnTarget = sessionName;
-      log(LOG_FILE, `Started background tmux session: ${spawnTarget}`);
+      try {
+        execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
+        log(LOG_FILE, `Started background tmux session: ${sessionName}`);
+      } catch (e) {
+        log(LOG_FILE, `tmux new-session failed (${e.message}), spawning lazygitrs directly in background...`);
+        try {
+          const child = spawn('lazygitrs', [], {
+            cwd: wsPath,
+            detached: true,
+            stdio: 'ignore',
+            env: process.env
+          });
+          child.unref();
+          log(LOG_FILE, `Spawned lazygitrs process directly (PID ${child.pid})`);
+        } catch (err2) {
+          log(LOG_FILE, `Direct spawn of lazygitrs failed: ${err2.message}`);
+        }
+      }
 
       bridgeStatus = '✅ Lazygitrs auto-started';
       fallbackWarning = ` (${spawnTarget})`;

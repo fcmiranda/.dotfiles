@@ -26,42 +26,51 @@ function getAcpdHeaders(): Record<string, string> {
   return headers
 }
 
+function getActiveTmuxPane(): string {
+  let pane = process.env.TMUX_PANE ?? ""
+  if (!pane) {
+    try {
+      pane = execSync('tmux display-message -p "#{pane_id}"', { stdio: "pipe" }).toString().trim()
+    } catch {}
+  }
+  return pane
+}
+
 /**
  * Thin Client Plugin that:
  * - Forwards OpenCode state events to the ACP daemon (acpd) running on port 4040.
  */
 export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
-  const tmuxPane = process.env.TMUX_PANE ?? ""
-
-  if (tmuxPane) {
-    process.on("exit", () => {
-      try {
-        const token = getAcpdToken()
-        const authHeader = token ? `-H "Authorization: Bearer ${token}"` : ""
-        execSync(`curl -s -X POST http://127.0.0.1:4040/api/status ${authHeader} -H "Content-Type: application/json" -d '{"pane_id":"${tmuxPane}","state":"closed"}'`);
-      } catch {
-        // Ignore errors on exit
-      }
-    });
-
-    // Handle Ctrl+C properly to trigger exit
-    process.on("SIGINT", () => {
-      process.exit(0);
-    });
-  }
-
   const sendAcpState = async (state: string, message: string | null = null) => {
-    if (!tmuxPane) return;
+    const pane = getActiveTmuxPane()
+    if (!pane) return
     try {
       await fetch("http://127.0.0.1:4040/api/status", {
         method: "POST",
         headers: getAcpdHeaders(),
-        body: JSON.stringify({ pane_id: tmuxPane, state, message }),
+        body: JSON.stringify({ pane_id: pane, state, message }),
       })
     } catch {
       // Ignore failures if the acpd daemon is not running
     }
   }
+
+  process.on("exit", () => {
+    try {
+      const pane = getActiveTmuxPane()
+      if (!pane) return
+      const token = getAcpdToken()
+      const authHeader = token ? `-H "Authorization: Bearer ${token}"` : ""
+      execSync(`curl -s -X POST http://127.0.0.1:4040/api/status ${authHeader} -H "Content-Type: application/json" -d '{"pane_id":"${pane}","state":"closed"}'`);
+    } catch {
+      // Ignore errors on exit
+    }
+  });
+
+  // Handle Ctrl+C properly to trigger exit
+  process.on("SIGINT", () => {
+    process.exit(0);
+  });
 
   let waitingPermission = false
 

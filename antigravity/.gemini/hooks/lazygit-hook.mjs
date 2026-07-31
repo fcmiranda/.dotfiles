@@ -102,6 +102,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     try {
       const wsPath = workspacePath || process.cwd();
       const sessionName = '_lazygitrs-' + basename(wsPath);
+      const spawnTarget = sessionName;
       try {
         execSync(`tmux new-session -d -s "${sessionName}" -c "${wsPath}" "lazygitrs"`);
         log(LOG_FILE, `Started background tmux session: ${sessionName}`);

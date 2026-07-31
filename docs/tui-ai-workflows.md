@@ -32,11 +32,11 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 
 | Layer | Tool | Scope | Primary Entry Point |
 |---|---|---|---|
-| **Desktop** | Hyprland + Walker/Fuzzel | Any desktop app or session | `Super+Space`, `Super+Shift+K` |
+| **Desktop** | Hyprland + Fuzzel/Walker | Any desktop app or session | `Super+Shift+K` (sesh picker) |
 | **Global Overlay** | Ghostty + Hyprland Float | Global omniscient AI scratchpad | `Super+A` |
-| **Terminal / Session** | sesh + tmux + Matchmaker | Switch between project sessions | `Alt+s` (zsh), `prefix+T` (popup) |
+| **Terminal / Session** | sesh + tmux + Matchmaker | Switch between project sessions | `Alt+s` (Universal Terminal: Zsh & Tmux popup) |
 | **Window & Pane** | tmux windows + popups | Switch within session (editor, AI, git) | `Ctrl+0-9`, `Alt+a`, `Alt+o`, `prefix+i` |
-| **Shell & Directory** | Zsh + Matchmaker (`mm`) + Zoxide | Zero-friction directory jumping & completion | `<Tab>` (empty line), `Ctrl+T`, `h<Tab>` |
+| **Shell & Directory** | Zsh + Matchmaker (`mm`) + Zoxide | Zero-friction directory jumping & completion | `<Tab>` (empty line), `Ctrl+T` |
 
 ---
 
@@ -66,7 +66,6 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 |---|---|---|---|
 | **Empty Prompt** | `<Tab>` | `_jump_widget` (`mm --no-read -o jump`) | Instantly opens Matchmaker directory picker. Selecting a dir automatically updates `zoxide` frecency (`zoxide add`) and `cd`s directly. |
 | **Active Command** | `<Tab>` (e.g. `ls -la /path`) | `expand-or-complete` (`fzf-tab`) | Performs standard Zsh argument/file autocompletion without interrupting command line args. |
-| **Zoxide Jump** | `h<Tab>` | `_zcd_widget` | Clears input line and opens Zoxide interactively. |
 | **Ghost Text** | `<Tab>` | `autosuggest-accept` | Accepts Zsh autosuggestion. |
 | **Atomic Escape** | `Ctrl+T` | `_jump_widget` | Unconditionally opens Matchmaker Jump picker regardless of prompt state (`viins` & `vicmd`). |
 
@@ -75,15 +74,13 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ DESKTOP LAYER (Hyprland)                                        │
-│  Super+Space ......... Walker launcher (apps, sesh, calc, etc.) │
-│  Super+Shift+K ....... Sesh picker via fuzzel/walker            │
+│  Super+Shift+K ....... Sesh picker via fuzzel/walker (desktop)  │
 │  Super+Return ........ New terminal (ghostty)                   │
 │  Super+A ............. Global AI Dropdown Scratchpad (popup)    │
 │  Super+1-9 ........... Switch Hyprland workspace                │
 ├─────────────────────────────────────────────────────────────────┤
-│ TMUX SESSION LAYER (sesh)                                       │
-│  Alt+s ............... Sesh picker (from zsh, fzf popup)        │
-│  prefix+T ............ Sesh picker (Matchmaker, 80x35% popup)   │
+│ TERMINAL SESSION LAYER (Universal Zero-Friction sesh)           │
+│  Alt+s ............... Universal Sesh picker (Zsh & Tmux popup)│
 │  prefix+L ............ Last session (sesh last)                 │
 │  prefix+H / L ........ Prev / next session                      │
 ├─────────────────────────────────────────────────────────────────┤
@@ -105,7 +102,6 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 │  <Tab> (empty line) .. Matchmaker directory jump (_jump_widget) │
 │  <Tab> (active line) . Standard autocompletion (expand/fzf-tab) │
 │  Ctrl+T .............. Direct Matchmaker jump picker            │
-│  h<Tab> .............. Interactive Zoxide dir jump (_zcd_widget) │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

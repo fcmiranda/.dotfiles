@@ -76,8 +76,8 @@ function getPaneCapture(paneId) {
 }
 
 async function runWatchdog(paneId) {
-  // Sleep 2.5 seconds before first check
-  await new Promise(r => setTimeout(r, 2500));
+  // Sleep 3 seconds before check
+  await new Promise(r => setTimeout(r, 3000));
 
   const stateInfo = readPaneState(paneId);
   if (!stateInfo || ['idle', 'closed', 'awaiting_input', 'permission'].includes(stateInfo.state)) {
@@ -91,28 +91,20 @@ async function runWatchdog(paneId) {
 
   log(LOG_FILE, `[Watchdog] checking pane=${paneId} state=${stateInfo.state} silenceMs=${Date.now() - stateInfo.timestamp}`);
 
-  // Sample pane content twice over 800ms to see if output is actively streaming
-  const cap1 = getPaneCapture(paneId);
-  await new Promise(r => setTimeout(r, 800));
-  const cap2 = getPaneCapture(paneId);
-
+  const cap = getPaneCapture(paneId);
   const currentState = readPaneState(paneId);
   if (!currentState || ['idle', 'closed', 'awaiting_input', 'permission'].includes(currentState.state)) {
     return;
   }
 
-  // If pane content is unchanged (or failed to capture), output is not streaming (e.g. interrupted or at prompt)
-  if (!cap1 || !cap2 || cap1 === cap2) {
-    log(LOG_FILE, `[Watchdog] pane ${paneId} is static -> resetting to idle`);
+  // Only reset to idle if prompt symbol is visible at bottom of pane (e.g. user pressed Ctrl+C or turn ended)
+  const lines = (cap || '').trim().split('\n');
+  const lastLine = lines[lines.length - 1] || '';
+  const atPrompt = /[❯$#%]/.test(lastLine);
+
+  if (atPrompt) {
+    log(LOG_FILE, `[Watchdog] pane ${paneId} is at prompt -> resetting to idle`);
     await sendAcpState(paneId, 'idle');
-  } else {
-    // Content was streaming, schedule one more check in 2 seconds
-    await new Promise(r => setTimeout(r, 2000));
-    const finalState = readPaneState(paneId);
-    if (finalState && !['idle', 'closed', 'awaiting_input', 'permission'].includes(finalState.state)) {
-      log(LOG_FILE, `[Watchdog] second check for pane ${paneId} -> resetting to idle`);
-      await sendAcpState(paneId, 'idle');
-    }
   }
 }
 
@@ -137,9 +129,9 @@ async function main() {
     const toolCall = ctx.toolCall || {};
     const toolName = toolCall.name || ctx.tool_name || ctx.tool || '';
 
-    if (['ask_user', 'question', 'ask_question'].includes(toolName)) {
+    if (toolName.includes('question') || toolName.includes('ask_user')) {
       await sendAcpState(tmuxPane, 'awaiting_input');
-    } else if (['request_permission', 'ask_permission'].includes(toolName)) {
+    } else if (toolName.includes('permission')) {
       await sendAcpState(tmuxPane, 'permission');
     } else {
       await sendAcpState(tmuxPane, 'working');

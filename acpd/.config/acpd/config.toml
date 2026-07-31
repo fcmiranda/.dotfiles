@@ -17,6 +17,10 @@ color = "#94e2d5"
 icon = "󰑮"
 color = "#f9e2af"
 
+[theme.states.working]
+icon = "󰑮"
+color = "#f9e2af"
+
 [theme.states.question]
 icon = "󱜻"
 color = "#cba6f7"

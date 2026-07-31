@@ -89,6 +89,12 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
         return
       }
 
+      if (evtType.includes("idle") || evtType.includes("cancel") || evtType.includes("abort") || evtType.includes("stop")) {
+        waitingPermission = false
+        await sendAcpState("idle")
+        return
+      }
+
       if (evtType !== "session.status") return
 
       const properties = (event as any)?.properties
@@ -97,11 +103,12 @@ export const NotifyIdlePlugin: Plugin = async ({ $ }) => {
       // Keep permission indicator visible while waiting for user reply.
       if (waitingPermission && statusType === "busy") return
       
-      if (statusType === "idle") {
+      if (["idle", "cancelled", "canceled", "aborted", "done", "interrupted", "stopped"].includes(statusType)) {
+        waitingPermission = false
         await sendAcpState("idle")
-      } else if (statusType === "busy") {
+      } else if (["busy", "working"].includes(statusType)) {
         await sendAcpState("working")
-      } else if (statusType === "retry") {
+      } else if (["retry", "error", "failed"].includes(statusType)) {
         await sendAcpState("error")
       }
     },

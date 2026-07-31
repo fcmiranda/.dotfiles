@@ -80,7 +80,7 @@ async function runWatchdog(paneId) {
   await new Promise(r => setTimeout(r, 2500));
 
   const stateInfo = readPaneState(paneId);
-  if (!stateInfo || ['idle', 'closed'].includes(stateInfo.state)) {
+  if (!stateInfo || ['idle', 'closed', 'awaiting_input', 'permission'].includes(stateInfo.state)) {
     return;
   }
 
@@ -97,7 +97,7 @@ async function runWatchdog(paneId) {
   const cap2 = getPaneCapture(paneId);
 
   const currentState = readPaneState(paneId);
-  if (!currentState || ['idle', 'closed'].includes(currentState.state)) {
+  if (!currentState || ['idle', 'closed', 'awaiting_input', 'permission'].includes(currentState.state)) {
     return;
   }
 
@@ -109,7 +109,7 @@ async function runWatchdog(paneId) {
     // Content was streaming, schedule one more check in 2 seconds
     await new Promise(r => setTimeout(r, 2000));
     const finalState = readPaneState(paneId);
-    if (finalState && !['idle', 'closed'].includes(finalState.state)) {
+    if (finalState && !['idle', 'closed', 'awaiting_input', 'permission'].includes(finalState.state)) {
       log(LOG_FILE, `[Watchdog] second check for pane ${paneId} -> resetting to idle`);
       await sendAcpState(paneId, 'idle');
     }

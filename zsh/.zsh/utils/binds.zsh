@@ -37,10 +37,6 @@ _smart_tab() {
     if [[ -z "$BUFFER" ]]; then
         # Empty command line → open matchmaker jump widget directly
         zle _jump_widget
-    elif [[ "$BUFFER" == "h" ]]; then
-        BUFFER=""
-        CURSOR=0
-        zle _zcd_widget
     elif [[ -n "$POSTDISPLAY" ]]; then
         # Ghost text visible → accept autosuggestion
         zle autosuggest-accept

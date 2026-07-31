@@ -190,7 +190,6 @@ The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/ut
 - **Context-Aware Behaviors**:
   - **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker / Zoxide directory selection) for zero-friction directory jumping without pre-typing `j`.
   - **Active Command Line (`<Tab>` with text, e.g., `ls /path`)**: Executes standard Zsh completion (`expand-or-complete` / `fzf-tab`) without interrupting command argument completion.
-  - **Shortcut (`h<Tab>`)**: Clears input and triggers `_zcd_widget` (Zoxide directory navigation).
 - **Autosuggestions**: If ghost text is active, `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
 - **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker jump picker interface at any prompt state.
 

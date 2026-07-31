@@ -86,9 +86,9 @@ async function runWatchdog(paneId) {
     }
 
     const cap = getPaneCapture(paneId);
-    const lines = (cap || '').trim().split('\n');
-    const lastLine = lines[lines.length - 1] || '';
-    const atPrompt = /[❯$#%]/.test(lastLine.trim());
+    const lines = (cap || '').trim().split('\n').filter(l => l.trim().length > 0);
+    const trailingText = lines.slice(-3).join('\n');
+    const atPrompt = /[❯$#%>?]|gemini|agy|antigravity/i.test(trailingText);
 
     if (atPrompt) {
       log(LOG_FILE, `[Watchdog] pane ${paneId} is back at prompt -> resetting to idle`);

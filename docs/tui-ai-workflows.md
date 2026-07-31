@@ -144,21 +144,47 @@ State management is centralized by **`acpd`** (Agent Client Protocol Daemon), a 
 
 **Binding**: `prefix+s` (popup 80×35%) / `prefix+S` (fullscreen split) → `window-picker.sh`
 
-Powered by **Matchmaker** (`mm`), the window picker lists **all sessions and windows** grouped by session, displaying real-time AI state icons set by `acpd` (`@ai_agent_state_raw`):
+Powered by **Matchmaker** (`mm`), the window picker lists **all sessions and windows** grouped by session, displaying real-time AI state icons and theme colors pushed by `acpd` (`@ai_agent_state`, `@ai_agent_state_color`, `@ai_agent_state_raw`):
 
 ```
 ┌─ 󰧞  windows ──────────────────────────────────────────────────┐
 │                                          ┆                     │
 │  #  dotfiles                             ┆  [pane preview]     │
-│     • 2  opencode  󰑮                      ┆                     │
+│     • 2  antigravity  ⠋                  ┆                     │
 │     · 1  nvim                            ┆  > analyzing...     │
 │     · 0  zsh                             ┆                     │
 │                                          ┆                     │
 │  #  webapp                               ┆                     │
-│     · 2  opencode  󱥂                      ┆                     │
+│     · 2  opencode     󱜻                  ┆                     │
 │     · 1  nvim                            ┆                     │
 └────────────────────────────────────────────────────────────────┘
 ```
+
+### Tmux Status Bar & Window Picker Architecture
+
+The AI agent state management pipeline consists of 5 integrated components:
+
+1. **Orthogonal State Options (`acpd`)**:
+   - `@ai_agent_state`: Pure icon or animated spinner frame (e.g. `⠋`, `󱜻`, `󱅭`, `󰨄`, `󱥂`) without embedded ANSI escape sequences.
+   - `@ai_agent_state_color`: Hex color string (`#89b482`, `#d8a657`, `#d3869b`, `#ea6962`) compiled from Omarchy theme templates.
+   - `@ai_agent_state_raw`: Raw state string (`busy`, `working`, `question`, `awaiting_input`, `permission`, `error`, `idle`, `closed`).
+
+2. **Dynamic Pill Layout (`window-status-current-format`)**:
+   - The active window is rendered as a rounded pill (`` ... ``) whose background recolors dynamically to `@ai_agent_state_color` (Yellow for `working`, Purple for `question`, Red for `error/permission`, Cyan for `idle` or normal non-AI windows).
+   - High-contrast dark text (`fg=#{@SESSION_ACTIVE_FG}`) inside the filled pill guarantees 100% legibility on top of filled backgrounds.
+   - Background tabs in `window-status-format` render `@ai_agent_state` in `#[fg=#{@ai_agent_state_color}]` so status icons light up on inactive windows.
+
+3. **Matchmaker Sync (`window-picker-items.sh`)**:
+   - Queries `@ai_agent_state` and `@ai_agent_state_color` in real time.
+   - Animates `@SPIN@` during `working`/`busy` states and renders matching Nerdfont state icons (`󱥂`, `󱜻`, `󱅭`, `󰨄`) colored with the active Omarchy theme palette.
+
+4. **Omarchy Theme Template (`acpd.toml.tpl`)**:
+   - Template located in [`acpd/.config/omarchy/themed/acpd.toml.tpl`](../acpd/.config/omarchy/themed/acpd.toml.tpl) maps `idle` (`{{ color14 }}`), `busy/working` (`{{ color11 }}`), `question` (`{{ color13 }}`), and `error/permission` (`{{ color1 }}`).
+   - Switching system themes (`omarchy-theme-set`) re-compiles `~/.config/acpd/config.toml` and automatically restarts `acpd` via systemd (`systemctl --user restart acpd`) to apply theme colors instantly.
+
+5. **Resilient Ctrl+C Interrupt Watchdog (`tmux-hook.mjs`)**:
+   - When users press `<Ctrl+C>` during agent execution, normal exit hooks are bypassed by `SIGINT`.
+   - The background watchdog loop polls pane content every 2 seconds. The instant prompt symbols (`❯`, `$`, `%`) reappear on the bottom line, the watchdog resets the state to `idle` automatically.
 
 ---
 

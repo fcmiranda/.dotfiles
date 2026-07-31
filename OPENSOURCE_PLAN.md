@@ -46,9 +46,9 @@ The central Rust daemon.
 
 ### B. `fcmiranda/tmux-acp` (The Visual Layer)
 A standard Tmux Plugin Manager (TPM) repository.
-- **Role:** Injects the AI states into the Tmux UI gracefully.
+- **Role:** Injects the AI states into the Tmux UI gracefully (status bar filled rounded pills and background tab icons).
 - **Structure:**
-  - `tmux-acp.tmux`: The entrypoint. It reads `@ai_agent_state` and exposes standard formatter variables like `#{acp_status}` and `#{acp_spinner}`.
+  - `tmux-acp.tmux`: The entrypoint. It reads 3 orthogonal Tmux variables: `@ai_agent_state` (pure icon/spinner), `@ai_agent_state_color` (hex color), and `@ai_agent_state_raw` (raw state string), exposing standard formatter variables like `#{acp_status}`, `#{acp_color}`, and `#{acp_spinner}`.
   - `scripts/bell-popup.sh`: The decoupled version of `ai-agent-bell-popup.sh`.
 - **User Config:**
   ```tmux

@@ -2,11 +2,6 @@
 # https://github.com/akitaonrails/ai-jail
 # Edit freely. Regenerate with: ai-jail --clean --init
 
-rw_map = [
-    "/tmp/tmux-1000",
-    "/tmp/tmux-1001",
-]
-
 command = [
     "ai-memory",
     "run",

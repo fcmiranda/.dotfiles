@@ -112,13 +112,16 @@ async function runWatchdog(paneId) {
     const lines = (cap || '').trim().split('\n').filter(l => l.trim().length > 0);
     const lastLine = lines[lines.length - 1] || '';
 
-    // Check if the last line is a shell/CLI prompt or shows Ctrl+C cancellation
-    const atPrompt = /[❯$#%>?]\s*$/i.test(lastLine) || /\^C|cancelled|interrupted/i.test(lastLine);
+    // AGY CLI status bar indicator:
+    // "esc to cancel" -> actively thinking / working
+    // "? for shortcuts" -> idle / prompt waiting for user input
+    const isThinking = /esc to cancel/i.test(lastLine);
+    const atIdlePrompt = /\? for shortcuts/i.test(lastLine) || /[❯$#%>?]\s*$/i.test(lastLine) || /\^C|cancelled|interrupted/i.test(lastLine);
 
-    log(LOG_FILE, `[Watchdog] loop ${i} lastLine="${lastLine}" atPrompt=${atPrompt}`);
+    log(LOG_FILE, `[Watchdog] loop ${i} isThinking=${isThinking} atIdlePrompt=${atIdlePrompt} lastLine="${lastLine.substring(0, 40)}..."`);
 
-    if (atPrompt) {
-      log(LOG_FILE, `[Watchdog] pane ${paneId} returned to prompt -> resetting to idle`);
+    if (!isThinking && atIdlePrompt) {
+      log(LOG_FILE, `[Watchdog] pane ${paneId} AGY returned to idle prompt -> resetting state to idle`);
       await sendAcpState(paneId, 'idle');
       return;
     }

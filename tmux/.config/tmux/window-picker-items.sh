@@ -48,7 +48,7 @@ C_ERROR=$(_hex_esc "$_color1")
 C_IDX=$(_hex_esc "$(_tget @SEGMENT_BG)")
 C_NAME=$(_hex_esc "$(_tget @FG)")
 
-unset -f _tget _hex_esc
+unset -f _tget
 unset _colors_toml _color11 _color1
 # ─────────────────────────────────────────────────────────────────────────────
 

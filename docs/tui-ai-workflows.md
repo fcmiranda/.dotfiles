@@ -87,6 +87,8 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 │ TMUX WINDOW & FAST JUMP LAYER (Zero Prefix)                     │
 │  Alt+a ............... Semantic AI window jump (create-or-switch)│
 │  Alt+o ............... Floating AI overlay popup (toggle)       │
+│  Alt+i ............... AI Agent Ring Buffer Bell Jump (cycle)   │
+│  Alt+g ............... lazygitrs popup (review loop)            │
 │  Ctrl+0-9 ............ Direct window jump 0-9                   │
 │  Ctrl+Shift+0-9 ...... Move window to position 0-9              │
 │  prefix+l / h ........ Next / prev window                       │
@@ -102,6 +104,7 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 │  <Tab> (empty line) .. Matchmaker directory jump (_jump_widget) │
 │  <Tab> (active line) . Standard autocompletion (expand/fzf-tab) │
 │  Ctrl+T .............. Direct Matchmaker jump picker            │
+│  Ctrl+G .............. Matchmaker Git Status Jump + Nvim edit   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -251,6 +254,10 @@ These bindings eliminate guesswork and decision latency:
 
 ### 4. Global Desktop Scratchpad (`Super+A`)
 - Spawns a floating centered terminal anywhere in the OS running a persistent `global-ai` session.
+
+### 5. The Zero-Friction Golden Rule (Git Status & Review)
+- **Inside Neovim** ➔ Use `<leader>gs` (Git Status). It's the LazyVim gold standard (100% native, zero process-switching tax, with real-time diff preview).
+- **Outside Neovim (in pure Zsh shell)** ➔ Use `Alt+g` to open `lazygitrs` directly for full git status and the bidirectional AI code review loop.
 
 ---
 

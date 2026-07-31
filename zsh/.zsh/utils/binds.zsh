@@ -49,3 +49,29 @@ zle -N _smart_tab
 
 # Delete previous word with Ctrl+Backspace in vi insert mode
 bindkey -M viins $'\e\x7f' backward-kill-word
+
+# Git Status & Review Loop with lazygitrs (Alt+g)
+_git_files_widget() {
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        [[ -n "$WIDGET" ]] && zle reset-prompt
+        return 1
+    fi
+
+    if command -v lazygitrs >/dev/null 2>&1; then
+        lazygitrs
+    fi
+    [[ -n "$WIDGET" ]] && zle reset-prompt
+}
+zle -N _git_files_widget
+bindkey '\eg' _git_files_widget
+bindkey -M viins '\eg' _git_files_widget
+bindkey -M vicmd '\eg' _git_files_widget
+bindkey -M emacs '\eg' _git_files_widget
+
+# Hook for zsh-vi-mode plugin to preserve keybindings after zvm init
+function zvm_after_init() {
+    zvm_bindkey viins '\eg' _git_files_widget
+    zvm_bindkey vicmd '\eg' _git_files_widget
+    zvm_bindkey viins '^T' _jump_widget
+    zvm_bindkey vicmd '^T' _jump_widget
+}

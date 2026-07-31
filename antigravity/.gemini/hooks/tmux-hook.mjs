@@ -76,35 +76,25 @@ function getPaneCapture(paneId) {
 }
 
 async function runWatchdog(paneId) {
-  // Sleep 3 seconds before check
-  await new Promise(r => setTimeout(r, 3000));
+  // Poll up to 60 times (2 minutes max) while in working state
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 2000));
 
-  const stateInfo = readPaneState(paneId);
-  if (!stateInfo || ['idle', 'closed', 'awaiting_input', 'permission'].includes(stateInfo.state)) {
-    return;
-  }
+    const currentState = readPaneState(paneId);
+    if (!currentState || ['idle', 'closed', 'awaiting_input', 'permission'].includes(currentState.state)) {
+      return;
+    }
 
-  // If a newer event updated the timestamp in the last 2 seconds, let that cycle handle it
-  if (Date.now() - stateInfo.timestamp < 2000) {
-    return;
-  }
+    const cap = getPaneCapture(paneId);
+    const lines = (cap || '').trim().split('\n');
+    const lastLine = lines[lines.length - 1] || '';
+    const atPrompt = /[❯$#%]/.test(lastLine.trim());
 
-  log(LOG_FILE, `[Watchdog] checking pane=${paneId} state=${stateInfo.state} silenceMs=${Date.now() - stateInfo.timestamp}`);
-
-  const cap = getPaneCapture(paneId);
-  const currentState = readPaneState(paneId);
-  if (!currentState || ['idle', 'closed', 'awaiting_input', 'permission'].includes(currentState.state)) {
-    return;
-  }
-
-  // Only reset to idle if prompt symbol is visible at bottom of pane (e.g. user pressed Ctrl+C or turn ended)
-  const lines = (cap || '').trim().split('\n');
-  const lastLine = lines[lines.length - 1] || '';
-  const atPrompt = /[❯$#%]/.test(lastLine);
-
-  if (atPrompt) {
-    log(LOG_FILE, `[Watchdog] pane ${paneId} is at prompt -> resetting to idle`);
-    await sendAcpState(paneId, 'idle');
+    if (atPrompt) {
+      log(LOG_FILE, `[Watchdog] pane ${paneId} is back at prompt -> resetting to idle`);
+      await sendAcpState(paneId, 'idle');
+      return;
+    }
   }
 }
 

@@ -66,36 +66,64 @@ async function sendAcpState(paneId, state, message = null) {
   }
 }
 
-function getPaneCapture(paneId) {
+async function getPaneCapture(paneId) {
   if (!paneId) return '';
   try {
-    return execSync(`tmux capture-pane -p -t "${paneId}"`, { stdio: 'pipe' }).toString();
+    const res = await fetch('http://127.0.0.1:4040/rpc', {
+      method: 'POST',
+      headers: getAcpdHeaders(),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'tmux.capture_pane',
+        params: { pane_id: paneId },
+        id: Date.now()
+      })
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.result?.content !== undefined) {
+        return json.result.content;
+      }
+    }
   } catch (e) {
+    log(LOG_FILE, `[Watchdog] rpc fetch error: ${e.message}`);
+  }
+
+  try {
+    return execSync(`tmux capture-pane -p -t "${paneId}"`, { stdio: 'pipe', env: process.env }).toString();
+  } catch (e) {
+    log(LOG_FILE, `[Watchdog] getPaneCapture(${paneId}) error: ${e.message}`);
     return '';
   }
 }
 
 async function runWatchdog(paneId) {
-  // Poll up to 60 times (2 minutes max) while in working state
+  log(LOG_FILE, `[Watchdog] started for pane=${paneId}`);
   for (let i = 0; i < 60; i++) {
     await new Promise(r => setTimeout(r, 2000));
 
     const currentState = readPaneState(paneId);
     if (!currentState || ['idle', 'closed', 'awaiting_input', 'permission'].includes(currentState.state)) {
+      log(LOG_FILE, `[Watchdog] pane ${paneId} state is now ${currentState?.state} -> exiting watchdog`);
       return;
     }
 
-    const cap = getPaneCapture(paneId);
+    const cap = await getPaneCapture(paneId);
     const lines = (cap || '').trim().split('\n').filter(l => l.trim().length > 0);
-    const trailingText = lines.slice(-3).join('\n');
-    const atPrompt = /[❯$#%>?]|gemini|agy|antigravity/i.test(trailingText);
+    const lastLine = lines[lines.length - 1] || '';
+
+    // Check if the last line is a shell/CLI prompt or shows Ctrl+C cancellation
+    const atPrompt = /[❯$#%>?]\s*$/i.test(lastLine) || /\^C|cancelled|interrupted/i.test(lastLine);
+
+    log(LOG_FILE, `[Watchdog] loop ${i} lastLine="${lastLine}" atPrompt=${atPrompt}`);
 
     if (atPrompt) {
-      log(LOG_FILE, `[Watchdog] pane ${paneId} is back at prompt -> resetting to idle`);
+      log(LOG_FILE, `[Watchdog] pane ${paneId} returned to prompt -> resetting to idle`);
       await sendAcpState(paneId, 'idle');
       return;
     }
   }
+  log(LOG_FILE, `[Watchdog] pane ${paneId} timeout reached after 120s`);
 }
 
 async function main() {

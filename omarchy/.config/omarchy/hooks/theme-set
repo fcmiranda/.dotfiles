@@ -8,11 +8,12 @@ CURRENT_THEME_DIR="$HOME/.config/omarchy/current/theme"
 TEMPLATES_DIR="$OMARCHY_PATH/default/themed"
 USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed-overrides"
 
-# Reload tmux configuration so new theme colors apply immediately
+# Reload tmux configuration & acpd daemon so new theme colors apply immediately
 if tmux info &>/dev/null; then
   tmux source-file ~/.config/tmux/tmux.conf
   tmux refresh-client 2>/dev/null || true
 fi
+pkill -HUP acpd 2>/dev/null || true
 
 # Re-render user templates with hooked-theme color overrides (or base colors if no hooked theme)
 hex_to_rgb() {
@@ -51,7 +52,7 @@ fi
 # Re-render all templates into the active theme dir
 # User templates take precedence over built-in templates with the same filename
 declare -A rendered_templates
-for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
+for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$HOME/.config/omarchy/themed"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
   [[ -r "$tpl" ]] || continue  # skip dangling symlinks or unreadable files
   filename=$(basename "$tpl" .tpl)
   [[ ${rendered_templates[$filename]+_} ]] && continue
@@ -69,15 +70,25 @@ for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
   fi
 
   # Append original theme colors if available, falling back to current theme colors
+  local_theme_dir="${THEME_NAME,,}"
   if [[ -f "$HOME/.config/omarchy/themes/$THEME_NAME/colors.toml" ]]; then
     append_colors_to_sed "$HOME/.config/omarchy/themes/$THEME_NAME/colors.toml" "$sed_script"
   elif [[ -f "$OMARCHY_PATH/themes/$THEME_NAME/colors.toml" ]]; then
     append_colors_to_sed "$OMARCHY_PATH/themes/$THEME_NAME/colors.toml" "$sed_script"
+  elif [[ -f "$OMARCHY_PATH/themes/$local_theme_dir/colors.toml" ]]; then
+    append_colors_to_sed "$OMARCHY_PATH/themes/$local_theme_dir/colors.toml" "$sed_script"
   fi
   append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
 
   sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"
   rm "$sed_script"
+
+  # Sync acpd.toml directly to ~/.config/acpd/config.toml
+  if [[ $filename == "acpd.toml" ]]; then
+    mkdir -p "$HOME/.config/acpd"
+    cp "$CURRENT_THEME_DIR/acpd.toml" "$HOME/.config/acpd/config.toml"
+    pkill -HUP acpd 2>/dev/null || true
+  fi
 done
 
 # Merge theme override colors into the active theme so subsequent tools see them

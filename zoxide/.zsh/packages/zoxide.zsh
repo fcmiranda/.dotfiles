@@ -387,21 +387,3 @@ HELPSCRIPTEOF
     # fzf returns "fullpath\trelpath"; extract just the full path
     [[ -n "$dir" ]] && echo "${dir%%$'\t'*}"
 }
-
-# ALT-J: trigger zcd from the command line
-_zcd_widget() {
-    local result
-    result=$(zcd)
-    if [[ -n "$result" ]]; then
-        if [[ -d "$result" ]]; then
-            zoxide add "$result"
-            cd "$result"
-        else
-            # file selected: insert path at cursor
-            LBUFFER+="$result"
-        fi
-    fi
-    zle reset-prompt
-}
-zle -N _zcd_widget
-bindkey '\ej' _zcd_widget

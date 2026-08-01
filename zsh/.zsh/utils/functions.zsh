@@ -165,3 +165,9 @@ wtr() {
     git branch -m "$old_name" "$new_name" && \
     wt switch "$new_name"
 }
+
+# OSC 7 Working Directory Notification for GPU Terminals (Ghostty / Kitty)
+# Emits OSC 7 escape sequence on every directory change so Ghostty & Tmux sync working directory
+chpwd() {
+    printf "\033]7;file://%s%s\033\\" "${HOST:-$HOSTNAME}" "${PWD}"
+}

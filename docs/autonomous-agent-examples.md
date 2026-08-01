@@ -2,6 +2,7 @@
 
 > **Escopo**: Demonstrações reais de como os métodos JSON-RPC do `acpd` (`tmux.list_sessions`, `tmux.list_windows`, `tmux.list_panes`, `tmux.capture_pane`, `tmux.send_keys`, `agentState/list`) transformam a IA em um desenvolvedor pareando em tempo real.
 > **Arquivo**: [`/home/fecavmi/.dotfiles/main/docs/autonomous-agent-examples.md`](file:///home/fecavmi/.dotfiles/main/docs/autonomous-agent-examples.md)
+> **English Version**: [`/home/fecavmi/.dotfiles/main/docs/autonomous-agent-examples-en.md`](file:///home/fecavmi/.dotfiles/main/docs/autonomous-agent-examples-en.md)
 
 ---
 
@@ -143,6 +144,11 @@ Você está realizando um benchmark ou teste de carga no seu webapp e quer saber
 | `tmux.list_panes` | Inspeção | `{target?, all?}` | Listar dimensões, CWD e comandos dos painéis ativos |
 | `tmux.capture_pane` | Inspeção | `{target?, start_line?, end_line?, escape_sequences?}` | Ler logs de compilação, saída de testes ou erros de servidores |
 | `tmux.send_keys` | Controle | `{target?, keys: [], literal?}` | Enviar comandos como `cargo test` ou `npm run build` |
+| `tmux.select_window` | Navegação | `{target}` | Alternar foco ativo para uma janela específica (ex: `:0`, `@1`) |
+| `tmux.select_pane` | Navegação | `{target}` | Alternar foco ativo para um painel específico (ex: `%6`) |
+| `tmux.display_message` | Notificação | `{message, target?}` | Exibir mensagem na barra de status do tmux |
+| `tmux.ring_bell` | Notificação | `{target?}` | Disparar sinal de alerta sonoro/visual no painel |
+| `tmux.select_layout` | Layout | `{layout, target?}` | Aplicar arranjo visual nos painéis (`tiled`, `even-horizontal`) |
 | `tmux.split_pane` | Controle | `{command?, target_pane?, vertical?}` | Criar novos painéis laterais de trabalho |
 | `tmux.new_window` | Controle | `{name?, target?, command?}` | Criar janelas dedicadas de execução em background |
 | `tmux.kill_pane/window/session` | Teardown | `{target}` | Limpar painéis e processos finalizados |

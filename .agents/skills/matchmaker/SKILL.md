@@ -226,7 +226,8 @@ Without `output_template`, mm prints the full matched line.
 [ui]
 nav_mode = true
 nav_bar = "Plain"
-nav_color = "Cyan"
+[matcher]
+sort = "smart" # "smart"/"auto": preserves natural stream order on empty query, sorts by fuzzy relevance when typing
 
 [tui]
 percentage = 70

@@ -4,7 +4,7 @@ nav_bar = "Plain"
 nav_color = "Black"
 
 [matcher]
-sort = false
+sort = "smart"
 
 [results]
 reverse = false

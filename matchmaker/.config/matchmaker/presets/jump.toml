@@ -6,12 +6,17 @@ nav_color = "Black"
 [matcher]
 sort = "smart"
 depth_penalty = 15
+frecency = true
+frecency_weight = 2
+typo_tolerance = true
 
 [results]
 reverse = false
 icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
+dim_directory_path = true
+directory_path_style.fg = "dark_gray"
 
 [results.autoscroll]
 indicator = ""
@@ -53,7 +58,7 @@ separator_style.fg = "Cyan"
 #width_pct = 80
 
 [start]
-additional_commands = ["", "zoxide query -l 2>/dev/null | tr '\\n' '\\0'"]
+additional_commands = ["", "mm list 2>/dev/null | tr '\\n' '\\0'"]
 
 [start.command]
 command = '''
@@ -61,8 +66,9 @@ IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.
 
 if [ "$PWD" = "$HOME" ]; then
     {
+        mm list 2>/dev/null | tr '\n' '\0'
         zoxide query -l 2>/dev/null | tr '\n' '\0'
-        zoxide query -l 2>/dev/null | tr '\n' '\0' | xargs -0 -r fd -H $IGNORE -a --print0 --max-depth 2 . 2>/dev/null
+        mm list 2>/dev/null | tr '\n' '\0' | xargs -0 -r fd -H $IGNORE -a --print0 --max-depth 2 . 2>/dev/null
         fd -H $IGNORE -a --print0 . "$HOME" 2>/dev/null
     } | awk -v RS='\0' -v ORS='\0' '!seen[$0]++'
 else

@@ -19,7 +19,7 @@ source_packages \
 	git \
 	mise \
 	starship \
-	zoxide \
+	mm \
 	fzf \
 	atuin \
 	yazi \

@@ -227,7 +227,8 @@ Without `output_template`, mm prints the full matched line.
 nav_mode = true
 nav_bar = "Plain"
 [matcher]
-sort = "smart" # "smart"/"auto": preserves natural stream order on empty query, sorts by fuzzy relevance when typing
+sort = "smart"        # "smart"/"auto": preserves natural stream order on empty query, sorts by fuzzy relevance when typing
+depth_penalty = 15   # SIMD-accelerated path depth penalty: penalizes deep nested subfolders so shallow root files rank higher
 
 [tui]
 percentage = 70

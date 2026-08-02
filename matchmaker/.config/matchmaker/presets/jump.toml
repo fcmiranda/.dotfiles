@@ -5,6 +5,7 @@ nav_color = "Black"
 
 [matcher]
 sort = "smart"
+depth_penalty = 15
 
 [results]
 reverse = false

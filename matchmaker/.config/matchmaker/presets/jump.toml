@@ -31,7 +31,7 @@ color = "blue"
 type = "Rounded"
 
 [[preview.layout]]
-command = "if [ -d {1} ]; then eza --tree --level=2 --icons --color=always {1}; else bat --style=numbers --color=always --line-range=:300 {1}; fi"
+command = "p={1}; p=\"${p/#\\~/$HOME}\"; if [ -d \"$p\" ]; then eza --tree --level=2 --icons --color=always \"$p\"; else bat --style=numbers --color=always --line-range=:300 \"$p\"; fi"
 side = "right"
 percentage = 80
 
@@ -58,7 +58,11 @@ separator_style.fg = "Cyan"
 #width_pct = 80
 
 [start]
-additional_commands = ["", "mm list 2>/dev/null | tr '\\n' '\\0'"]
+additional_commands = [
+    "",
+    "fd -H -E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild --strip-cwd-prefix . 2>/dev/null",
+    "mm list 2>/dev/null"
+]
 
 [start.command]
 command = '''
@@ -66,11 +70,13 @@ IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.
 
 if [ "$PWD" = "$HOME" ]; then
     {
-        mm list 2>/dev/null | tr '\n' '\0'
-        zoxide query -l 2>/dev/null | tr '\n' '\0'
-        mm list 2>/dev/null | tr '\n' '\0' | xargs -0 -r fd -H $IGNORE -a --print0 --max-depth 2 . 2>/dev/null
-        fd -H $IGNORE -a --print0 . "$HOME" 2>/dev/null
-    } | awk -v RS='\0' -v ORS='\0' '!seen[$0]++'
+        # Onda 1: Diretórios rastreados por Frecency (no topo)
+        mm list 2>/dev/null
+        # Onda 2: Conteúdo interno dos diretórios de alta frecência (profundidade 2)
+        mm list 2>/dev/null | while IFS= read -r zd; do [ -d "$zd" ] && fd -td -H $IGNORE --max-depth 2 . "$zd" 2>/dev/null; done
+        # Onda 3: Demais diretórios da Home (profundidade 3)
+        fd -td -H $IGNORE --max-depth 3 . "$HOME" 2>/dev/null
+    } | awk '!seen[$0]++'
 else
     if command -v fd >/dev/null 2>&1; then
         fd -td -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 . 2>/dev/null
@@ -81,4 +87,3 @@ else
     fi
 fi
 '''
-separator = "\\0"

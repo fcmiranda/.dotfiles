@@ -68,22 +68,21 @@ additional_commands = [
 command = '''
 IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"
 
-if [ "$PWD" = "$HOME" ]; then
-    {
-        # Onda 1: Diretórios rastreados por Frecency (no topo)
-        mm list 2>/dev/null
-        # Onda 2: Conteúdo interno dos diretórios de alta frecência (profundidade 2)
-        mm list 2>/dev/null | while IFS= read -r zd; do [ -d "$zd" ] && fd -td -H $IGNORE --max-depth 2 . "$zd" 2>/dev/null; done
-        # Onda 3: Demais diretórios da Home (profundidade 3)
-        fd -td -H $IGNORE --max-depth 3 . "$HOME" 2>/dev/null
-    } | awk '!seen[$0]++'
+if command -v fd >/dev/null 2>&1; then
+    fd -td -H $IGNORE --strip-cwd-prefix --max-depth 1 . 2>/dev/null
+    fd -tf -H $IGNORE --strip-cwd-prefix --max-depth 1 . 2>/dev/null
+    fd -H $IGNORE --strip-cwd-prefix --min-depth 2 . 2>/dev/null
 else
-    if command -v fd >/dev/null 2>&1; then
-        fd -td -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 . 2>/dev/null
-        fd -tf -H $IGNORE --strip-cwd-prefix --print0 --max-depth 1 . 2>/dev/null
-        fd -H $IGNORE --strip-cwd-prefix --print0 --min-depth 2 . 2>/dev/null
-    else
-        find . -print0
-    fi
+    find .
 fi
+'''
+
+[[rule]]
+path = ["$HOME", "~"]
+start.command.command = '''
+IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"
+{
+    mm list 2>/dev/null
+    fd -H $IGNORE -a . "$HOME" 2>/dev/null
+}
 '''

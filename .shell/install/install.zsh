@@ -16,6 +16,7 @@ install_packages \
     ghostty \
     keyd \
     yazi \
+    chafa \
     stow \
     visual-studio-code-bin \
     p7zip \

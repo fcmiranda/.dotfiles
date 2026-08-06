@@ -63,7 +63,7 @@ play = [
 [open]
 rules = [
   # Folder
-  { name = "*/", use = ["edit", "open", "reveal"] },
+  { url = "*/", use = ["edit", "open", "reveal"] },
 
   # Text files
   { mime = "text/*", use = ["edit", "reveal"] },
@@ -95,7 +95,7 @@ rules = [
   { mime = "application/pdf", use = ["open", "reveal"] },
 
   # Fallback
-  { name = "*", use = ["open", "reveal"] },
+  { url = "*", use = ["open", "reveal"] },
 ]
 
 [tasks]
@@ -106,18 +106,19 @@ image_alloc = 536870912  # 512MB
 image_bound = [0, 0]
 suppress_preload = false
 
+[plugin]
 preloaders = [
   # Image
-  { name = "*.{avif,bmp,gif,heic,heif,ico,jpeg,jpg,jxl,png,svg,webp}", run = "image" },
+  { url = "*.{avif,bmp,gif,heic,heif,ico,jpeg,jpg,jxl,png,svg,webp}", run = "image" },
   # Video
-  { name = "*.{avi,flv,m4v,mkv,mov,mp4,mpeg,mpg,ts,webm,wmv}", run = "video" },
+  { url = "*.{avi,flv,m4v,mkv,mov,mp4,mpeg,mpg,ts,webm,wmv}", run = "video" },
   # PDF
-  { name = "*.pdf", run = "pdf" },
+  { url = "*.pdf", run = "pdf" },
 ]
 
 previewers = [
   # Folders
-  { name = "*/", run = "folder", sync = true },
+  { url = "*/", run = "folder", sync = true },
   # Code/text files with syntax highlighting (using bat if available)
   { mime = "text/*", run = "code" },
   { mime = "*/xml", run = "code" },
@@ -129,15 +130,15 @@ previewers = [
   { mime = "*/x-toml", run = "code" },
   { mime = "application/json", run = "json" },
   # Images
-  { name = "*.{avif,bmp,gif,heic,heif,ico,jpeg,jpg,jxl,png,svg,webp}", run = "image" },
+  { url = "*.{avif,bmp,gif,heic,heif,ico,jpeg,jpg,jxl,png,svg,webp}", run = "image" },
   # Videos
-  { name = "*.{avi,flv,m4v,mkv,mov,mp4,mpeg,mpg,ts,webm,wmv}", run = "video" },
+  { url = "*.{avi,flv,m4v,mkv,mov,mp4,mpeg,mpg,ts,webm,wmv}", run = "video" },
   # PDF
-  { name = "*.pdf", run = "pdf" },
+  { url = "*.pdf", run = "pdf" },
   # Archives
-  { name = "*.{7z,bz2,gz,rar,tar,xz,zip}", run = "archive" },
+  { url = "*.{7z,bz2,gz,rar,tar,xz,zip}", run = "archive" },
   # Fallback
-  { name = "*", run = "file" },
+  { url = "*", run = "file" },
 ]
 
 [input]

@@ -15,8 +15,6 @@ reverse = false
 icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
-dim_directory_path = true
-directory_path_style.fg = "dark_gray"
 
 [results.autoscroll]
 indicator = ""
@@ -61,7 +59,7 @@ separator_style.fg = "Cyan"
 additional_commands = [
     "",
     "fd -H -E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild --strip-cwd-prefix . 2>/dev/null",
-    "mm list 2>/dev/null"
+    "mm list 2>/dev/null | sed -E \"s#^$HOME(/|$)##\" | grep -v \"^$\""
 ]
 
 [start.command]
@@ -69,20 +67,10 @@ command = '''
 IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"
 
 if command -v fd >/dev/null 2>&1; then
-    fd -td -H $IGNORE --strip-cwd-prefix --max-depth 1 . 2>/dev/null
-    fd -tf -H $IGNORE --strip-cwd-prefix --max-depth 1 . 2>/dev/null
+    fd -td -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
+    fd -tf -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
     fd -H $IGNORE --strip-cwd-prefix --min-depth 2 . 2>/dev/null
 else
     find .
 fi
-'''
-
-[[rule]]
-path = ["$HOME", "~"]
-start.command.command = '''
-IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"
-{
-    mm list 2>/dev/null
-    fd -H $IGNORE -a . "$HOME" 2>/dev/null
-}
 '''

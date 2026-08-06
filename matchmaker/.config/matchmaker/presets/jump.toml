@@ -9,6 +9,9 @@ depth_penalty = 15
 frecency = true
 frecency_weight = 2
 typo_tolerance = true
+# Native directory prioritization: puts direct child subfolders at the top of the list
+# for instant interactive navigation with 'l' and 'h' without needing multiple fd passes.
+dir_first = true
 
 [results]
 reverse = false
@@ -20,6 +23,10 @@ symlink_target_style.fg = "cyan"
 indicator = ""
 indicator_style.fg = "blue"
 
+[previewer]
+debounce_ms = 50
+delay_clear = true
+
 [preview]
 media = true
 
@@ -29,7 +36,7 @@ color = "blue"
 type = "Rounded"
 
 [[preview.layout]]
-command = "p={1}; p=\"${p/#\\~/$HOME}\"; if [ -d \"$p\" ]; then eza --tree --level=2 --icons --color=always \"$p\"; else bat --style=numbers --color=always --line-range=:300 \"$p\"; fi"
+command = "p={1}; p=\"${p/#\\~/$HOME}\"; if [ -d \"$p\" ]; then eza --tree --level=2 --icons --git-ignore --color=always \"$p\"; else bat --style=numbers --color=always --line-range=:300 \"$p\"; fi"
 side = "right"
 percentage = 80
 
@@ -72,9 +79,7 @@ command = '''
 IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"
 
 if command -v fd >/dev/null 2>&1; then
-    fd -td -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
-    fd -tf -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
-    fd -H $IGNORE --strip-cwd-prefix --min-depth 2 . 2>/dev/null
+    fd -H $IGNORE --strip-cwd-prefix --min-depth 1 . 2>/dev/null
 else
     find .
 fi

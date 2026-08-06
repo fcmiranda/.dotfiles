@@ -28,12 +28,12 @@ icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
 
-[footer]
-show = false
-
 [results.autoscroll]
 indicator = ""
 indicator_style.fg = "blue"
+
+[footer]
+show = false
 
 [previewer]
 debounce_ms = 25

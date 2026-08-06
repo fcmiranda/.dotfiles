@@ -30,6 +30,7 @@ indicator_style.fg = "blue"
 [previewer]
 debounce_ms = 25
 delay_clear = true
+media_size = 1024
 
 [preview]
 media = true

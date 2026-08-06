@@ -22,8 +22,9 @@ symlink_target = true
 symlink_target_style.fg = "cyan"
 
 [previewer]
-debounce_ms = 20
+debounce_ms = 25
 delay_clear = true
+media_size = 1024
 
 [preview]
 media = true

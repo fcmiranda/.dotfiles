@@ -2,9 +2,8 @@
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
 [tui]
-percentage = 95
-min = 30
-max = 120
+min = 5 #vertical lines min (height)
+max = 20 #vertical lines max (height)
 
 
 [ui]
@@ -42,7 +41,8 @@ media_size = 2048
 media = true
 media_protocol = "kitty"
 media_size = 2048
-zoom = 1
+media_fit = "crop"
+zoom = 1.0
 
 [preview.border]
 title_fg = "cyan"
@@ -52,7 +52,6 @@ type = "Rounded"
 [[preview.layout]]
 command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; elif command -v img2txt >/dev/null 2>&1; then img2txt -f ansi -W 60 "$p" 2>/dev/null; fi; echo ""; identify "$p" 2>/dev/null || file "$p"; else bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"; fi; fi'''
 side = "right"
-percentage = 90
 
 [binds]
 "@reloadnext" = "ReloadNext"

@@ -1,6 +1,9 @@
 # Matchmaker Jump Mode Preset (`mm -o jump`)
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
+[tui]
+percentage = 85
+
 [ui]
 nav_mode = true
 nav_bar = "Plain"

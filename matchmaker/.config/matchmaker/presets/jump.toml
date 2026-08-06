@@ -2,7 +2,9 @@
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
 [tui]
-percentage = 85
+min = 5 #vertical lines min (height)
+max = 20 #vertical lines max (height)
+
 
 [ui]
 nav_mode = true

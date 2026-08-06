@@ -2,8 +2,9 @@
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
 [tui]
-min = 5 #vertical lines min (height)
-max = 20 #vertical lines max (height)
+percentage = 95
+min = 30
+max = 120
 
 
 [ui]

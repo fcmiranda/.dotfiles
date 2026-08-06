@@ -12,9 +12,10 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
 # Single Tab: ghost text present→autosuggest-accept, else→_jump_widget
 _jump_widget() {
+    zle -I 2>/dev/null || true
     local result
 
-    result=$(mm --no-read -o jump)
+    result=$(mm --no-read -o jump </dev/tty)
     local exit_code=$?
 
     if [[ -n "$result" ]]; then

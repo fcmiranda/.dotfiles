@@ -33,6 +33,7 @@ delay_clear = true
 
 [preview]
 media = true
+media_protocol = "kitty"
 
 [preview.border]
 title_fg = "cyan"

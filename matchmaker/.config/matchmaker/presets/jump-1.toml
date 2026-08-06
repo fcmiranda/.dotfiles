@@ -26,7 +26,8 @@ debounce_ms = 20
 delay_clear = true
 
 [preview]
-media = false
+media = true
+media_protocol = "kitty"
 
 [preview.border]
 title_fg = "cyan"

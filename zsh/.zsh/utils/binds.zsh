@@ -21,7 +21,6 @@ _jump_widget() {
         if [[ $exit_code -eq 2 ]]; then
             LBUFFER+="$result"
         elif [[ -d "$result" ]]; then
-            zoxide add "$result"
             cd "$result"
         else
             LBUFFER+="$result"

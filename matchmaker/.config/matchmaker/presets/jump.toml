@@ -24,6 +24,10 @@ symlink_target_style.fg = "cyan"
 indicator = ""
 indicator_style.fg = "blue"
 
+[previewer]
+debounce_ms = 25
+delay_clear = true
+
 [preview]
 media = true
 

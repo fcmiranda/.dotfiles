@@ -26,8 +26,7 @@ icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
 
-[footer]
-show = false
+
 
 [previewer]
 debounce_ms = 25

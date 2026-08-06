@@ -32,8 +32,7 @@ symlink_target_style.fg = "cyan"
 indicator = ""
 indicator_style.fg = "blue"
 
-[footer]
-show = false
+
 
 [previewer]
 debounce_ms = 25
@@ -43,7 +42,6 @@ delay_clear = true
 media = true
 media_protocol = "kitty"
 media_fit = "crop"
-zoom = 0.5
 
 [preview.border]
 title_fg = "cyan"

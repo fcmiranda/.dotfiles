@@ -56,12 +56,17 @@ separator_style.fg = "Cyan"
 #width_pct = 80
 
 [start]
+# Alternative source commands cycled via @reloadnext (ctrl-z / z in nav_binds):
+# Index 0: "" -> Resets back to the main start.command below.
+# Index 1: Local file/dir search using fd.
+# Index 2: Global frecency directory list from mm list --dirs.
 additional_commands = [
     "",
     "fd -H -E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild --strip-cwd-prefix . 2>/dev/null",
-    "mm list 2>/dev/null | sed -E \"s#^$HOME(/|$)##\" | grep -v \"^$\""
+    "mm list --dirs 2>/dev/null | sed -E \"s#^$HOME(/|$)##\" | grep -v \"^$\""
 ]
 
+# Default command executed on startup and re-executed upon directory change (ChDir / l / h)
 [start.command]
 command = '''
 IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"

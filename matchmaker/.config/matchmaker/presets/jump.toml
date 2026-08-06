@@ -32,7 +32,7 @@ debounce_ms = 25
 delay_clear = true
 
 [preview]
-media = true
+media = false
 
 [preview.border]
 title_fg = "cyan"

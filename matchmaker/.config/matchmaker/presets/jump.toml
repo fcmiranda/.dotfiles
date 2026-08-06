@@ -2,8 +2,8 @@
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
 [tui]
-min = 200 #vertical lines min (height)
-max = 200 #vertical lines max (height)
+min = 5 #vertical lines min (height)
+max = 20 #vertical lines max (height)
 
 
 [ui]
@@ -28,6 +28,9 @@ icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
 
+[footer]
+show = false
+
 [results.autoscroll]
 indicator = ""
 indicator_style.fg = "blue"
@@ -40,7 +43,7 @@ delay_clear = true
 media = true
 media_protocol = "kitty"
 media_fit = "crop"
-zoom = 1.0
+zoom = 0.5
 
 [preview.border]
 title_fg = "cyan"

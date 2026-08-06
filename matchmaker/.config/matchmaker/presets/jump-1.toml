@@ -22,6 +22,9 @@ dir_first = true
 
 [results]
 reverse = false
+
+[footer]
+show = false
 icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"

@@ -15,7 +15,7 @@ _jump_widget() {
     zle -I 2>/dev/null || true
     local result
 
-    result=$(mm --no-read -o jump </dev/tty)
+    result=$(mm --no-read -o jump)
     local exit_code=$?
 
     if [[ -n "$result" ]]; then

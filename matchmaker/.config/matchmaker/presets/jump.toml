@@ -5,6 +5,7 @@ nav_color = "Black"
 
 [matcher]
 sort = "smart"
+sort_cap = 2000
 depth_penalty = 15
 frecency = true
 frecency_weight = 2
@@ -22,10 +23,6 @@ symlink_target_style.fg = "cyan"
 [results.autoscroll]
 indicator = ""
 indicator_style.fg = "blue"
-
-[previewer]
-debounce_ms = 50
-delay_clear = true
 
 [preview]
 media = true
@@ -79,7 +76,8 @@ command = '''
 IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.gradle -E.npm -E.pnpm-store -E.next -Eout -Ecoverage -E.tox -E.mypy_cache -E.pytest_cache -E.cargo -E.rustup -E.mozilla -E.thunderbird"
 
 if command -v fd >/dev/null 2>&1; then
-    fd -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
+    fd -td -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null | sed 's#/*$#/#'
+    fd -tf -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
     fd -H $IGNORE --strip-cwd-prefix --min-depth 2 . 2>/dev/null
 else
     find .

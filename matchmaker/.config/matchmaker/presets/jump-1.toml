@@ -13,8 +13,6 @@ depth_penalty = 15
 frecency = true
 frecency_weight = 2
 typo_tolerance = true
-# Native directory prioritization: puts direct child subfolders at the top of the list
-# for instant interactive navigation with 'l' and 'h' without needing multiple fd passes.
 dir_first = true
 
 [results]
@@ -23,12 +21,8 @@ icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
 
-[results.autoscroll]
-indicator = ""
-indicator_style.fg = "blue"
-
 [previewer]
-debounce_ms = 25
+debounce_ms = 20
 delay_clear = true
 
 [preview]
@@ -40,9 +34,9 @@ color = "blue"
 type = "Rounded"
 
 [[preview.layout]]
-command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --size=80x35 "$p" 2>/dev/null; elif command -v img2txt >/dev/null 2>&1; then img2txt -f ansi -W 60 "$p" 2>/dev/null; fi; echo ""; identify "$p" 2>/dev/null || file "$p"; else bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --size=80x35 "$p" 2>/dev/null; elif command -v img2txt >/dev/null 2>&1; then img2txt -W 70 "$p" 2>/dev/null; fi; echo ""; identify "$p" 2>/dev/null || file "$p"; else bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"; fi; fi'''
 side = "right"
-percentage = 80
+percentage = 50
 
 [binds]
 "@reloadnext" = "ReloadNext"
@@ -74,16 +68,12 @@ percentage = 80
 
 [breadcrumb]
 show = true
-separator = "/"
+separator = " / "
 style.fg = "Cyan"
 style.modifier = "BOLD"
-separator_style.fg = "Cyan"
+separator_style.fg = "Blue"
 
 [start]
-# Alternative source commands cycled via @reloadnext (ctrl-z / z in nav_binds):
-# Index 0: "" -> Resets back to the main start.command below.
-# Index 1: Local file/dir search using fd.
-# Index 2: Global frecency directory list from mm list --dirs.
 additional_commands = [
     "",
     "fd -H -E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild --strip-cwd-prefix . 2>/dev/null",

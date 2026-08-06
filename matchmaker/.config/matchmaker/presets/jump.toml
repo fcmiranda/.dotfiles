@@ -41,7 +41,7 @@ media_size = 2048
 media = true
 media_protocol = "kitty"
 media_size = 2048
-media_fit = "crop"
+media_fit = "scale"
 zoom = 1.0
 
 [preview.border]

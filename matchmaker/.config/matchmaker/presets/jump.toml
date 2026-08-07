@@ -2,8 +2,9 @@
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
 [tui]
-min = 29
-max = 29
+percentage = 30
+# min = 29
+# max = 29
 
 [ui]
 nav_mode = true
@@ -22,7 +23,7 @@ typo_tolerance = true
 dir_first = true
 
 [results]
-max_rows = 15
+# max_rows = 15
 reverse = false
 icons = true
 symlink_target = true
@@ -41,6 +42,9 @@ media = true
 media_protocol = "kitty"
 
 [preview.border]
+title_fg = "cyan"
+color = "blue"
+type = "Rounded"   
 padding = 0
 
 

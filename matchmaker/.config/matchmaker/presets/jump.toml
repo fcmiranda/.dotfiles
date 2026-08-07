@@ -34,7 +34,7 @@ delay_clear = true
 [preview]
 media = true
 media_protocol = "kitty"
-media_fit = "crop"
+media_fit = "scale"
 zoom = 1.0
 
 [preview.border]

@@ -21,6 +21,7 @@ typo_tolerance = true
 dir_first = true
 
 [results]
+max_rows = 10
 reverse = false
 icons = true
 symlink_target = true

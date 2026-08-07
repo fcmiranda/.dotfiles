@@ -43,9 +43,6 @@ media_fit = "scale"
 zoom = 1.0
 
 [preview.border]
-title_fg = "cyan"
-color = "blue"
-type = "Rounded"
 padding = 0
 
 

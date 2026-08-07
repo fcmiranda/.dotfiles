@@ -1,12 +1,6 @@
 # Matchmaker Jump Mode Preset (`mm -o jump`)
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
-[tui]
-percentage = 95
-min = 30
-max = 120
-
-
 [ui]
 nav_mode = true
 nav_bar = "Plain"
@@ -33,8 +27,6 @@ symlink_target_style.fg = "cyan"
 indicator = ""
 indicator_style.fg = "blue"
 
-
-
 [previewer]
 debounce_ms = 25
 delay_clear = true
@@ -42,18 +34,18 @@ delay_clear = true
 [preview]
 media = true
 media_protocol = "kitty"
-media_fit = "fit"
+media_fit = "scale"
 
 [preview.border]
 title_fg = "cyan"
 color = "blue"
 type = "Rounded"
-padding = { left = 0, right = 0, top = 0, bottom = 0 }
+padding = 0
 
 [[preview.layout]]
-command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; elif command -v img2txt >/dev/null 2>&1; then img2txt -f ansi -W 60 "$p" 2>/dev/null; fi; echo ""; identify "$p" 2>/dev/null || file "$p"; else bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"; fi; fi'''
-side = "bottom"
-percentage = 75
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d --scale stretch "$p" 2>/dev/null; elif command -v img2txt >/dev/null 2>&1; then img2txt -f ansi -W 60 "$p" 2>/dev/null; fi; echo ""; identify "$p" 2>/dev/null || file "$p"; else bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+side = "right"
+percentage = 80
 
 [binds]
 "@reloadnext" = "ReloadNext"

@@ -37,7 +37,6 @@ media_size = 1024
 [preview]
 media = true
 media_protocol = "kitty"
-zoom = 1.0
 
 [preview.border]
 title_fg = "cyan"

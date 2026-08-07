@@ -39,7 +39,6 @@ delay_clear = true
 [preview]
 media = true
 media_protocol = "kitty"
-zoom = 1.0
 
 [preview.border]
 padding = 0

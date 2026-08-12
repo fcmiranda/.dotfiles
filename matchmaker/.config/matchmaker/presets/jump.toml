@@ -13,7 +13,7 @@ nav_bar = "Plain"
 nav_color = "Black"
 
 [ui.parent_peek]
-enabled = true
+enabled = false
 
 [ui.parent_peek.border]
 show = false

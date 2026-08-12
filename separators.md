@@ -30,6 +30,10 @@
 {󰕗.󰕗}
 {󰊱.󰊱}
 
+  os  path  git  other  other 
+
+
+ 
         󰇙 󰶹󰄿    
 
 echo -e "Ondas: \ue0cc \ue0ce \ue0d4  Sombra: \u2591 \u2592 \u2593  Degraus: \ue0c4 \ue0c5  Extra: \ue0a3"
@@ -56,4 +60,4 @@ Ondas:    Sombra: ░ ▒ ▓  Degraus:    Extra: 
  nf-ple-left_hard_divider_inverse
  nf-ple-left_hard_divider_inverse
  nf-ple-trapezoid_bottom_top
-
+ - nf-dev-replit

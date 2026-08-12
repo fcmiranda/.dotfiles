@@ -4,10 +4,19 @@
 [tui]
 percentage = 27
 
+[query]
+status_inline = true
+
 [ui]
 nav_mode = true
 nav_bar = "Plain"
 nav_color = "Black"
+
+[ui.parent_peek]
+enabled = true
+
+[ui.parent_peek.border]
+show = false
 
 [matcher]
 sort = "smart"
@@ -40,9 +49,9 @@ media = true
 media_protocol = "kitty"
 
 [preview.border]
-title_fg = "cyan"
-color = "blue"
-type = "Rounded"   
+# title_fg = "cyan"
+# color = "blue"
+# type = "Rounded"   
 padding = 0
 
 

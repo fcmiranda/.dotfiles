@@ -63,7 +63,7 @@ max = 10
 
 [binds]
 "@reloadnext" = "ReloadNext"
-"ctrl-z" = "@reloadnext"
+"ctrl-r" = "@reloadnext"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "@ancestor_jump" = '''Transform(
@@ -83,8 +83,7 @@ max = 10
 )'''
 
 [ui.nav_binds]
-"ctrl-z" = "@reloadnext"
-"z" = "@reloadnext"
+"ctrl-r" = "@reloadnext"
 "l" = ["ChDir({=})", "@reload_local"]
 "h" = ["ChDir(..)", "@reload_local"]
 "alt-u" = "@ancestor_jump"
@@ -97,24 +96,13 @@ style.modifier = "BOLD"
 separator_style.fg = "Cyan"
 
 [start]
-# Alternative source commands cycled via @reloadnext (ctrl-z / z in nav_binds):
-# Index 0: "" -> Resets back to the main start.command below.
-# Index 1: Local file/dir search using fd.
-# Index 2: Global frecency directory list from mm list --dirs.
+# Alternative source commands cycled via @reloadnext (ctrl-r):
+# Index 0: "" -> Uses native AsyncWalker for local directory/files.
+# Index 1: Global frecency directory list from mm list --dirs.
 additional_commands = [
     "",
-    "fd -H -E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild --strip-cwd-prefix . 2>/dev/null",
     "mm list --dirs 2>/dev/null"
 ]
 
 [start.command]
-command = '''
-IGNORE="-E.git -Enode_modules -E.cache -Etarget -Edist -Ebuild -E__pycache__ -E.venv -Evenv -Eenv -Evendor -E.next"
-
-if command -v fd >/dev/null 2>&1; then
-    fd -H $IGNORE --strip-cwd-prefix --min-depth 1 --max-depth 1 . 2>/dev/null
-    fd -H $IGNORE --strip-cwd-prefix --min-depth 2 . 2>/dev/null
-else
-    find .
-fi
-'''
+command = ""

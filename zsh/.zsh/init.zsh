@@ -8,12 +8,11 @@ source "${HOME}/.zsh/helpers.zsh"
 # printf '\n%.0s' {1..75}
 # clear
 
-# Source Order: Utils → Packages → Plugins
+# Source Order: Utils → Packages → Completion → Plugins → Binds
 source_utils \
 	history \
 	aliases \
-	functions \
-	binds
+	functions
 
 source_packages \
 	git \
@@ -32,14 +31,16 @@ source_packages \
 
 source_if_exists packages fed cargo
 
-
 # Initialize the zsh completion system before plugins
 autoload -Uz compinit && compinit
 
-#   zsh-vi-mode \
 source_plugins \
-  zsh-vi-mode \
+	zsh-vi-mode \
 	zsh-autosuggestions \
 	zsh-syntax-highlighting \
 	zsh-transient-prompt \
 	fzf-tab
+
+# Load binds last so keybindings have final authority over plugins
+source_utils binds
+

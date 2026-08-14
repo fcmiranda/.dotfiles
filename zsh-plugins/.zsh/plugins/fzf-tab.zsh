@@ -10,6 +10,9 @@ if [ -f "${HOME}/.zsh-plugins/fzf-tab/fzf-tab.plugin.zsh" ]; then
     # Use the same fzf flags as the rest of the setup
     zstyle ':fzf-tab:*' fzf-flags --height=50% --layout=reverse --border
 
+    # Bindings inside fzf-tab popup for buttery navigation
+    zstyle ':fzf-tab:*' fzf-bindings 'ctrl-n:down,ctrl-p:up,ctrl-j:down,ctrl-k:up,down:down,up:up'
+
     # Switch between tab groups with < and >
     zstyle ':fzf-tab:*' switch-group '<' '>'
 

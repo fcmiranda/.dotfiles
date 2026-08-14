@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Matchmaker backend adapter for fzf-tab (mm-ftb)
+set -e
+
+# Save completion candidates from fzf-tab stdin
+tmp_candidates=$(mktemp "/tmp/mm-ftb-candidates-XXXXXX")
+cat > "$tmp_candidates"
+
+if [ ! -s "$tmp_candidates" ]; then
+    rm -f "$tmp_candidates"
+    exit 0
+fi
+
+# Run Matchmaker:
+# - Stdin from /dev/tty (interactive keyboard control)
+# - Stderr to /dev/tty (interactive TUI rendering on the physical terminal screen)
+# - Stdout captured into $selected (returns the chosen candidate)
+selected=$(mm --icons cmd "cat '$tmp_candidates'" d '\x00' query.prompt=" Complete > " < /dev/tty 2> /dev/tty || true)
+rm -f "$tmp_candidates"
+
+if [ -n "$selected" ]; then
+    # fzf-tab protocol: Line 1 = query (empty), Line 2 = selected raw candidate
+    printf "\n%s\n" "$selected"
+fi

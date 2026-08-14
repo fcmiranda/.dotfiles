@@ -40,20 +40,41 @@ _smart_tab() {
     elif [[ -n "$POSTDISPLAY" ]]; then
         # Ghost text visible → accept autosuggestion
         zle autosuggest-accept
-    elif (( $+widgets[fzf-tab-complete] )); then
-        # Command line has text → explicit fzf-tab completion
-        zle fzf-tab-complete
     else
-        # Standard completion fallback
-        zle expand-or-complete
+        # Command line has text → trigger Matchmaker completion via mm-ftb
+        zstyle ':fzf-tab:*' fzf-command mm-ftb
+        if (( $+widgets[fzf-tab-complete] )); then
+            zle fzf-tab-complete
+        else
+            zle expand-or-complete
+        fi
     fi
 }
 zle -N _smart_tab
 bindkey '^I' _smart_tab
 bindkey -M viins '^I' _smart_tab
 
-# Ctrl+N explicitly triggers fzf-tab anytime (even with ghost text present)
+# =============================================================================
+# Matchmaker Completion (Ctrl+N): Uses Matchmaker (mm-ftb) as the completion UI
+# =============================================================================
+_mm_tab_widget() {
+    zstyle ':fzf-tab:*' fzf-command mm-ftb
+    if (( $+widgets[fzf-tab-complete] )); then
+        zle fzf-tab-complete
+    else
+        zle expand-or-complete
+    fi
+}
+zle -N _mm_tab_widget
+bindkey '^N' _mm_tab_widget
+bindkey -M viins '^N' _mm_tab_widget
+bindkey -M emacs '^N' _mm_tab_widget
+
+# =============================================================================
+# FZF-Tab Completion (Ctrl+F): Uses classic FZF as the completion UI
+# =============================================================================
 _fzf_tab_widget() {
+    zstyle ':fzf-tab:*' fzf-command fzf
     if (( $+widgets[fzf-tab-complete] )); then
         zle fzf-tab-complete
     else
@@ -61,10 +82,9 @@ _fzf_tab_widget() {
     fi
 }
 zle -N _fzf_tab_widget
-bindkey '^N' _fzf_tab_widget
-bindkey -M viins '^N' _fzf_tab_widget
-bindkey -M emacs '^N' _fzf_tab_widget
-
+bindkey '^F' _fzf_tab_widget
+bindkey -M viins '^F' _fzf_tab_widget
+bindkey -M emacs '^F' _fzf_tab_widget
 
 # Delete previous word with Ctrl+Backspace in vi insert mode
 bindkey -M viins $'\e\x7f' backward-kill-word
@@ -94,9 +114,13 @@ function zvm_after_init() {
     zvm_bindkey viins '^T' _jump_widget
     zvm_bindkey vicmd '^T' _jump_widget
     zvm_bindkey viins '^I' _smart_tab
-    zvm_bindkey viins '^N' _fzf_tab_widget
-    zvm_bindkey vicmd '^N' _fzf_tab_widget
+    zvm_bindkey viins '^N' _mm_tab_widget
+    zvm_bindkey vicmd '^N' _mm_tab_widget
+    zvm_bindkey viins '^F' _fzf_tab_widget
+    zvm_bindkey vicmd '^F' _fzf_tab_widget
 }
+
+
 
 
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Matchmaker backend adapter for fzf-tab (mm-ftb) using ftb preset
 set -e
 
 tmp_candidates=$(mktemp "/tmp/mm-ftb-candidates-XXXXXX")
@@ -9,11 +10,11 @@ if [ ! -s "$tmp_candidates" ]; then
     exit 0
 fi
 
-# Matchmaker: sem ícones, buscando na coluna 2 e devolvendo a linha original {=}
-selected=$(mm cmd "cat '$tmp_candidates'" d '\x00' columns.default=2 o '{=}' query.prompt=" Complete > " < /dev/tty 2> /dev/tty || true)
-rm -f "$tmp_candidates"
+# Protocol for fzf-tab: Line 1 (query), Line 2 (expect_key)
+# Streamed directly to stdout so null bytes \0 are preserved
+printf "\n\n"
 
-if [ -n "$selected" ]; then
-    # Protocolo estrito do fzf-tab (3 linhas: query, expect_key, selected)
-    printf "\n\n%s\n" "$selected"
-fi
+# Run Matchmaker with the ftb preset (-o ftb)
+mm -o ftb cmd "cat '$tmp_candidates'" < /dev/tty 2> /dev/tty || true
+
+rm -f "$tmp_candidates"

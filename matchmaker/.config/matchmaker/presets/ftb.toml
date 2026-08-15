@@ -1,0 +1,46 @@
+# Matchmaker FZF-Tab Completion Preset (`mm -o ftb`)
+# Fast, intelligent, multi-column tab completion with Nucleo matching
+
+[tui]
+percentage = 60
+min = 10
+max = 30
+
+[ui]
+border = { type = "Rounded" }
+
+[query]
+status_inline = true
+prompt = " Complete > "
+prompt_style.fg = "Cyan"
+prompt_style.modifier = "BOLD"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+icons = false
+
+[columns]
+split = "\\x00"
+default = "candidate"
+names = [
+    { name = "prefix", hidden = true },
+    { name = "candidate" },
+    { name = "suffix", hidden = true },
+]
+
+[preview]
+show = false
+
+[start]
+ansi = true
+output_template = "{=}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"tab" = "Down"
+"shift-tab" = "Up"

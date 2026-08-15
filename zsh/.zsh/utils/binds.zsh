@@ -33,6 +33,17 @@ zle -N _jump_widget
 bindkey '^T' _jump_widget
 
 
+_auto_space_if_command() {
+    # If buffer is an exact command, alias or function without trailing space,
+    # auto-append a space so Zsh completes its arguments (e.g. branches/files)
+    if [[ -n "$BUFFER" && "$BUFFER" != *" " ]]; then
+        if (( $+aliases[$BUFFER] )) || (( $+commands[$BUFFER] )) || (( $+functions[$BUFFER] )); then
+            BUFFER="$BUFFER "
+            CURSOR=$#BUFFER
+        fi
+    fi
+}
+
 _smart_tab() {
     if [[ -z "$BUFFER" ]]; then
         # Empty command line → open matchmaker jump widget directly
@@ -41,6 +52,7 @@ _smart_tab() {
         # Ghost text visible → accept autosuggestion
         zle autosuggest-accept
     else
+        _auto_space_if_command
         # Command line has text → trigger Matchmaker completion via mm-ftb
         zstyle ':fzf-tab:*' fzf-command mm-ftb
         if (( $+widgets[fzf-tab-complete] )); then
@@ -58,6 +70,7 @@ bindkey -M viins '^I' _smart_tab
 # Matchmaker Completion (Ctrl+N): Uses Matchmaker (mm-ftb) as the completion UI
 # =============================================================================
 _mm_tab_widget() {
+    _auto_space_if_command
     zstyle ':fzf-tab:*' fzf-command mm-ftb
     if (( $+widgets[fzf-tab-complete] )); then
         zle fzf-tab-complete
@@ -74,6 +87,7 @@ bindkey -M emacs '^N' _mm_tab_widget
 # FZF-Tab Completion (Ctrl+F): Uses classic FZF as the completion UI
 # =============================================================================
 _fzf_tab_widget() {
+    _auto_space_if_command
     zstyle ':fzf-tab:*' fzf-command fzf
     if (( $+widgets[fzf-tab-complete] )); then
         zle fzf-tab-complete

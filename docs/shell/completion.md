@@ -70,8 +70,15 @@ Triggered on empty prompt via `<Tab>` or directly with `Ctrl+T`. Optimized for d
   - **`Ctrl+L`**: Enters the highlighted directory immediately (`ChDir({=})`), clears the filter input (`Cancel`), and reloads the file list (`Reload`) without needing to switch focus to the results pane with `Tab`.
   - **`Ctrl+H`**: Steps up to the parent directory (`ChDir(..)`), clears the filter query, and reloads.
 - **Ancestor Jump (`Ctrl+U` / `u`)**:
-  - Instantly generates and lists the entire upward directory hierarchy (from the current folder up to `/`).
+  - Instantly generates and streams the entire upward directory hierarchy (from the current directory up to `/`).
   - Selecting any ancestor directory and pressing `Enter` or `Ctrl+L` jumps straight to that level in 1 step.
+  
+  > [!TIP]
+  > #### 🌟 Onde o Ancestor Jump Brilha:
+  > - **Monorepos e Árvores Profundas**: Quando você está 5 ou 6 níveis adentro (ex: `~/dev/github/matchmaker/matchmaker-lib/src/render/widgets/`) e quer voltar para a raiz do repositório (`~/dev/github/matchmaker/`) em 1 único passo, sem apertar `h` ou `cd ..` repetidamente.
+  > - **Troca de Projetos Irmãos**: Permite subir rapidamente até uma pasta mãe comum (ex: `~/dev/github/` ou `~/dev/`) para navegar até outro projeto sem sair da sessão do Matchmaker.
+  > - **Auditoria com Preview**: Enquanto você percorre a lista de pastas ancestrais com `j/k`, o painel de preview da direita exibe a árvore de cada pasta pai, permitindo inspecionar o contexto antes de confirmar o salto.
+  > - **Sem Modificador `Alt`**: O atalho `Ctrl+U` (Input) ou a tecla `u` (Results) proporciona uma experiência ergonômica e imediata associada a **"Upward / Upper Hierarchy"**.
 - **Cycle Mode (`Ctrl+F` / `f`)**: Cycles between local directory entries and global frecency directories (`mm list --dirs`).
 - **Toggle Preview (`Ctrl+P` / `p`)**: Shows/hides directory tree (`mm tree` / `eza`) and file syntax previews.
 

@@ -5,14 +5,6 @@ This is an elite, bleeding-edge zero-friction architecture. By unifying your AI 
 However, auditing your setup against the design philosophies of ThePrimeagen (relentless motion efficiency, zero latency, high signal-to-noise UI), TJ DeVries (native Neovim/Lua APIs, deep Telescope/picker extensibility), Folke Lemaitre (structured, unified UI surfaces, high-QoL micro-plugins), and Linkarzu (systematic tmux/neovim workspace orchestration and clean automation scripts) reveals a few lingering anti-patterns and concrete areas for optimization.
 
 ---
-
-## 1. Audit: Friction Points, Cognitive Taxes & Shortcut Collisions
-
-### A. The `<Tab>` Overload & State-Dependent Cognitive Tax
-
-- **The Problem:** You have bound `<Tab>` to act differently depending on prompt state (empty line $\rightarrow$ `mm` + `zoxide` frecency jump; active text $\rightarrow$ `fzf-tab`). While conceptually clever, modal overloading on `<Tab>` introduces a subtle cognitive tax. If you accidentally hit space or enter a typo, pressing `<Tab>` triggers autocompletion instead of your directory jumper.
-- **The Architectural Fix:** Decouple these intents. Keep `<Tab>` strictly for completion (`fzf-tab` or native shell completion). Use a dedicated, invariant zero-prefix binding for frecency directory jumps (e.g., `Alt+d` or `Ctrl+f`). An action’s trigger should never depend on whether the command line is dirty.
-
 ### B. Popup Stack Collisions (`Alt+s`, `Alt+o`, `Alt+g`)
 
 - **The Problem:** You rely heavily on popups: `Alt+s` for sessions, `Alt+o` for your floating AI overlay, and `Alt+g` for `lazygitrs`. If you trigger `lazygitrs` or your AI overlay inside an existing Tmux popup—or trigger a Tmux popup over a Ghostty floating overlay—you risk input-capture traps and nested floating window z-index bugs.

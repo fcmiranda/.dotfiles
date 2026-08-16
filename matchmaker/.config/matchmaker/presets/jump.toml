@@ -18,6 +18,12 @@ enabled = false
 [ui.parent_peek.border]
 show = false
 
+[footer]
+# content = "  h/l: Nav  •  Ctrl+F: Cycle Mode  •  Ctrl+P: Toggle Preview  •  Alt+U: Parent  •  Enter: Select"
+style.fg = "DarkGray"
+style.modifier = "DIM"
+match_indent = false
+
 [matcher]
 sort = "smart"
 sort_cap = 2000
@@ -66,6 +72,7 @@ max = 10
 "ctrl-f" = "@reloadnext"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
+"ctrl-p" = "SwitchPreview"
 "@ancestor_jump" = '''Transform(
     curr="$(pwd)"
     parents=""
@@ -86,6 +93,8 @@ max = 10
 "f" = "@reloadnext"
 "l" = ["ChDir({=})", "@reload_local"]
 "h" = ["ChDir(..)", "@reload_local"]
+"p" = "SwitchPreview"
+"ctrl-p" = "SwitchPreview"
 "alt-u" = "@ancestor_jump"
 
 [breadcrumb]

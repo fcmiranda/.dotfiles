@@ -2,6 +2,16 @@
 
 Notable behaviors wired up in this dotfiles setup.
 
+> [!TIP]
+> This documentation is now also organized into dedicated modular guides under [`docs/`](README.md):
+> - 🐚 **Shell & Completion:** [`docs/shell/completion.md`](shell/completion.md)
+> - ⌨️ **Zsh Vi Mode:** [`docs/shell/vi-mode.md`](shell/vi-mode.md)
+> - 🪟 **Tmux AI Status Bar:** [`docs/tmux/ai-status-bar.md`](tmux/ai-status-bar.md)
+> - 📋 **Tmux Clipboard & Scrollback:** [`docs/tmux/clipboard-and-scrollback.md`](tmux/clipboard-and-scrollback.md)
+> - 🖥️ **System, Displays & Hardware:** [`docs/desktop/system-and-hardware.md`](desktop/system-and-hardware.md)
+> - 🎨 **Theme & Design System:** [`docs/SYSTEM_THEME.md`](SYSTEM_THEME.md)
+> - ⚡ **Utils & Commands:** [`docs/UTILS.md`](UTILS.md)
+
 ## Click-and-hold to copy text inside tmux
 
 Clicking and dragging (click-and-hold) the mouse over text inside a tmux pane selects it and
@@ -183,15 +193,37 @@ Display profiles and hotplug events are automatically handled by [`kanshi`](http
   killall kanshi && kanshi &
   ```
 
-## Smart Tab Completion & Directory Jump (`_smart_tab`)
+## Smart Tab Completion, Matchmaker Integration & Directory Jump (`_smart_tab`)
 
-The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh) is augmented with context-aware logic (`_smart_tab`):
+The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh) is augmented with unified context-aware logic (`_smart_tab`) and Matchmaker completion integration:
 
-- **Context-Aware Behaviors**:
-  - **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker / Zoxide directory selection) for zero-friction directory jumping without pre-typing `j`.
-  - **Active Command Line (`<Tab>` with text, e.g., `ls /path`)**: Executes standard Zsh completion (`expand-or-complete` / `fzf-tab`) without interrupting command argument completion.
+### Context-Aware Behaviors (`<Tab>`)
+
+- **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker / Zoxide directory selection) for zero-friction directory jumping without pre-typing `j`.
 - **Autosuggestions**: If ghost text is active, `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
-- **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker jump picker interface at any prompt state.
+- **Active Command Line (`<Tab>` with text)**: Executes Matchmaker-powered tab completion (`mm-ftb`).
+- **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker directory jump interface at any prompt state.
+
+### Auto-Spacing on Aliases & Commands (`_auto_space_if_command`)
+
+Eliminates the friction of manually typing a trailing space before requesting argument/branch completion:
+- **How it Works**: When you trigger completion directly on an exact alias (`gco`, `ga`, `gst`, `gp`), an executable binary (`cat`, `nvim`, `git`, `kill`), or a shell function without a trailing space, the widget automatically appends a space (`BUFFER="$BUFFER "`) and positions the cursor before delegating to Zsh completion.
+- **Example**: Typing `gco<Tab>` or `gco<Ctrl+N>` immediately opens the Git branch picker without requiring `gco <Tab>`. Typing a partial word (e.g. `gi` or `ca`) completes the command name itself normally.
+
+### Matchmaker vs FZF Completion Backends
+
+- **Matchmaker Completion (`Ctrl+N` / `<Tab>`)**: Uses [`mm-ftb`](../matchmacker/.local/bin/mm-ftb) configured with the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset.
+- **Classic FZF Completion (`Ctrl+F`)**: Falls back to classic `fzf` completion.
+
+### Matchmaker FZF-Tab Preset Highlights ([`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml))
+
+- **Smart Sorting (`matcher.sort = "smart"`)**: Preserves natural stream insertion order (such as most recently committed Git branches) on an empty query, and switches to Nucleo fuzzy relevance scoring as you type.
+- **Full-Width Columns**: Auxiliary prefix and suffix columns are set to `hidden = true`, giving the candidate column 100% of the horizontal window width so Git branch names, commit hashes, and commit messages display completely without truncation.
+- **On-Demand Preview (`Ctrl+P`)**: The picker starts compact and lightweight (`preview.show = false`). Pressing `Ctrl+P` (`SwitchPreview`) toggles a dynamic preview pane on the right:
+  - **Git Branches / Commits**: Interactive `git log --graph --oneline` commit history.
+  - **Files**: Syntax-highlighted content via `bat`.
+  - **Directories**: Tree structure via `eza --tree`.
+  - **Processes (PIDs)**: Process status via `ps -fp`.
 
 ## Ghostty Terminal Enhancements
 

@@ -73,6 +73,8 @@ max = 10
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "ctrl-p" = "SwitchPreview"
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
 "@ancestor_jump" = '''Transform(
     curr="$(pwd)"
     parents=""
@@ -91,8 +93,10 @@ max = 10
 
 [ui.nav_binds]
 "f" = "@reloadnext"
-"l" = ["ChDir({=})", "@reload_local"]
-"h" = ["ChDir(..)", "@reload_local"]
+"l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
 "ctrl-p" = "SwitchPreview"
 "alt-u" = "@ancestor_jump"
 

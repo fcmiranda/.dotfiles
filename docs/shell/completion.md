@@ -53,8 +53,51 @@ The dedicated completion preset includes key UX optimizations:
 - **Smart Sorting (`matcher.sort = "smart"`)**: Preserves natural stream insertion order (such as most recently committed Git branches) on an empty query, and switches to Nucleo fuzzy relevance scoring as you type.
 - **Full-Width Candidate Columns**: Auxiliary prefix and suffix columns are set to `hidden = true`, giving the candidate column 100% of the horizontal window width so Git branch names, commit hashes, and commit messages display completely without truncation.
 - **ANSI Color Parsing (`start.ansi = true`)**: Parses ANSI escape sequences emitted by Zsh completion functions and renders true colors.
-- **On-Demand Preview (`Ctrl+P`)**: The picker starts compact and lightweight (`preview.show = false`). Pressing `Ctrl+P` (`SwitchPreview`) toggles a dynamic preview pane on the right:
+- **On-Demand Preview (`Ctrl+P`)**: Pressing `Ctrl+P` (`SwitchPreview`) toggles a dynamic preview pane on the right:
   - **🌿 Git Branches & Commits**: Interactive `git log --graph --oneline` commit history.
   - **📄 Files**: Syntax-highlighted content via `bat`.
   - **📁 Directories**: Tree structure via `eza --tree`.
   - **⚙️ Processes (PIDs)**: Process status via `ps -fp`.
+- **Footer Hints (`[footer]`)**: Displays subtle keyboard navigation hints at the bottom of the picker interface.
+
+---
+
+## 5. Matchmaker Jump Mode ([`jump.toml`](../../matchmaker/.config/matchmaker/presets/jump.toml))
+
+Triggered on empty prompt via `<Tab>` or directly with `Ctrl+T`. Optimized for directory traversal, frecency ranking, and subfolder navigation:
+
+- **Seamless Traversal (`Ctrl+L` / `Ctrl+H`)**:
+  - **`Ctrl+L`**: Enters the highlighted directory immediately (`ChDir({=})`), clears the filter input (`Cancel`), and reloads the file list (`Reload`) without needing to switch focus to the results pane with `Tab`.
+  - **`Ctrl+H`**: Steps up to the parent directory (`ChDir(..)`), clears the filter query, and reloads.
+- **Ancestor Jump (`Ctrl+U` / `u`)**:
+  - Instantly generates and lists the entire upward directory hierarchy (from the current folder up to `/`).
+  - Selecting any ancestor directory and pressing `Enter` or `Ctrl+L` jumps straight to that level in 1 step.
+- **Cycle Mode (`Ctrl+F` / `f`)**: Cycles between local directory entries and global frecency directories (`mm list --dirs`).
+- **Toggle Preview (`Ctrl+P` / `p`)**: Shows/hides directory tree (`mm tree` / `eza`) and file syntax previews.
+
+---
+
+## 6. Keyboard Shortcuts Reference
+
+### Autocomplete Mode (`ftb.toml` / `Ctrl+N` / `<Tab>`)
+
+| Shortcut | Mode | Action | Description |
+| :--- | :--- | :--- | :--- |
+| **`Ctrl+P`** | All | `SwitchPreview` | **Toggle preview pane on / off** |
+| **`Tab`** / **`Ctrl+J`** | All | `Down` | Move selection down |
+| **`Shift+Tab`** / **`Ctrl+K`** | All | `Up` | Move selection up |
+| **`Enter`** | All | `Accept` | Confirm selection and insert into prompt |
+| **`Esc`** / **`Ctrl+C`** | All | `Abort` | Cancel completion |
+
+### Jump Mode (`jump.toml` / `<Tab>` / `Ctrl+T`)
+
+| Shortcut | Mode | Action | Description |
+| :--- | :--- | :--- | :--- |
+| **`Ctrl+L`** | Input & Results | `ChDir + Cancel + Reload` | **Enter selected directory seamlessly** |
+| **`Ctrl+H`** | Input & Results | `ChDir(..) + Cancel + Reload` | **Go to parent directory seamlessly** |
+| **`Ctrl+U`** / **`u`** | Input & Results | `Reload(ancestor hierarchy)` | **Open ancestor directory picker** |
+| **`Ctrl+P`** / **`p`** | Input & Results | `SwitchPreview` | **Toggle directory/file preview pane** |
+| **`Ctrl+F`** / **`f`** | Input & Results | `ReloadNext` | **Cycle between local files & frecency history** |
+| **`h` / `l`** | Results (Nav) | `ChDir` | Vim-style directory navigation |
+| **`j` / `k`** | Results (Nav) | `Down / Up` | Vim-style list navigation |
+| **`Enter`** | All | `Accept` | Change shell working directory to selection |

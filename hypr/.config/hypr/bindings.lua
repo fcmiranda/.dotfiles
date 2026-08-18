@@ -8,7 +8,6 @@ local home = os.getenv("HOME") or "/home/fecavmi"
 -- ==============================================================================
 
 -- Core Applications
-o.bind("SUPER + RETURN", "Terminal", 'uwsm-app -- xdg-terminal-exec --dir="$(omarchy-cmd-terminal-cwd)"')
 o.bind("SUPER + ALT + RETURN", "Tmux", 'uwsm-app -- xdg-terminal-exec --dir="$(omarchy-cmd-terminal-cwd)" tmux new')
 hl.unbind("SUPER + SHIFT + F")
 o.bind("SUPER + SHIFT + F", "Yazi", "uwsm-app -- ghostty -e zsh -c 'tmp=$(mktemp -t yazi-cwd.XXXXXX); trap \"rm -f $tmp\" EXIT; yazi --cwd-file=\"$tmp\"; [[ -s \"$tmp\" ]] && cd \"$(<$tmp)\"; exec zsh -i'")

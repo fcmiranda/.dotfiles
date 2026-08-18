@@ -34,6 +34,7 @@ See [.shell/install/README.md](.shell/install/README.md) for the current bootstr
 - When a task mentions adopting an existing file into dotfiles, check [utils/.local/bin/stow-it](utils/.local/bin/stow-it).
 - If you are asked to commit, follow the conventional commit rules in [.commitlintrc.json](.commitlintrc.json) and the helper workflow in [git/GC_SGC.md](git/GC_SGC.md).
 - Link to existing docs instead of copying their content into new instruction files.
+- **System Skills Location**: Core Omarchy skills (e.g. `omarchy`, `diagnose-crash`) are managed dynamically outside of dotfiles via system symlinks in `~/.agents/skills/` pointing to `/usr/share/omarchy/default/agents/skills/`. Agents MUST read the live system skills from `~/.agents/skills/omarchy/SKILL.md` (or `/usr/share/omarchy/default/agents/skills/`) to always use the up-to-date documentation matching the installed OS version, rather than duplicating them statically in dotfiles.
 
 ## Useful References
 

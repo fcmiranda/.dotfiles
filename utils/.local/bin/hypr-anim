@@ -2,7 +2,7 @@
 # TUI Hyprland Animation Switcher using Matchmaker (mm)
 
 ANIM_DIR="$HOME/.config/hypr/animations"
-CONFIG_DEST="$HOME/.config/hypr/animations.conf"
+CONFIG_DEST="$HOME/.config/hypr/animations.lua"
 PRESET_FILE="$HOME/.config/matchmaker/presets/animations.toml"
 
 # Ensure matchmaker binary is accessible
@@ -29,6 +29,7 @@ if [ -f "$PRESET_PATH" ]; then
 
     # Read title using pure shell built-in (zero forks)
     read -r TITLE < "$PRESET_PATH" || true
+    TITLE="${TITLE#--}"
     TITLE="${TITLE#\#}"
     TITLE="${TITLE# }"
     [ -z "$TITLE" ] && TITLE="${PRESET_PATH##*/}"

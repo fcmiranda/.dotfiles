@@ -21,7 +21,7 @@
       ],
       "left": [
         {
-          "id": "omarchy.menu"
+          "id": "fecavmi.menu"
         },
         {
           "id": "fecavmi.workspaces"
@@ -62,5 +62,11 @@
     "screensaver": 150
   },
   "plugins": [],
-  "version": 1
+  "version": 1,
+  "disabledPlugins": [
+    "omarchy.menu"
+  ],
+  "cloneSourceRestores": [
+    "fecavmi.menu"
+  ]
 }

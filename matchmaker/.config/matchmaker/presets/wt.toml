@@ -1,0 +1,55 @@
+# Matchmaker Git Worktree Switcher (`mm -o wt`)
+# Interactive worktree picker with live status and commit history preview
+
+[tui]
+percentage = 60
+
+[query]
+status_inline = true
+prompt = "Worktrees > "
+prompt_style.fg = "Cyan"
+prompt_style.modifier = "BOLD"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+icons = true
+
+[previewer]
+debounce_ms = 25
+
+[preview]
+show = true
+wrap = true
+
+[[preview.layout]]
+command = '''
+wt_path="{1}"
+wt_path="${wt_path/#\~/$HOME}"
+if [ -d "$wt_path" ]; then
+    echo "━━━ Git Status ━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    git -C "$wt_path" status -s 2>/dev/null || echo "(Clean)"
+    echo ""
+    echo "━━━ Recent Commits ━━━━━━━━━━━━━━━━━━━━━━━━"
+    git -C "$wt_path" log --oneline --graph --color=always -n 5 2>/dev/null
+fi
+'''
+side = "right"
+percentage = 65
+
+[start]
+command = '''
+git worktree list --porcelain 2>/dev/null | awk '
+/^worktree / { path = substr($0, 10) }
+/^branch /   { branch = substr($0, 8); sub("refs/heads/", "", branch); printf "%s\t%s\n", path, branch }
+'
+'''
+output_template = "{1}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"ctrl-p" = "SwitchPreview"

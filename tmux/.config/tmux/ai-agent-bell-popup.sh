@@ -23,13 +23,27 @@ if [ "${#notifying_panes[@]}" -eq 0 ]; then
   fi
 fi
 
+# 3. Fallback: Check for panes currently in active working/busy state
+if [ "${#notifying_panes[@]}" -eq 0 ]; then
+  while IFS= read -r line; do
+    [ -n "$line" ] && notifying_panes+=("$line")
+  done < <(tmux list-panes -a -F '#{pane_id} #{@ai_agent_state_raw}' 2>/dev/null | awk '$2 ~ /^(working|busy)$/ {print $1}')
+fi
+
+# 4. Fallback: Search for any pane running agy, antigravity, or opencode
+if [ "${#notifying_panes[@]}" -eq 0 ]; then
+  while IFS= read -r line; do
+    [ -n "$line" ] && notifying_panes+=("$line")
+  done < <(tmux list-panes -a -F '#{pane_id} #{pane_current_command}' 2>/dev/null | awk '$2 ~ /^(agy|antigravity|opencode)$/ {print $1}')
+fi
+
 if [ "${#notifying_panes[@]}" -eq 0 ]; then
   tmux display-popup \
     -b rounded \
     -S "fg=$TMUX_POPUP_BORDER_COLOR" \
-    -T " No OpenCode notification " \
+    -T " AI Agent " \
     -w 38 -h 5 \
-    "printf '\n  No OpenCode notification yet.\n'; sleep 2"
+    "printf '\n  No active AI Agent notification.\n'; sleep 1.5"
   exit 0
 fi
 
@@ -50,7 +64,7 @@ sess=$(tmux display-message -t "$pane" -p '#S' 2>/dev/null)
 win_idx=$(tmux display-message -t "$pane" -p '#I' 2>/dev/null)
 win_name=$(tmux display-message -t "$pane" -p '#W' 2>/dev/null)
 
-TITLE=" $sess › $win_name ($((curr_idx + 1))/$total)  │  Alt+i cycle "
+TITLE=" $sess › $win_name ($((curr_idx + 1))/$total)  │  prefix+i cycle "
 
 # If current client is already on the same session, jump directly to the window.
 current_sess=$(tmux display-message -p '#S' 2>/dev/null)

@@ -3,14 +3,13 @@
 
 [mgr]
 prepend_keymap = [
-  # FZF file search → reveal in yazi
-  { on = "<C-t>", run = "shell 'fd -tf -H -E.git | fzf --preview=\"bat -n --color=always {}\" | xargs -r ya emit reveal' --block", desc = "FZF file search" },
+  # Matchmaker file search → reveal in yazi
+  { on = "<C-t>", run = "shell 'mm | xargs -r ya emit reveal' --block", desc = "Matchmaker file search" },
 
-  # FZF directory search → add to zoxide + cd
-  { on = "<A-c>", run = "shell 'fd -td -H -E.git | fzf --preview=\"eza -T -L2 --icons {}\" | tee >(xargs -r zoxide add) | xargs -r ya emit cd' --block", desc = "FZF cd to directory" },
+  # Matchmaker directory jump → cd
+  { on = "<C-j>", run = "shell 'mm -o jump | xargs -r ya emit cd' --block", desc = "Matchmaker jump" },
+  { on = "<A-c>", run = "shell 'mm -o jump | xargs -r ya emit cd' --block", desc = "Matchmaker directory search" },
 
-  # Zoxide jump → cd (already tracked)
-  { on = "<C-j>", run = "shell 'zoxide query -l | fzf --preview=\"eza -T -L2 --icons {}\" | xargs -r ya emit cd' --block", desc = "Zoxide jump" },
 
   # Archive helpers
   { on = "<A-z>", run = '''shell '

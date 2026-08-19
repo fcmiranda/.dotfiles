@@ -165,7 +165,8 @@ async function main() {
     await sendAcpState(tmuxPane, 'closed');
   }
 
-  process.stdout.write(JSON.stringify(ctx) + '\n');
+  // Output a clean minimal JSON response so CLI protojson unmarshaler doesn't fail on extra fields
+  process.stdout.write('{}\n');
 }
 
 await main();

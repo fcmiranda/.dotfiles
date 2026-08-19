@@ -9,8 +9,8 @@ status_inline = true
 
 [ui]
 nav_mode = true
-nav_bar = "Plain"
-nav_color = "gray"
+nav_bar = "Plain"  # or "Double", "Rounded"
+nav_color = "black"
 
 [ui.parent_peek]
 enabled = false
@@ -43,6 +43,10 @@ uncolor_current_icon = true
 row_connection = "Full"
 symlink_target = true
 symlink_target_style.fg = "cyan"
+current_nav_bar = "QuadrantInside" #"Thick Double Rounded QuadrantOutside QuadrantInside"
+
+[results.current_nav_bar_style]
+fg = "yellow"	
 
 [results.current_style]
 fg = "black"

@@ -5,9 +5,10 @@
 -- =============================================================================
 -- Matchmaker (mm) Native Float Picker for Neovim
 -- =============================================================================
-local function mm_open_file()
+local function mm_picker(preset)
+  preset = preset or "nvim"
   local tmp = vim.fn.tempname()
-  local cmd = string.format("mm > %s", tmp)
+  local cmd = string.format("mm -o %s > %s", preset, vim.fn.fnameescape(tmp))
 
   local buf = vim.api.nvim_create_buf(false, true)
   local width = math.floor(vim.o.columns * 0.85)
@@ -27,12 +28,19 @@ local function mm_open_file()
 
   vim.fn.termopen(cmd, {
     on_exit = function()
-      vim.api.nvim_win_close(win, true)
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
+      end
       if vim.fn.filereadable(tmp) == 1 then
         local lines = vim.fn.readfile(tmp)
         vim.fn.delete(tmp)
         if lines[1] and #lines[1] > 0 then
-          vim.cmd("edit " .. vim.fn.fnameescape(lines[1]))
+          local target = vim.trim(lines[1])
+          if target ~= "" and vim.fn.filereadable(target) == 1 then
+            vim.cmd("edit " .. vim.fn.fnameescape(target))
+          elseif target ~= "" and vim.fn.isdirectory(target) == 1 then
+            vim.cmd("cd " .. vim.fn.fnameescape(target))
+          end
         end
       end
     end,
@@ -40,6 +48,6 @@ local function mm_open_file()
   vim.cmd("startinsert")
 end
 
-vim.keymap.set("n", "<leader>fm", mm_open_file, { desc = "Matchmaker Find Files" })
-vim.keymap.set("n", "<leader>mm", mm_open_file, { desc = "Matchmaker Picker" })
+vim.keymap.set("n", "<leader>mm", function() mm_picker("nvim") end, { desc = "Matchmaker File Picker" })
+vim.keymap.set("n", "<leader>mj", function() mm_picker("jump") end, { desc = "Matchmaker Jump Picker" })
 

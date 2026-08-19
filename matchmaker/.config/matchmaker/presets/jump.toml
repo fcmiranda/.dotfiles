@@ -10,7 +10,7 @@ status_inline = true
 [ui]
 nav_mode = true
 nav_bar = "Plain"
-nav_color = "Black"
+nav_color = "gray"
 
 [ui.parent_peek]
 enabled = false
@@ -20,7 +20,7 @@ show = false
 
 [footer]
 # content = "  h/l: Nav  •  Ctrl+F: Cycle Mode  •  Ctrl+P: Toggle Preview  •  Ctrl+U: Ancestors  •  Enter: Select"
-style.fg = "DarkGray"
+style.fg = "gray"
 style.modifier = "DIM"
 match_indent = false
 
@@ -41,6 +41,14 @@ reverse = false
 icons = true
 symlink_target = true
 symlink_target_style.fg = "cyan"
+
+[results.current_style]
+fg = "#0f111a"
+bg = "gray"
+
+# Força o glifo do ícone a ficar preto no foco:
+[results.current_icon_style]
+fg = "#0f111a"
 
 [results.autoscroll]
 indicator = ""

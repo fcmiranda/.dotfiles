@@ -171,3 +171,78 @@ wtr() {
 chpwd() {
     printf "\033]7;file://%s%s\033\\" "${HOST:-$HOSTNAME}" "${PWD}"
 }
+
+# ai-fix - Capture last command and terminal error output, dispatching to AI agent
+# Usage: ai-fix [optional note]
+ai-fix() {
+    local last_cmd
+    last_cmd=$(fc -ln -1 2>/dev/null | sed 's/^[[:space:]]*//')
+    if [[ -z "$last_cmd" ]]; then
+        echo "ai-fix: No previous command found in history."
+        return 1
+    fi
+
+    local user_note="$*"
+    local last_output=""
+
+    if [[ -n "$TMUX" ]]; then
+        last_output=$(tmux capture-pane -p -S -60 2>/dev/null | sed '/^[[:space:]]*$/d' | tail -n 35)
+    fi
+
+    local prompt="The following command failed or produced errors in the terminal:\n\n"
+    prompt+="**Executed command:** \`$last_cmd\`\n\n"
+
+    if [[ -n "$last_output" ]]; then
+        prompt+="**Recent terminal output / traceback:**\n\`\`\`text\n$last_output\n\`\`\`\n\n"
+    fi
+
+    if [[ -n "$user_note" ]]; then
+        prompt+="**Developer note:** $user_note\n\n"
+    fi
+
+    prompt+="Please analyze the error, identify the root cause concisely, and provide the direct code fix or necessary command."
+
+    echo "󰚩 Sending context for '$last_cmd' to agent..."
+
+    if command -v opencode >/dev/null 2>&1; then
+        opencode "$prompt"
+    elif command -v agy >/dev/null 2>&1; then
+        agy "$prompt"
+    else
+        echo "ai-fix: Neither 'opencode' nor 'agy' found in PATH."
+        return 1
+    fi
+}
+
+# wtj - Interactively select and jump (cd) into a Git Worktree via Matchmaker
+# Usage: wtj
+wtj() {
+    local target
+    target=$(mm -o wt)
+    if [[ -n "$target" && -d "$target" ]]; then
+        cd "$target"
+    fi
+}
+
+# bd - Jump directly back to an ancestor directory by name
+# Usage: bd <parent-dir-name>
+# Example: in /a/b/matchmaker/src/foo, run 'bd matchmaker' -> jumps directly to /a/b/matchmaker
+bd() {
+    local target="$1"
+    if [[ -z "$target" ]]; then
+        cd ..
+        return
+    fi
+    local curr="$PWD"
+    while [[ "$curr" != "/" && "$curr" != "" ]]; do
+        if [[ "$(basename "$curr")" == "$target" ]]; then
+            cd "$curr"
+            return 0
+        fi
+        curr="$(dirname "$curr")"
+    done
+    echo "bd: Ancestor directory '$target' not found."
+    return 1
+}
+
+

@@ -39,16 +39,15 @@ dir_first = true
 max = 15
 reverse = false
 icons = true
+uncolor_current_icon = true
+row_connection = "Full"
 symlink_target = true
 symlink_target_style.fg = "cyan"
 
 [results.current_style]
-fg = "#0f111a"
-bg = "gray"
-
-# Força o glifo do ícone a ficar preto no foco:
-[results.current_icon_style]
-fg = "#0f111a"
+fg = "black"
+bg = "lightblue"
+modifier = "BOLD"
 
 [results.autoscroll]
 indicator = ""

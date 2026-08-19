@@ -47,7 +47,7 @@ symlink_target = true         # true (mostra '-> destino' em links simbólicos) 
 symlink_target_style.fg = "cyan" # Cor do texto de destino do symlink
 
 # Grossura / tipo de borda do navbar exclusivo para o item focado:
-current_nav_bar = "QuadrantInside" # "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+current_nav_bar = "Plain" # "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
 
 # Estilo independente para a célula da barra do navbar no item focado:
 [results.current_nav_bar_style]

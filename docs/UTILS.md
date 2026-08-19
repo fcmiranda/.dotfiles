@@ -29,6 +29,25 @@ Defined in [`zsh/.zsh/utils/functions.zsh`](../zsh/.zsh/utils/functions.zsh):
 | `killport <port>` | Find and terminate any process or Docker container listening on specified TCP port (e.g. `killport 3000`). |
 | `dotadd <package> [files...]` | Copy file(s) into `~/.dotfiles/main/<package>/` with correct stow structure and trigger restow automatically. |
 | `wtr [old-name] <new-name>` | Rename a git worktree directory and its branch atomically. |
+| `wtj` | Interactively select and jump (`cd`) into a Git Worktree via Matchmaker (`mm -o wt`). |
+| `bd <parent-dir>` | Jump directly to an ancestor directory by name without counting `cd ../..` levels. |
+| `ai-fix [note]` | Capture the last executed command and recent terminal error logs, sending them directly to the AI agent. |
+
+## Matchmaker Presets (`mm -o <preset>`)
+
+Specialized TUI pickers configured in [`matchmaker/.config/matchmaker/presets/`](../matchmaker/.config/matchmaker/presets/):
+* `mm -o wt` — Git Worktree Switcher with live `git status` and commit log preview.
+* `mm -o kill` — Interactive TCP listening port & process terminator (`Enter` for SIGTERM, `Ctrl+X` for SIGKILL).
+* `mm -o memory` — AI memory, `AGENTS.md`, and project rules explorer.
+* `mm -o jump` — Interactive directory navigation with frecency and tree view (`nav_mode`).
+* `mm -o ftb` — High-performance multi-column tab completion for `fzf-tab`.
+
+See [MATCHMAKER_PRESETS.md](MATCHMAKER_PRESETS.md) for full documentation.
+
+## Hardware & Keyboard Ergonomics (Home Row Optimization)
+
+* **Caps Lock Mapping**: Dual-function key — **`Esc` on tap** (instant Normal Mode in Neovim/Zsh) and **`Ctrl` on hold** (Home Row anchor at position `(0, 0)`).
+* **Biomechanics / KLM Cost ($H = 0$)**: Because the left pinky rests on the Home Row, chords like `Ctrl+Space` (Tmux Prefix), `Ctrl+G` (Lazygitrs), `Ctrl+T` (Matchmaker Jump), and `Ctrl+N` (Matchmaker Branch Completion) execute in under 50ms with zero wrist abduction.
 
 ## Stow management
 

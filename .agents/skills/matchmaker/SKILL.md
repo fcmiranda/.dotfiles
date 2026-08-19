@@ -347,7 +347,7 @@ done
 ### ReloadNext (cycle data sources)
 ```toml
 [start]
-additional_commands = ["", "zoxide query -l 2>/dev/null | tr '\\n' '\\0'"]
+additional_commands = ["", "mm list --dirs 2>/dev/null"]
 
 [binds]
 "@reloadnext" = "ReloadNext"   # define semantic alias first

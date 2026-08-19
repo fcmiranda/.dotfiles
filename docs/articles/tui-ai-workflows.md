@@ -36,7 +36,7 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 | **Global Overlay** | Ghostty + Hyprland Float | Global omniscient AI scratchpad | `Super+A` |
 | **Terminal / Session** | sesh + tmux + Matchmaker | Switch between project sessions | `Alt+s` (Universal Terminal: Zsh & Tmux popup) |
 | **Window & Pane** | tmux windows + popups | Switch within session (editor, AI, git) | `Ctrl+0-9`, `Alt+a`, `Alt+o`, `prefix+i` |
-| **Shell & Directory** | Zsh + Matchmaker (`mm`) + Zoxide | Zero-friction directory jumping & completion | `<Tab>` (empty line), `Ctrl+T` |
+| **Shell & Directory** | Zsh + Matchmaker (`mm`) | Zero-friction directory jumping & completion | `<Tab>` (empty line), `Ctrl+T` |
 
 ---
 
@@ -45,16 +45,15 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 > **Philosophy**: Zero-Friction Directory Navigation — Eliminating prefix commands (like typing `j` or `cd`) when changing working directories while preserving standard completion context during active command construction.
 
 ### The Stack & Tools Used:
-1. **Matchmaker (`mm`)**: High-performance Rust TUI fuzzy picker configured with preset `-o jump` (`~/.config/matchmaker/presets/jump.toml`). It interfaces directly with Zoxide's frecency database to render interactive directory selection menus.
-2. **Zoxide (`z`)**: Frecency-based directory tracker (`zoxide add`) that monitors directory access history.
-3. **Zsh Smart Tab (`_smart_tab`)**: Custom Zsh widget ([`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh)) attached to `<Tab>` (`^I`) in `zsh-vi-mode`.
+1. **Matchmaker (`mm`)**: High-performance Rust TUI fuzzy picker configured with preset `-o jump` (`~/.config/matchmaker/presets/jump.toml`). It uses its native frecency engine (`frecency = true`) to rank directories by access frequency and recency.
+2. **Zsh Smart Tab (`_smart_tab`)**: Custom Zsh widget ([`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh)) attached to `<Tab>` (`^I`) in `zsh-vi-mode`.
 
 ### Why This Pattern is the Fastest, Smartest Way to Navigate:
 
 1. **Zero Cognitive Overhead on Clean Prompt**:
    - Eliminates the need to type prefix shortcut keys (like `j`, `c`, or `cd`) before hitting `<Tab>`. Opening a shell or clearing line (`Ctrl+U`) + pressing `<Tab>` instantly triggers directory navigation.
-2. **Automatic Frecency Updating (`zoxide add`)**:
-   - Selecting any directory via Matchmaker Jump and hitting `Enter` automatically runs `zoxide add "$result"` before performing `cd "$result"`. This continuously trains Zoxide's frecency algorithm so your most frequent projects always float to the top.
+2. **Native Frecency Ranking (`mm frecency`)**:
+   - Selecting any directory via Matchmaker Jump or navigating via `j` continuously updates Matchmaker's internal frecency database, ensuring your most frequented projects always float to the top.
 3. **Modal Intelligence & Atomic Escape (Vim / TUI Philosophy)**:
    - Following Vim design principles, modal workflows must maintain a **contextual default with an unconditional atomic escape**:
      - **Contextual Default (`<Tab>`)**: Adapts to prompt state — triggers Jump when prompt is empty, but preserves native argument completion (`fzf-tab`) when typing a command (e.g. `ls -la /path`).
@@ -64,7 +63,7 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 
 | Prompt State | Trigger | Action Executed | Outcome |
 |---|---|---|---|
-| **Empty Prompt** | `<Tab>` | `_jump_widget` (`mm --no-read -o jump`) | Instantly opens Matchmaker directory picker. Selecting a dir automatically updates `zoxide` frecency (`zoxide add`) and `cd`s directly. |
+| **Empty Prompt** | `<Tab>` | `_jump_widget` (`mm --no-read -o jump`) | Instantly opens Matchmaker directory picker with frecency ranking and `cd`s directly. |
 | **Active Command** | `<Tab>` (e.g. `ls -la /path`) | `expand-or-complete` (`fzf-tab`) | Performs standard Zsh argument/file autocompletion without interrupting command line args. |
 | **Ghost Text** | `<Tab>` | `autosuggest-accept` | Accepts Zsh autosuggestion. |
 | **Atomic Escape** | `Ctrl+T` | `_jump_widget` | Unconditionally opens Matchmaker Jump picker regardless of prompt state (`viins` & `vicmd`). |

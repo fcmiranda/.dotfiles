@@ -6,7 +6,7 @@ Matchmaker (`mm`) uses TOML configuration presets located in `~/.config/matchmak
 
 | Preset | Invocation | Purpose | Key Actions |
 | :--- | :--- | :--- | :--- |
-| **jump** | `mm -o jump` | Frecency directory navigation with tree view and `nav_mode` (`h`/`l`). | `Enter`: `cd` to directory<br>`l`: Drill down into child directory<br>`h`: Jump to parent directory<br>`Alt+u`: Ancestor jump |
+| **jump** | `mm -o jump` | Frecency directory navigation with tree view, `nav_mode` (`h`/`l`), and editor integration. | `Enter`: `cd` to directory<br>`e` / `Ctrl+E`: Open selected item(s) in Neovim (`Execute(nvim {+})`) with frecency boost<br>`Tab`: Multi-select files/directories<br>`l`: Drill down into child directory<br>`h`: Jump to parent directory<br>`u` / `Ctrl+U`: Ancestor hierarchy jump |
 | **ftb** | `mm -o ftb` | Multi-column tab completion engine for ZSH `fzf-tab` with Nucleo fuzzy matching. | `Tab`: Select item<br>`Shift-Tab`: Previous item<br>`Ctrl+P`: Toggle preview |
 | **wt** | `mm -o wt` | Interactive Git Worktree switcher integrated with `worktrunk`. Live preview of `git status -s` and recent commit log. | `Enter`: Selects and returns worktree path |
 | **kill** | `mm -o kill` | Interactive TCP listening port & process terminator with live connection preview. | `Enter`: Send `SIGTERM` (15)<br>`Ctrl+X`: Force `SIGKILL` (-9) |

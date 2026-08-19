@@ -52,6 +52,9 @@ media_size = 1024
 
 # --- Misc ---
 [matcher]
+frecency = true
+frecency_weight = 2
+sort = "smart"
 
 [columns]
 

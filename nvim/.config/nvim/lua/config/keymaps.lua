@@ -34,8 +34,8 @@ local function mm_picker(preset)
       if vim.fn.filereadable(tmp) == 1 then
         local lines = vim.fn.readfile(tmp)
         vim.fn.delete(tmp)
-        if lines[1] and #lines[1] > 0 then
-          local target = vim.trim(lines[1])
+        for _, line in ipairs(lines) do
+          local target = vim.trim(line)
           if target ~= "" and vim.fn.filereadable(target) == 1 then
             vim.cmd("edit " .. vim.fn.fnameescape(target))
           elseif target ~= "" and vim.fn.isdirectory(target) == 1 then

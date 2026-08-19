@@ -105,6 +105,8 @@ Triggered on empty prompt via `<Tab>` or directly with `Ctrl+T`. Optimized for d
 | **`Ctrl+U`** / **`u`** | Input & Results | `Reload(ancestor hierarchy)` | **Open ancestor directory picker** |
 | **`Ctrl+P`** / **`p`** | Input & Results | `SwitchPreview` | **Toggle directory/file preview pane** |
 | **`Ctrl+F`** / **`f`** | Input & Results | `ReloadNext` | **Cycle between local files & frecency history** |
+| **`Ctrl+E`** / **`e`** | Input & Results | `Execute(nvim {+})` | **Open selected item(s) in Neovim with frecency boost** |
+| **`Tab`** / **`Shift+Tab`** | Input & Results | `ToggleSelect` | **Multi-select multiple files or directories** |
 | **`h` / `l`** | Results (Nav) | `ChDir` | Vim-style directory navigation |
 | **`j` / `k`** | Results (Nav) | `Down / Up` | Vim-style list navigation |
 | **`Enter`** | All | `Accept` | Change shell working directory to selection |

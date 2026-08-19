@@ -46,6 +46,9 @@ install_packages \
     wf-recorder \
     herdr \
     ripdrag \
+    ffmpegthumbnailer \
+    poppler \
+    mediainfo \
     ai-memory \
     ai-jail \
     ai-usagebar

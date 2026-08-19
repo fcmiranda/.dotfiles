@@ -10,3 +10,9 @@ alias scrollback='tmux capture-pane -epS - > /tmp/tmux_scrollback.ansi && nvim -
 alias adopt='bash $HOME/.dotfiles/main/.shell/sh/stow-adopt-path.sh'
 alias oc='exec /usr/bin/opencode'
 alias agy="$HOME/.dotfiles/main/antigravity/.gemini/hooks/agy-wrapper.sh"
+
+# Quick parent directory traversal
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+

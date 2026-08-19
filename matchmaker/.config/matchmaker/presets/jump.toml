@@ -51,7 +51,7 @@ current_nav_bar = "QuadrantInside" # "Plain" (│), "Thick" (█), "Double" (║
 
 # Estilo independente para a célula da barra do navbar no item focado:
 [results.current_nav_bar_style]
-fg = "yellow"                 # Cor do glifo da barra focada ("yellow", "cyan", "black", "#89b4fa", etc.)
+fg = "lightblue"                 # Cor do glifo da barra focada ("yellow", "cyan", "black", "#89b4fa", etc.)
 # bg = "lightblue"            # Cor de fundo da barra focada (se omitido, herda current_style.bg)
 # modifier = "BOLD"           # "BOLD", "DIM", "ITALIC", "UNDERLINED"
 

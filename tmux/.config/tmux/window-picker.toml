@@ -42,7 +42,7 @@ prompt = " "
 show = false
 
 [footer]
-content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {yellow,bold:[Space]} {darkgray:Select}  •  {red,bold:[d]} {darkgray:Kill Window}  •  {blue,bold:[Esc]} {darkgray:Cancel}"
+content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {yellow,bold:[Space]} {darkgray:Select}  •  {red,bold:[d]} {darkgray:Kill Window}  •  {blue,bold:[Esc]} {darkgray:Cancel}  •  {magenta,bold:[?]} {darkgray:Toggle Footer}"
 row_connection = "Full"
 match_indent = false
 
@@ -54,6 +54,8 @@ nav_focus_on_start = "picker"
 "space" = "Toggle"
 "d"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
 "D"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+"?"     = "ToggleFooter"
+"F1"    = "ToggleFooter"
 
 [ui.border]
 sides = ""
@@ -75,3 +77,5 @@ Start = ["ToggleColumn(title)", "ToggleColumn(name)", "ToggleColumn(session)", "
 "space" = "Toggle"
 "d"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
 "D"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+"?"     = "ToggleFooter"
+"F1"    = "ToggleFooter"

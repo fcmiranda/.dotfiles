@@ -147,7 +147,7 @@ layout_slots() {
 }
 
 run_matchmaker_picker() {
-  local mm_bin="$HOME/.cargo/bin/mm"
+  local mm_bin="$HOME/.local/bin/mm"
   local config_file="$HOME/.config/matchmaker/presets/backgrounds.toml"
 
   if [[ ! -x $mm_bin ]]; then

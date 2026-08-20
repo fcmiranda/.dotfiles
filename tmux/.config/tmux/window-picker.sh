@@ -29,7 +29,7 @@ ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
 START_IDX=$("$ITEMS_SCRIPT" | awk '!/^#/ {n++} /•/ {print n-1; exit}')
 [ -z "$START_IDX" ] && START_IDX=0
 
-chosen=$("$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
+chosen=$("$ITEMS_SCRIPT" | mm \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT" \
   results.spinner="$TMUX_SPINNER_NAME" \

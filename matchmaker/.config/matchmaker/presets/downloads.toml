@@ -1,4 +1,4 @@
-# Matchmaker Downloads Preset (`mm -F downloads`)
+# Matchmaker Downloads Preset (`mm -o downloads`)
 # Optimized for browsing ~/Downloads with native terminal image previews
 
 [tui]
@@ -9,6 +9,7 @@ min = 15
 border = { type = "Rounded" }
 
 [query]
+cursor = "none"                  # Hides terminal hardware cursor to prevent Ghostty shader flicker/trails
 prompt = "> "
 prompt_style.fg = "Cyan"
 prompt_style.modifier = "BOLD"
@@ -28,36 +29,14 @@ media_fit = "fit"
 wrap = true
 scroll_wrap = true
 
+[previewer]
+debounce_ms = 200                # Delay em ms para atualizar o preview ao mover o cursor (ex: 15, 25, 50)
+delay_clear = true               # true (evita flicker limpando preview só quando novo estiver pronto) / false
+
 [[preview.layout]]
 side = "right"
-percentage = 55
-min = 30
-command = '''
-p={1}
-p="${p/#\~/$HOME}"
-if [ -d "$p" ]; then
-    mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"
-else
-    mime=$(file -b --mime-type "$p" 2>/dev/null)
-    if [[ "$mime" == image/* ]]; then
-        if command -v chafa >/dev/null 2>&1; then
-            chafa --format=symbols --size=80x35 "$p" 2>/dev/null
-        elif command -v img2txt >/dev/null 2>&1; then
-            img2txt -f ansi -W 60 "$p" 2>/dev/null
-        fi
-        echo ""
-        identify "$p" 2>/dev/null || file "$p"
-    elif [[ "$mime" == video/* || "$mime" == audio/* ]]; then
-        mediainfo "$p" 2>/dev/null || ffprobe -hide_banner "$p" 2>&1 || file "$p"
-    elif [[ "$mime" == application/pdf ]]; then
-        pdftotext -l 5 "$p" - 2>/dev/null || file "$p"
-    elif [[ "$p" =~ \.(zip|tar|tar\.gz|tgz|tar\.bz2|tbz2|tar\.xz|txz|7z|rar)$ ]]; then
-        tar -tf "$p" 2>/dev/null || unzip -l "$p" 2>/dev/null || 7z l "$p" 2>/dev/null || file "$p"
-    else
-        bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"
-    fi
-fi
-'''
+percentage = 30
+min = 25
 
 [start]
 directory = "~/Downloads"

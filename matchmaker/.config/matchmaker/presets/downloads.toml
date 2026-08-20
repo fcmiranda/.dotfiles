@@ -1,0 +1,69 @@
+# Matchmaker Downloads Preset (`mm -F downloads`)
+# Optimized for browsing ~/Downloads with native terminal image previews
+
+[tui]
+percentage = 80
+min = 15
+
+[ui]
+border = { type = "Rounded" }
+
+[query]
+prompt = "> "
+prompt_style.fg = "Cyan"
+prompt_style.modifier = "BOLD"
+
+[results]
+icons = true
+symlink_target = true
+
+[matcher]
+sort = "smart"
+frecency = true
+
+[preview]
+show = true
+media = true
+media_fit = "fit"
+wrap = true
+scroll_wrap = true
+
+[[preview.layout]]
+side = "right"
+percentage = 55
+min = 30
+command = '''
+p={1}
+p="${p/#\~/$HOME}"
+if [ -d "$p" ]; then
+    mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"
+else
+    mime=$(file -b --mime-type "$p" 2>/dev/null)
+    if [[ "$mime" == image/* ]]; then
+        if command -v chafa >/dev/null 2>&1; then
+            chafa --format=symbols --size=80x35 "$p" 2>/dev/null
+        elif command -v img2txt >/dev/null 2>&1; then
+            img2txt -f ansi -W 60 "$p" 2>/dev/null
+        fi
+        echo ""
+        identify "$p" 2>/dev/null || file "$p"
+    elif [[ "$mime" == video/* || "$mime" == audio/* ]]; then
+        mediainfo "$p" 2>/dev/null || ffprobe -hide_banner "$p" 2>&1 || file "$p"
+    elif [[ "$mime" == application/pdf ]]; then
+        pdftotext -l 5 "$p" - 2>/dev/null || file "$p"
+    elif [[ "$p" =~ \.(zip|tar|tar\.gz|tgz|tar\.bz2|tbz2|tar\.xz|txz|7z|rar)$ ]]; then
+        tar -tf "$p" 2>/dev/null || unzip -l "$p" 2>/dev/null || 7z l "$p" 2>/dev/null || file "$p"
+    else
+        bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"
+    fi
+fi
+'''
+
+[start]
+directory = "~/Downloads"
+
+[binds]
+"ctrl-l" = "@look"
+"alt-=" = "ExpandPreview(5)"
+"alt-hyphen" = "ShrinkPreview(5)"
+"ctrl-/" = "CyclePreview"

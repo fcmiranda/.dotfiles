@@ -3,6 +3,6 @@ pattern = "~/**"
 startup_command = "ai-jail agy"
 
 [[session]]
-name = "Downloads 📥"
+name = " Downloads"
 path = "~/Downloads"
-startup_command = "yazi"
+startup_command = "mm -o jump"

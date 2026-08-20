@@ -22,9 +22,13 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 . "$_tmux_style" 2>/dev/null || true
 unset _tmux_style
 
-echo "[$(date)] sesh list --icons | mm -o $SCRIPT_DIR/sesh-picker.toml --color \"${TMUX_COLOR_SPEC:-}\"" >> /tmp/sesh-picker-mm.log
+MM_BIN="$HOME/.local/bin/mm"
+[ -x "$MM_BIN" ] || MM_BIN="$HOME/.cargo/bin/mm"
+[ -x "$MM_BIN" ] || MM_BIN="$(command -v mm 2>/dev/null || echo "mm")"
 
-sesh list --icons | grep -Ev '(_lazygitrs|_popups|[[:space:]]+\.)' | mm \
+echo "[$(date)] sesh list --icons | $MM_BIN -o $SCRIPT_DIR/sesh-picker.toml --color \"${TMUX_COLOR_SPEC:-}\"" >> /tmp/sesh-picker-mm.log
+
+sesh list --icons | grep -Ev '(_lazygitrs|_popups|[[:space:]]+\.)' | "$MM_BIN" \
   -o "$SCRIPT_DIR/sesh-picker.toml" \
   --color "${TMUX_COLOR_SPEC:-}" \
 | (read chosen && [ -n "$chosen" ] && sesh connect "$chosen"); true

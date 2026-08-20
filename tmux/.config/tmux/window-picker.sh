@@ -28,8 +28,11 @@ ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
 # We ignore group headers (lines starting with '#') and find the 0-based index of the row containing '•'
 START_IDX=$("$ITEMS_SCRIPT" | awk '!/^#/ {n++} /•/ {print n-1; exit}')
 [ -z "$START_IDX" ] && START_IDX=0
+MM_BIN="$HOME/.local/bin/mm"
+[ -x "$MM_BIN" ] || MM_BIN="$HOME/.cargo/bin/mm"
+[ -x "$MM_BIN" ] || MM_BIN="$(command -v mm 2>/dev/null || echo "mm")"
 
-chosen=$("$ITEMS_SCRIPT" | mm \
+chosen=$("$ITEMS_SCRIPT" | "$MM_BIN" \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT" \
   results.spinner="$TMUX_SPINNER_NAME" \

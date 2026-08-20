@@ -42,9 +42,8 @@ prompt = " "
 show = false
 
 [footer]
-content = "  Enter: Switch Window  •  Space: Select  •  d: Kill Window  •  Esc: Cancel"
-style.fg = "DarkGray"
-style.modifier = "DIM"
+content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {yellow,bold:[Space]} {darkgray:Select}  •  {red,bold:[d]} {darkgray:Kill Window}  •  {blue,bold:[Esc]} {darkgray:Cancel}"
+row_connection = "Full"
 match_indent = false
 
 [ui]

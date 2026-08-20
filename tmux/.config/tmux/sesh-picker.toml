@@ -25,9 +25,8 @@ prompt = "⚡"
 status_inline = true
 
 [footer]
-content = "  Enter: Connect  •  Ctrl+D: Kill  •  Ctrl+A: All  •  Ctrl+T: Tmux  •  Ctrl+X: Frecency"
-style.fg = "DarkGray"
-style.modifier = "DIM"
+content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {red,bold:[C-d]} {darkgray:Kill}  •  {yellow,bold:[C-a]} {darkgray:All}  •  {magenta,bold:[C-t]} {darkgray:Tmux}  •  {blue,bold:[C-x]} {darkgray:Frecency}"
+row_connection = "Full"
 match_indent = false
 
 [results]

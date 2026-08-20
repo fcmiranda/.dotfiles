@@ -41,6 +41,12 @@ status_inline = true
 prompt = " "
 show = false
 
+[footer]
+content = "  Enter: Switch Window  •  Space: Select  •  d: Kill Window  •  Esc: Cancel"
+style.fg = "DarkGray"
+style.modifier = "DIM"
+match_indent = false
+
 [ui]
 nav_mode = true
 nav_focus_on_start = "picker"

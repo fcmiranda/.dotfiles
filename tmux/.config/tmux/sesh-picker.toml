@@ -24,6 +24,12 @@ sides = ""
 prompt = "⚡"
 status_inline = true
 
+[footer]
+content = "  Enter: Connect  •  Ctrl+D: Kill  •  Ctrl+A: All  •  Ctrl+T: Tmux  •  Ctrl+X: Frecency"
+style.fg = "DarkGray"
+style.modifier = "DIM"
+match_indent = false
+
 [results]
 spinner_inline = true
 current_prefix = " "

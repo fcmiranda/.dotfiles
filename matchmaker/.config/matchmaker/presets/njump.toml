@@ -1,0 +1,86 @@
+# Matchmaker Downloads Preset (`mm -o downloads`)
+# Optimized for browsing ~/Downloads with native terminal image previews
+
+[tui]
+percentage = 70
+min = 15
+
+[ui]
+nav_mode = true               # true (modo navegação habilitado) / false
+nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
+# nav_bold = false            # true / false (barra em negrito)
+# nav_blink = false           # true / false (barra piscando)
+# nav_blink_rate = "Slow"     # "Slow", "Medium", "Fast"
+
+[query]
+status_inline = true          # true (contador de resultados na barra de busca) / false
+cursor = "none"                  # Hides terminal hardware cursor to prevent Ghostty shader flicker/trails
+prompt = "> "
+prompt_style.fg = "Cyan"
+prompt_style.modifier = "BOLD"
+
+[results]
+max = 15
+icons = true
+symlink_target = true
+
+
+[matcher]
+sort = "smart"
+frecency = true
+
+[preview]                 # Quantidade máxima de linhas visíveis
+show = true
+media = true
+media_fit = "fit"
+wrap = true
+scroll_wrap = true
+
+[previewer]
+debounce_ms = 25                # Delay em ms para atualizar o preview ao mover o cursor (ex: 15, 25, 50, 100)
+delay_clear = false              # false: limpa a imagem antiga imediatamente ao mudar de linha
+
+[[preview.layout]]
+side = "right"
+percentage = 80
+min = 25
+
+[binds]
+"@reloadnext" = "ReloadNext"
+"ctrl-f" = "@reloadnext"
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"ctrl-p" = "SwitchPreview"
+"ctrl-e" = "Execute(nvim {+})"
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
+
+[ui.nav_binds]
+"f" = "@reloadnext"
+"e" = "Execute(nvim {+})"
+"l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"ctrl-e" = "Execute(nvim {+})"
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"ctrl-p" = "SwitchPreview"
+"u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
+"ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
+
+[breadcrumb]
+show = true                   # true (exibe caminho atual como breadcrumb no topo) / false
+separator = "/"               # Caractere separador de diretório (ex: "/", " › ", " > ")
+style.fg = "Cyan"             # Cor do texto do caminho
+style.modifier = "BOLD"       # "BOLD", "DIM", "ITALIC", "UNDERLINED"
+separator_style.fg = "Cyan"   # Cor do separador
+
+[start]
+additional_commands = [
+    "",
+    "mm list --dirs 2>/dev/null"
+]
+
+[start.command]
+command = ""

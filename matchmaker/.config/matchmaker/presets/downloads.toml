@@ -2,27 +2,37 @@
 # Optimized for browsing ~/Downloads with native terminal image previews
 
 [tui]
-percentage = 80
+percentage = 70
 min = 15
 
 [ui]
-border = { type = "Rounded" }
+nav_mode = true               # true (modo navegação habilitado) / false
+nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
+# nav_bold = false            # true / false (barra em negrito)
+# nav_blink = false           # true / false (barra piscando)
+# nav_blink_rate = "Slow"     # "Slow", "Medium", "Fast"
 
 [query]
+status_inline = true          # true (contador de resultados na barra de busca) / false
 cursor = "none"                  # Hides terminal hardware cursor to prevent Ghostty shader flicker/trails
 prompt = "> "
 prompt_style.fg = "Cyan"
 prompt_style.modifier = "BOLD"
 
 [results]
+max = 15
 icons = true
 symlink_target = true
+
+
+
 
 [matcher]
 sort = "smart"
 frecency = true
 
-[preview]
+[preview]                 # Quantidade máxima de linhas visíveis
 show = true
 media = true
 media_fit = "fit"
@@ -35,7 +45,7 @@ delay_clear = false              # false: limpa a imagem antiga imediatamente ao
 
 [[preview.layout]]
 side = "right"
-percentage = 30
+percentage = 80
 min = 25
 
 [start]

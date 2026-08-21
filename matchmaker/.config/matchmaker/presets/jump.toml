@@ -75,7 +75,6 @@ delay_clear = false            # true (evita flicker limpando preview só quando
 
 [preview]
 media = true                  # true (habilita visualização nativa de imagens/vídeos/PDFs) / false
-media_protocol = "kitty"      # Protocolo gráfico do terminal: "kitty", "sixel", "iterm2", "halfblocks"
 
 [preview.border]
 # type = "Rounded"            # Tipo de borda: "Rounded", "Plain", "Double", "Thick"

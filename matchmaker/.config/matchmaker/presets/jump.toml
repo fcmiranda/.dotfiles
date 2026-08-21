@@ -72,7 +72,7 @@ indicator_style.fg = "blue"   # Cor do indicador de autoscroll
 
 [previewer]
 debounce_ms = 25              # Delay em ms para atualizar o preview ao mover o cursor (ex: 15, 25, 50)
-delay_clear = true             # true (evita flicker limpando preview só quando novo estiver pronto) / false
+delay_clear = false             # true (evita flicker limpando preview só quando novo estiver pronto) / false
 
 [preview]
 show = true

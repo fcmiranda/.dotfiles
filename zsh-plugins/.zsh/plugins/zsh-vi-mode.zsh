@@ -269,37 +269,10 @@ function zvm_change_around_bracket_c() { zvm_change_around_bracket c; }
 function zvm_change_inside_quote_c() { zvm_change_inside_quote c; }
 function zvm_change_around_quote_c() { zvm_change_around_quote c; }
 
-# Custom keybindings after zsh-vi-mode initialization
-function zvm_after_init() {
-    # Unbind ctrl-p/ctrl-n and bind ctrl-j/ctrl-k for history navigation
-    bindkey -M viins -r '^P'
-    bindkey -M viins -r '^N'
-
-    # Prefix-aware history: arrows/ctrl-k/j only cycle history matching current buffer
-    autoload -U history-search-end
-    zle -N history-beginning-search-backward-end history-search-end
-    zle -N history-beginning-search-forward-end history-search-end
-
-    bindkey -M viins '^[[A' history-beginning-search-backward-end
-    bindkey -M viins '^K'   history-beginning-search-backward-end
-    bindkey -M viins '^J'   history-beginning-search-forward-end
-    bindkey -M viins '^[[B' history-beginning-search-forward-end
-
-    # Bind ctrl-r to atuin-search in insert mode
-    bindkey -M viins '^R' atuin-search
-
-    # Bind ctrl-t to matchmaker jump widget
-    bindkey -M viins '^T' _jump_widget
-    bindkey -M vicmd '^T' _jump_widget
-
-    # Tab bindings: empty line Tab = matchmaker jump widget
-    #               active line Tab = expand-or-complete (fzf-tab) / accept autosuggestion
-    bindkey -M viins '^I' _smart_tab
-
-    # ==========================================================================
-    # Register combined surround widgets and keybindings
-    # ==========================================================================
-
+# ==============================================================================
+# Register combined surround widgets and keybindings
+# ==============================================================================
+function _zvm_setup_surrounds() {
     # Define widgets for combined surrounds
     zvm_define_widget zvm_select_inside_bracket
     zvm_define_widget zvm_select_around_bracket
@@ -342,3 +315,4 @@ function zvm_after_init() {
     zvm_bindkey vicmd 'ciq' zvm_change_inside_quote_c
     zvm_bindkey vicmd 'caq' zvm_change_around_quote_c
 }
+zvm_after_init_commands+=('_zvm_setup_surrounds')

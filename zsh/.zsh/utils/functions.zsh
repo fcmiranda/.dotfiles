@@ -245,4 +245,35 @@ bd() {
     return 1
 }
 
+# acpd - Manage the ACPD daemon service
+# Usage: acpd [status|start|stop|restart|logs|kill]
+acpd() {
+    local action="${1:-status}"
+    case "$action" in
+        start)
+            systemctl --user start acpd.service && echo "acpd started"
+            ;;
+        stop)
+            systemctl --user stop acpd.service && echo "acpd stopped"
+            ;;
+        restart)
+            systemctl --user restart acpd.service && echo "acpd restarted"
+            ;;
+        status)
+            systemctl --user status acpd.service
+            ;;
+        logs|log)
+            journalctl --user -u acpd.service -f
+            ;;
+        kill)
+            pkill -9 -x acpd 2>/dev/null && echo "acpd killed" || systemctl --user stop acpd.service
+            ;;
+        *)
+            echo "Usage: acpd [status|start|stop|restart|logs|kill]"
+            return 1
+            ;;
+    esac
+}
+
+
 

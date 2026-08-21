@@ -47,6 +47,7 @@ install_packages \
     herdr \
     ripdrag \
     cross \
+    cargo-zigbuild \
     ffmpegthumbnailer \
     poppler \
     mediainfo \

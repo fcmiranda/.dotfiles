@@ -12,9 +12,8 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 
 # Single Tab: ghost text present→autosuggest-accept, else→_jump_widget
 _jump_widget() {
-    zle -I 2>/dev/null || true
     local result=$(mm --no-read -o jump)
-    [[ -z "$result" ]] && return
+    [[ -z "$result" ]] && { zle reset-prompt; return; }
     [[ -d "$result" ]] && cd "$result" || LBUFFER+="$result "
     zle reset-prompt
 }
@@ -117,8 +116,41 @@ bindkey -M viins '^G' _git_files_widget
 bindkey -M vicmd '^G' _git_files_widget
 bindkey -M emacs '^G' _git_files_widget
 
+# =============================================================================
+# Prefix-aware history search navigation
+# =============================================================================
+autoload -U history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+
+bindkey '^[[A' history-beginning-search-backward-end
+bindkey '^K'   history-beginning-search-backward-end
+bindkey '^J'   history-beginning-search-forward-end
+bindkey '^[[B' history-beginning-search-forward-end
+
+bindkey -M viins '^[[A' history-beginning-search-backward-end
+bindkey -M viins '^K'   history-beginning-search-backward-end
+bindkey -M viins '^J'   history-beginning-search-forward-end
+bindkey -M viins '^[[B' history-beginning-search-forward-end
+
 # Hook for zsh-vi-mode plugin to preserve keybindings after zvm init
-function zvm_after_init() {
+_binds_zvm_setup() {
+    # Unbind legacy ctrl-p/ctrl-n in insert mode
+    bindkey -M viins -r '^P' 2>/dev/null || true
+
+    # Prefix-aware history search
+    zvm_bindkey viins '^[[A' history-beginning-search-backward-end
+    zvm_bindkey viins '^K'   history-beginning-search-backward-end
+    zvm_bindkey viins '^J'   history-beginning-search-forward-end
+    zvm_bindkey viins '^[[B' history-beginning-search-forward-end
+
+    # Atuin history search
+    if (( $+widgets[atuin-search] )); then
+        zvm_bindkey viins '^R' atuin-search
+        zvm_bindkey vicmd '^R' atuin-search
+    fi
+
+    # Custom widgets
     zvm_bindkey viins '^G' _git_files_widget
     zvm_bindkey vicmd '^G' _git_files_widget
     zvm_bindkey viins '^T' _jump_widget
@@ -129,6 +161,7 @@ function zvm_after_init() {
     # zvm_bindkey viins '^F' _fzf_tab_widget
     # zvm_bindkey vicmd '^F' _fzf_tab_widget
 }
+zvm_after_init_commands+=('_binds_zvm_setup')
 
 
 

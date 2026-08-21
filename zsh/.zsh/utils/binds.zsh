@@ -32,29 +32,6 @@ _auto_space_if_command() {
     fi
 }
 
-_smart_tab() {
-    local trimmed="${BUFFER// /}"
-    if [[ -z "$trimmed" ]]; then
-        # Empty command line (or whitespace only) → open matchmaker jump widget directly
-        zle _jump_widget
-    elif [[ -n "$POSTDISPLAY" ]]; then
-        # Ghost text visible → accept autosuggestion
-        zle autosuggest-accept
-    else
-        _auto_space_if_command
-        # Command line has text → trigger Matchmaker completion via mm-ftb
-        zstyle ':fzf-tab:*' fzf-command mm-ftb
-        if (( $+widgets[fzf-tab-complete] )); then
-            zle fzf-tab-complete
-        else
-            zle expand-or-complete
-        fi
-    fi
-}
-zle -N _smart_tab
-bindkey '^I' _smart_tab
-bindkey -M viins '^I' _smart_tab
-
 # =============================================================================
 # Matchmaker Completion (Ctrl+N): Uses Matchmaker (mm-ftb) as the completion UI
 # =============================================================================
@@ -71,23 +48,6 @@ zle -N _mm_tab_widget
 bindkey '^N' _mm_tab_widget
 bindkey -M viins '^N' _mm_tab_widget
 bindkey -M emacs '^N' _mm_tab_widget
-
-# =============================================================================
-# FZF-Tab Completion (Ctrl+F): Uses classic FZF as the completion UI (Disabled)
-# =============================================================================
-# _fzf_tab_widget() {
-#     _auto_space_if_command
-#     zstyle ':fzf-tab:*' fzf-command fzf
-#     if (( $+widgets[fzf-tab-complete] )); then
-#         zle fzf-tab-complete
-#     else
-#         zle expand-or-complete
-#     fi
-# }
-# zle -N _fzf_tab_widget
-# bindkey '^F' _fzf_tab_widget
-# bindkey -M viins '^F' _fzf_tab_widget
-# bindkey -M emacs '^F' _fzf_tab_widget
 
 # Delete previous word with Ctrl+Backspace in vi insert mode
 bindkey -M viins $'\e\x7f' backward-kill-word
@@ -155,11 +115,8 @@ _binds_zvm_setup() {
     zvm_bindkey vicmd '^G' _git_files_widget
     zvm_bindkey viins '^T' _jump_widget
     zvm_bindkey vicmd '^T' _jump_widget
-    zvm_bindkey viins '^I' _smart_tab
     zvm_bindkey viins '^N' _mm_tab_widget
     zvm_bindkey vicmd '^N' _mm_tab_widget
-    # zvm_bindkey viins '^F' _fzf_tab_widget
-    # zvm_bindkey vicmd '^F' _fzf_tab_widget
 }
 zvm_after_init_commands+=('_binds_zvm_setup')
 

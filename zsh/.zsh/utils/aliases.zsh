@@ -16,3 +16,12 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
+# ACPD Daemon helpers
+alias acpd-restart='systemctl --user restart acpd.service'
+alias acpd-stop='systemctl --user stop acpd.service'
+alias acpd-start='systemctl --user start acpd.service'
+alias acpd-status='systemctl --user status acpd.service'
+alias acpd-logs='journalctl --user -u acpd.service -f'
+
+
+

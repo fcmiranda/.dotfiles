@@ -46,6 +46,7 @@ install_packages \
     wf-recorder \
     herdr \
     ripdrag \
+    cross \
     ffmpegthumbnailer \
     poppler \
     mediainfo \

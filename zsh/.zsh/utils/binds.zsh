@@ -13,7 +13,7 @@ bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
 # Single Tab: ghost text present→autosuggest-accept, else→_jump_widget
 _jump_widget() {
     zle -I 2>/dev/null || true
-    local result=$(mm --no-read -o njump)
+    local result=$(mm --no-read -o jump)
     [[ -z "$result" ]] && return
     [[ -d "$result" ]] && cd "$result" || LBUFFER+="$result "
     zle reset-prompt

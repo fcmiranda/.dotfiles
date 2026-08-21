@@ -78,12 +78,10 @@ delay_clear = false            # true (evita flicker limpando preview só quando
 show = true
 media = true
 media_fit = "fit"
-wrap = true
-scroll_wrap = true
 
 [[preview.layout]]
 side = "right"                # Posição do preview: "right", "left", "top", "bottom"
-percentage = 80               # Tamanho do painel em % (1-100)
+percentage = 79               # Tamanho do painel em % (1-100)
 
 [binds]
 "@reloadnext" = "ReloadNext"

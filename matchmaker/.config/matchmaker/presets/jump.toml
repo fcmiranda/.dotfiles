@@ -7,6 +7,9 @@ percentage = 70               # Altura do TUI em % da tela (1-100)
 [query]
 status_inline = true          # true (contador de resultados na barra de busca) / false
 cursor = "none"
+filter_prompt_style.fg = "blue"          # Muda a cor (ex: Yellow, Cyan, #fab387, etc.)
+filter_prompt_style.modifier = "BOLD"      # Aplica Negrito ("BOLD", "ITALIC", "DIM", etc.)
+
 
 [ui]
 nav_mode = true               # true (modo navegação habilitado) / false

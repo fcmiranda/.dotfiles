@@ -72,7 +72,7 @@ indicator_style.fg = "blue"   # Cor do indicador de autoscroll
 
 [previewer]
 debounce_ms = 25              # Delay em ms para atualizar o preview ao mover o cursor (ex: 15, 25, 50)
-delay_clear = false            # true (evita flicker limpando preview só quando novo estiver pronto) / false
+delay_clear = true             # true (evita flicker limpando preview só quando novo estiver pronto) / false
 
 [preview]
 show = true
@@ -107,7 +107,7 @@ percentage = 79               # Tamanho do painel em % (1-100)
 "ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
 
 [breadcrumb]
-show = true                   # true (exibe caminho atual como breadcrumb no topo) / false
+show = false                   # true (exibe caminho atual como breadcrumb no topo) / false
 separator = "/"               # Caractere separador de diretório (ex: "/", " › ", " > ")
 style.fg = "Cyan"             # Cor do texto do caminho
 style.modifier = "BOLD"       # "BOLD", "DIM", "ITALIC", "UNDERLINED"

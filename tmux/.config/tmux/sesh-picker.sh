@@ -10,31 +10,42 @@ if [ "$1" = "--fullscreen" ]; then
     exec tmux split-window -Z "$REAL_SCRIPT" --fullscreen
   fi
 elif [ -z "${TMUX_POPUP:-}" ]; then
-  CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
-  ORIG_TARGET=$(tmux display-message -p '#{session_name}:#{window_index}')
-  tmux capture-pane -ep -t "$CURRENT_PANE" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
-  if ! tmux has-session -t "_popups" 2>/dev/null; then
-    tmux new-session -d -s "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-    tmux set-option -t "_popups" status off
-  elif ! tmux list-windows -t "_popups" -F '#W' 2>/dev/null | grep -q "^backdrop$"; then
-    tmux new-window -d -t "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-    tmux set-option -t "_popups" status off
+  AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
+  if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
+    CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
+    ORIG_TARGET=$(tmux display-message -p '#{session_name}:#{window_index}')
+    tmux capture-pane -ep -t "$CURRENT_PANE" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
+    if ! tmux has-session -t "_popups" 2>/dev/null; then
+      tmux new-session -d -s "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
+      tmux set-option -t "_popups" status off
+    elif ! tmux list-windows -t "_popups" -F '#W' 2>/dev/null | grep -q "^backdrop$"; then
+      tmux new-window -d -t "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
+      tmux set-option -t "_popups" status off
+    else
+      tmux respawn-window -k -t "_popups:backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
+    fi
+    tmux switch-client -t "_popups:backdrop" 2>/dev/null || true
+    tmux display-popup \
+      -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
+      -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
+      -b rounded \
+      -T " Sesh " \
+      -w 80% -h 35% -y 34 \
+      -E "TMUX_POPUP=1 $REAL_SCRIPT"
+    CURRENT_SESS=$(tmux display-message -p '#{session_name}')
+    if [ "$CURRENT_SESS" = "_popups" ]; then
+      tmux switch-client -t "$ORIG_TARGET" 2>/dev/null || true
+    fi
+    exit 0
   else
-    tmux respawn-window -k -t "_popups:backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
+    exec tmux display-popup \
+      -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
+      -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
+      -b rounded \
+      -T " Sesh " \
+      -w 80% -h 35% -y 34 \
+      -E "TMUX_POPUP=1 $REAL_SCRIPT"
   fi
-  tmux switch-client -t "_popups:backdrop" 2>/dev/null || true
-  tmux display-popup \
-    -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
-    -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
-    -b rounded \
-    -T " Sesh " \
-    -w 80% -h 35% -y 34 \
-    -E "TMUX_POPUP=1 $REAL_SCRIPT"
-  CURRENT_SESS=$(tmux display-message -p '#{session_name}')
-  if [ "$CURRENT_SESS" = "_popups" ]; then
-    tmux switch-client -t "$ORIG_TARGET" 2>/dev/null || true
-  fi
-  exit 0
 fi
 
 SCRIPT_DIR=$(dirname "$REAL_SCRIPT")

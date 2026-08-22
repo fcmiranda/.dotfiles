@@ -17,10 +17,8 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
     tmux capture-pane -ep -t "$CURRENT_PANE" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
     if ! tmux has-session -t "_popups" 2>/dev/null; then
       tmux new-session -d -s "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-      tmux set-option -t "_popups" status off
     elif ! tmux list-windows -t "_popups" -F '#W' 2>/dev/null | grep -q "^backdrop$"; then
       tmux new-window -d -t "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-      tmux set-option -t "_popups" status off
     else
       tmux respawn-window -k -t "_popups:backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
     fi

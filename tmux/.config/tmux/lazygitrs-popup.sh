@@ -25,7 +25,6 @@ else
         tmux new-window -t "$SESSION_NAME" -n "$WINDOW_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d -c popup'
     fi
 fi
-tmux set-option -t "$SESSION_NAME" status off
 
 AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
 if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then

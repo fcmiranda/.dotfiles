@@ -12,6 +12,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 
 ### 🪟 2. Tmux & Multiplexer (`docs/tmux/`)
 - [**AI Agent Status in Status Bar**](tmux/ai-status-bar.md): Real-time per-pane AI agent state pills, animated spinners, color alerts, and `acpd` daemon options.
+- [**Popup Isolation, Debounce & Event-Driven Architecture**](tmux/popup-isolation-and-debounce.md): Transparent frozen snapshot backdrops for rock-solid popups, 400ms idle debounce in ACPD, and 100% event-driven `status-interval 0`.
 - [**Clipboard & Scrollback Capture**](tmux/clipboard-and-scrollback.md): Click-and-hold drag-to-copy to system clipboard, and `Prefix + C-e` scrollback buffer export to Neovim with full ANSI color formatting.
 - [**Tmux Activity Monitoring**](TMUX_ACTIVITY.md): Activity alert and notification behavior.
 

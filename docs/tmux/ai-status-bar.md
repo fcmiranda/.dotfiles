@@ -30,4 +30,4 @@ For inactive background tabs, `@ai_agent_state` is rendered in `#[fg=#{@ai_agent
 - `@ai_agent_state_color`: Hex color string configured in `config.toml` (e.g. `#f9e2af`, `#cba6f7`, `#f38ba8`, `#94e2d5`).
 - `@ai_agent_state_raw`: Raw state identifier string (`busy`, `working`, `question`, `awaiting_input`, `permission`, `error`, `idle`, `closed`).
 
-See [`tmux/.config/tmux/tmux.conf`](../../tmux/.config/tmux/tmux.conf) and [`acpd/.config/acpd/config.toml`](../../acpd/.config/acpd/config.toml) for exact option wiring and theme definitions.
+See [`tmux/.config/tmux/tmux.conf`](../../tmux/.config/tmux/tmux.conf), [`acpd/.config/acpd/config.toml`](../../acpd/.config/acpd/config.toml), and [`popup-isolation-and-debounce.md`](popup-isolation-and-debounce.md) for debounce, popup isolation, and option wiring details.

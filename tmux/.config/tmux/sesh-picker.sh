@@ -13,16 +13,15 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
   AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
   if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
-    ORIG_TARGET=$(tmux display-message -p '#{session_name}:#{window_index}')
+    ORIG_SESS=$(tmux display-message -p '#{session_name}')
+    ORIG_WIN_ID=$(tmux display-message -p '#{window_id}')
+    ORIG_WIN_NAME=$(tmux display-message -p '#{window_name}')
+
     tmux capture-pane -ep -t "$CURRENT_PANE" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
-    if ! tmux has-session -t "_popups" 2>/dev/null; then
-      tmux new-session -d -s "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-    elif ! tmux list-windows -t "_popups" -F '#W' 2>/dev/null | grep -q "^backdrop$"; then
-      tmux new-window -d -t "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-    else
-      tmux respawn-window -k -t "_popups:backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
-    fi
-    tmux switch-client -t "_popups:backdrop" 2>/dev/null || true
+
+    BACKDROP_WIN=$(tmux new-window -d -P -F '#{window_id}' -t "$ORIG_SESS" -n "$ORIG_WIN_NAME" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null")
+    tmux select-window -t "$BACKDROP_WIN" 2>/dev/null || true
+
     tmux display-popup \
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
@@ -30,10 +29,12 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -T " Sesh " \
       -w 80% -h 35% -y 34 \
       -E "TMUX_POPUP=1 $REAL_SCRIPT"
+
     CURRENT_SESS=$(tmux display-message -p '#{session_name}')
-    if [ "$CURRENT_SESS" = "_popups" ]; then
-      tmux switch-client -t "$ORIG_TARGET" 2>/dev/null || true
+    if [ "$CURRENT_SESS" = "$ORIG_SESS" ]; then
+      tmux select-window -t "$ORIG_WIN_ID" 2>/dev/null || true
     fi
+    tmux kill-window -t "$BACKDROP_WIN" 2>/dev/null || true
     exit 0
   else
     exec tmux display-popup \

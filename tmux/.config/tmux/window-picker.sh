@@ -72,7 +72,23 @@ MM_BIN="$HOME/.local/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$HOME/.cargo/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$(command -v mm 2>/dev/null || echo "mm")"
 
-chosen=$("$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
+# Debug logging for inspection
+{
+  echo "=== [$(date '+%Y-%m-%d %H:%M:%S')] Window Picker Debug ==="
+  echo "TMUX_ORIGIN_SESSION: '${TMUX_ORIGIN_SESSION:-}'"
+  echo "TMUX_ORIGIN_WINDOW:  '${TMUX_ORIGIN_WINDOW:-}'"
+  echo "Resolved ORIG_SESS:  '$ORIG_SESS'"
+  echo "Resolved ORIG_WIN:   '$ORIG_WIN'"
+  echo "Calculated START_IDX: $START_IDX"
+  echo "Items list (non-group index mapped to --pos):"
+  "$ITEMS_SCRIPT" "$ORIG_SESS" "$ORIG_WIN" | awk '
+    /^#/ { print "      [HEADER] " $0; next }
+    { printf "  [%02d] %s\n", idx++, $0 }
+  '
+  echo "Running: $MM_BIN --pos $START_IDX"
+} >> /tmp/window-picker-debug.log 2>&1
+
+chosen=$("$ITEMS_SCRIPT" "$ORIG_SESS" "$ORIG_WIN" | "$MM_BIN" \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT $ORIG_SESS $ORIG_WIN" \
   results.spinner="$TMUX_SPINNER_NAME" \
@@ -80,6 +96,8 @@ chosen=$("$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
   --color "spinner:$TMUX_SPINNER_COLOR" \
   --color "$TMUX_COLOR_SPEC" \
   --group-prefix '#')
+
+echo "Chosen: '$chosen'" >> /tmp/window-picker-debug.log 2>&1
 
 if [ -n "$chosen" ]; then
   session=$(printf '%s' "$chosen" | head -n1 | cut -f4)

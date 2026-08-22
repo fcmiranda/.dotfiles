@@ -9,10 +9,14 @@ if [ "$1" = "--fullscreen" ]; then
     exec tmux split-window -Z "$REAL_SCRIPT" --fullscreen
   fi
 elif [ -z "${TMUX_POPUP:-}" ]; then
+  ORIG_SESS=$(tmux display-message -p '#{session_name}')
+  ORIG_WIN=$(tmux display-message -p '#{window_index}')
+  export TMUX_ORIGIN_SESSION="$ORIG_SESS"
+  export TMUX_ORIGIN_WINDOW="$ORIG_WIN"
+
   AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
   if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
-    ORIG_SESS=$(tmux display-message -p '#{session_name}')
 
     tmux capture-pane -ep -t "$CURRENT_PANE" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
     tmux set-option -w -t "$CURRENT_PANE" automatic-rename off 2>/dev/null || true
@@ -27,7 +31,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -b rounded \
       -T " Windows " \
       -w 80% -h 35% -y 34 \
-      -E "TMUX_POPUP=1 $REAL_SCRIPT"
+      -E "TMUX_POPUP=1 TMUX_ORIGIN_SESSION='$ORIG_SESS' TMUX_ORIGIN_WINDOW='$ORIG_WIN' $REAL_SCRIPT"
 
     tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
     tmux set-option -w -t "$CURRENT_PANE" automatic-rename on 2>/dev/null || true
@@ -43,7 +47,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -b rounded \
       -T " Windows " \
       -w 80% -h 35% -y 34 \
-      -E "TMUX_POPUP=1 $REAL_SCRIPT"
+      -E "TMUX_POPUP=1 TMUX_ORIGIN_SESSION='$ORIG_SESS' TMUX_ORIGIN_WINDOW='$ORIG_WIN' $REAL_SCRIPT"
   fi
 fi
 
@@ -61,21 +65,20 @@ ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
 
 # Calculate the index of the current window for the initial selection
 # We ignore group headers (lines starting with '#') and find the 0-based index of the row containing '•'
-START_IDX=$("$ITEMS_SCRIPT" | awk '!/^#/ {n++} /•/ {print n-1; exit}')
+ORIG_SESS="${TMUX_ORIGIN_SESSION:-$(tmux display-message -p '#S')}"
+ORIG_WIN="${TMUX_ORIGIN_WINDOW:-$(tmux display-message -p '#I')}"
+
+START_IDX=$("$ITEMS_SCRIPT" "$ORIG_SESS" "$ORIG_WIN" | awk '!/^#/ {n++} /•/ {print n-1; exit}')
 [ -z "$START_IDX" ] && START_IDX=0
 MM_BIN="$HOME/.local/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$HOME/.cargo/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$(command -v mm 2>/dev/null || echo "mm")"
 
-<<<<<<< HEAD
 chosen=$("$ITEMS_SCRIPT" | ~/.cargo/bin/mm \
-=======
-chosen=$("$ITEMS_SCRIPT" | "$MM_BIN" \
->>>>>>> 7bbe675 (fix(tmux,sesh): resolve MM_BIN with ~/.local/bin fallback for non-interactive shells)
   -o "$SCRIPT_DIR/window-picker.toml" \
-  "start.cmd=$ITEMS_SCRIPT" \
+  "start.cmd=$ITEMS_SCRIPT $ORIG_SESS $ORIG_WIN" \
   results.spinner="$TMUX_SPINNER_NAME" \
-  binds.Synced="Pos($START_IDX)|||Unbind(Synced)" \
+  --pos "$START_IDX" \
   --color "spinner:$TMUX_SPINNER_COLOR" \
   --color "$TMUX_COLOR_SPEC" \
   --group-prefix '#')

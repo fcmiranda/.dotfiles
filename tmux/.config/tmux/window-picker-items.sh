@@ -1,10 +1,5 @@
-#!/usr/bin/env sh
-# window-picker-items.sh — emit the bfzf item list for window-picker.sh
-# Called both at startup (piped to bfzf stdin) and periodically via -reload-cmd.
-# Output format:
-#   Group headers : #<ANSI session name>
-#   Window rows   : @SPIN@SESSION<TAB>IDX<TAB>DISPLAY  (busy)
-#                   SESSION<TAB>IDX<TAB>DISPLAY         (others)
+#!/usr/bin/env bash
+# window-picker-items.sh — emit the item list for window-picker.sh
 
 # ── Theme palette (read live from tmux @options set by tmux-colors.conf) ─────
 # Helper: read a tmux global option value.
@@ -13,13 +8,14 @@ _tget() { tmux show-option -gqv "$1" 2>/dev/null; }
 # Convert a #RRGGBB hex color to an ANSI truecolor escape prefix (no reset).
 # Usage: _hex_esc "#89b4fa"  →  '\033[38;2;137;180;250m'
 _hex_esc() {
-  _h="${1#\#}"
-  [ -z "$_h" ] && _h="89b4fa"
-  [ "${#_h}" -lt 6 ] && _h="89b4fa"
-  _r=$(( 16#${_h%????} ))
-  _g=$(( 16#${_h#??} )); _g=$(( _g >> 8 & 0xFF ))
-  _b=$(( 16#${_h##????} ))
-  printf '\\033[38;2;%d;%d;%dm' "$_r" "$_g" "$_b"
+  local h="${1#\#}"
+  if [[ ! "$h" =~ ^[0-9a-fA-F]{6}$ ]]; then
+    h="89b4fa"
+  fi
+  local r=$(( 16#${h:0:2} ))
+  local g=$(( 16#${h:2:2} ))
+  local b=$(( 16#${h:4:2} ))
+  printf '\033[38;2;%d;%d;%dm' "$r" "$g" "$b"
 }
 
 R='\033[0m'
@@ -52,15 +48,15 @@ unset -f _tget
 unset _colors_toml _color11 _color1
 # ─────────────────────────────────────────────────────────────────────────────
 
-cur_session=$(tmux display-message -p '#S')
-cur_window=$(tmux display-message -p '#I')
+cur_session="${1:-${TMUX_ORIGIN_SESSION:-$(tmux display-message -p '#S')}}"
+cur_window="${2:-${TMUX_ORIGIN_WINDOW:-$(tmux display-message -p '#I')}}"
 
 tmux list-sessions -F '#S' | grep -Ev '^(_lazygitrs|_popups|\.)' | while IFS= read -r session; do
   printf '#  %s\n' "$session"
 
   tmux list-windows -t "$session" \
-      -F '#{window_index}	#{window_name}	#{@ai_agent_state_raw}	#{@ai_agent_state}	#{@ai_agent_state_color}' \
-    | while IFS='	' read -r idx name state state_icon state_color; do
+      -F '#{window_index}|#{window_name}|#{@ai_agent_state_raw}|#{@ai_agent_state}|#{@ai_agent_state_color}' \
+    | while IFS='|' read -r idx name state state_icon state_color; do
 
     case "$name" in
       _lazygitrs*|_popups*|\.*) continue ;;

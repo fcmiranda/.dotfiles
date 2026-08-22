@@ -26,7 +26,6 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " Sesh " \
       -w 80% -h 35% -y 34 \
       -E "TMUX_POPUP=1 $REAL_SCRIPT"
 
@@ -42,7 +41,6 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " Sesh " \
       -w 80% -h 35% -y 34 \
       -E "TMUX_POPUP=1 $REAL_SCRIPT"
   fi

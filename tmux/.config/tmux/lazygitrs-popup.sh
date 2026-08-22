@@ -42,7 +42,6 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " lazygitrs " \
       -d "$PROJECT_DIR" \
       -E \
       -y 28 \
@@ -61,7 +60,6 @@ else
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " lazygitrs " \
       -d "$PROJECT_DIR" \
       -E \
       -y 28 \

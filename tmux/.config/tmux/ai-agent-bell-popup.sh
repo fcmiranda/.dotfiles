@@ -41,7 +41,6 @@ if [ "${#notifying_panes[@]}" -eq 0 ]; then
   tmux display-popup \
     -b rounded \
     -S "fg=$TMUX_POPUP_BORDER_COLOR" \
-    -T " AI Agent " \
     -w 38 -h 5 \
     "printf '\n  No active AI Agent notification.\n'; sleep 1.5"
   exit 0
@@ -86,7 +85,6 @@ tmux set-option -t "$POPUP_SESS" status off 2>/dev/null || true
 tmux popup \
   -S "fg=$TMUX_POPUP_BORDER_COLOR" \
   -s "fg=$TMUX_POPUP_TEXT_COLOR" \
-  -T "$TITLE" \
   -w "$TMUX_POPUP_WIDTH" \
   -h "$TMUX_POPUP_HEIGHT" \
   -b rounded \

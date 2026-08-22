@@ -74,19 +74,6 @@ MM_BIN="$HOME/.local/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$HOME/.cargo/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$(command -v mm 2>/dev/null || echo "mm")"
 
-DEBUG_LOG="/tmp/window-picker-debug.log"
-{
-  echo "================== $(date '+%Y-%m-%d %H:%M:%S') =================="
-  echo "ORIG_SESS: '$ORIG_SESS'"
-  echo "ORIG_WIN: '$ORIG_WIN'"
-  echo "START_IDX: $START_IDX"
-  echo "--- ITEMS SENT TO MM ---"
-  printf '%s\n' "$ITEMS"
-  echo "--- MM COMMAND ---"
-  echo "$MM_BIN -o $SCRIPT_DIR/window-picker.toml 'start.cmd=$ITEMS_SCRIPT $ORIG_SESS $ORIG_WIN' results.spinner=$TMUX_SPINNER_NAME --pos $START_IDX --group-prefix '#'"
-  echo "================================================================"
-} > "$DEBUG_LOG"
-
 chosen=$(printf '%s\n' "$ITEMS" | "$MM_BIN" \
   -o "$SCRIPT_DIR/window-picker.toml" \
   "start.cmd=$ITEMS_SCRIPT $ORIG_SESS $ORIG_WIN" \
@@ -95,8 +82,6 @@ chosen=$(printf '%s\n' "$ITEMS" | "$MM_BIN" \
   --color "spinner:$TMUX_SPINNER_COLOR" \
   --color "$TMUX_COLOR_SPEC" \
   --group-prefix '#')
-
-echo "CHOSEN RESULT: '$chosen'" >> "$DEBUG_LOG"
 
 if [ -n "$chosen" ]; then
   session=$(printf '%s' "$chosen" | head -n1 | cut -f4)

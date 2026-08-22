@@ -24,8 +24,8 @@ max = 9999
 [results]
 spinner_prefix = "@SPIN@"
 spinner_inline = true
-current_prefix = " "
-unselected_prefix = "  "
+current_prefix = ""
+unselected_prefix = ""
 multi_prefix = "󰄲 "
 row_connection = "Disjoint"
 column_spacing = 0

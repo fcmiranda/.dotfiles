@@ -88,38 +88,38 @@ tmux list-sessions -F '#S' | grep -Ev '^(_lazygitrs|_popups|\.)' | while IFS= re
         c_st=${c_st:-$C_IDLE}
         icon=${state_icon:-"󱥂"}
         title="$idx $name $icon"
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
+        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       question|awaiting_input)
         c_st=${c_st:-$C_QUESTION}
         icon=${state_icon:-"󱜻"}
         title="$idx $name $icon"
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
+        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       error)
         c_st=${c_st:-$C_ERROR}
         icon=${state_icon:-"󰨄"}
         title="$idx $name $icon"
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
+        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       permission)
         c_st=${c_st:-$C_PERM}
         icon=${state_icon:-"󱅭"}
         title="$idx $name $icon"
-        display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
+        display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${icon}${R}      "
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;
       *)
         if [ -n "$state_icon" ]; then
           c_st=${c_st:-$C_IDLE}
           title="$idx $name $state_icon"
-          display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${state_icon}${R}      "
+          display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R} ${c_st}${state_icon}${R}      "
         else
           title="$idx $name"
-          display="   ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R}          "
+          display=" ${mark} ${C_IDX}${idx}${R}  ${c_cur_name}${name}${R}          "
         fi
         printf '%s\t%s\t%s\t%s\t%b\n' "$title" "$idx" "$name" "$session" "$display"
         ;;

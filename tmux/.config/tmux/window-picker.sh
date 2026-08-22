@@ -57,8 +57,9 @@ _tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
 . "$_tmux_style"
 unset _tmux_style
 
-# Extract the active spinner from acpd if available (acpd sets this on startup)
-ACPD_SPINNER=$(tmux show-option -gv @ai_agent_spinner 2>/dev/null)
+# Extract the active spinner from acpd if available (tmux option or acpd config)
+ACPD_SPINNER=$(tmux show-option -gqv @ai_agent_spinner 2>/dev/null)
+[ -z "$ACPD_SPINNER" ] && ACPD_SPINNER=$(grep -E '^\s*active_spinner\s*=' "$HOME/.config/acpd/config.toml" 2>/dev/null | sed -E 's/.*=\s*"([^"]+)".*/\1/')
 [ -n "$ACPD_SPINNER" ] && TMUX_SPINNER_NAME="$ACPD_SPINNER"
 
 # Calculate the index of the current window for the initial selection

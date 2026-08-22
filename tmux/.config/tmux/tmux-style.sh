@@ -15,5 +15,5 @@ TMUX_BFZF_COLOR_SPEC="border:239,header:245,cursor:214,fg+:223"
 TMUX_COLOR_SPEC="list-border:239,group-header:245,selected-prefix:214,selected-fg:223"
 
 # ── Spinner ───────────────────────────────────────────────────────────────────
-TMUX_SPINNER_NAME="arc"
+TMUX_SPINNER_NAME="minidot"
 TMUX_SPINNER_COLOR="214"

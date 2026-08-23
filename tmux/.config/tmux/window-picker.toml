@@ -39,7 +39,7 @@ sides = ""
 [query]
 status_inline = true
 prompt = " "
-show = false
+show = true
 
 [footer]
 content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {green,bold:[c]} {darkgray:New Window}  •  {red,bold:[d]} {darkgray:Kill Window}  •  {blue,bold:[Esc]} {darkgray:Cancel}  •  {magenta,bold:[?]} {darkgray:Toggle Footer}"
@@ -49,6 +49,8 @@ match_indent = false
 [ui]
 nav_mode = true
 nav_focus_on_start = "picker"
+nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
 
 [ui.nav_binds]
 "c"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]

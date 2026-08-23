@@ -57,8 +57,6 @@ nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "l
 "C"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
 "d"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]
 "D"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]
-"?"     = "ToggleFooter"
-"F1"    = "ToggleFooter"
 
 [ui.border]
 sides = ""

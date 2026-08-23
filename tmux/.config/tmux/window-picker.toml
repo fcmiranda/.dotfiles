@@ -26,7 +26,7 @@ spinner_prefix = "@SPIN@"
 spinner_inline = true
 current_prefix = ""
 unselected_prefix = ""
-multi_prefix = "󰄲 "
+multi = false
 row_connection = "Disjoint"
 column_spacing = 0
 
@@ -42,7 +42,7 @@ prompt = " "
 show = false
 
 [footer]
-content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {yellow,bold:[Space]} {darkgray:Select}  •  {red,bold:[d]} {darkgray:Kill Window}  •  {blue,bold:[Esc]} {darkgray:Cancel}  •  {magenta,bold:[?]} {darkgray:Toggle Footer}"
+content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {green,bold:[c]} {darkgray:New Window}  •  {red,bold:[d]} {darkgray:Kill Window}  •  {blue,bold:[Esc]} {darkgray:Cancel}  •  {magenta,bold:[?]} {darkgray:Toggle Footer}"
 row_connection = "Full"
 match_indent = false
 
@@ -51,9 +51,10 @@ nav_mode = true
 nav_focus_on_start = "picker"
 
 [ui.nav_binds]
-"space" = "Toggle"
-"d"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
-"D"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+"c"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
+"C"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
+"d"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]
+"D"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]
 "?"     = "ToggleFooter"
 "F1"    = "ToggleFooter"
 
@@ -74,8 +75,9 @@ percentage = 80
 
 [binds]
 Start = ["ToggleColumn(title)", "ToggleColumn(name)", "ToggleColumn(session)", "ToggleColumn(idx)"]
-"space" = "Toggle"
-"d"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
-"D"     = ["ExecuteSilent(printf '%s\\n' '{-}' | $HOME/.config/tmux/window-picker-delete.sh)", "ClearSelections", "@reload"]
+"c"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
+"C"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
+"d"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]
+"D"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]
 "?"     = "ToggleFooter"
 "F1"    = "ToggleFooter"

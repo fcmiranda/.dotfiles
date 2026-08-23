@@ -53,7 +53,8 @@ install_packages \
     mediainfo \
     ai-memory \
     ai-jail \
-    ai-usagebar
+    ai-usagebar \
+    leaf
 
 install_plugins \
     zsh-plugins \

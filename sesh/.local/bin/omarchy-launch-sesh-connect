@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# omarchy-launch-sesh-connect - Connect or switch to a sesh session
+
+target="$1"
+[[ -z "$target" ]] && exit 0
+
+# Strip potential icons or leading whitespace if present
+target=$(echo "$target" | sed -E 's/^[[:space:]]*[^[:alnum:]/~._-]+[[:space:]]+//')
+
+if [ -n "${TMUX:-}" ]; then
+  exec sesh connect --switch -- "$target"
+else
+  exec uwsm-app -- xdg-terminal-exec -e sesh connect -- "$target"
+fi

@@ -277,6 +277,12 @@ Item {
       script: "current=$(powerprofilesctl get 2>/dev/null); omarchy-powerprofiles-list 2>/dev/null | while read -r p; do [[ -z $p ]] && continue; printf '%s\\t%s\\t%s\\n' \"$p\" \"$p\" \"$current\"; done",
       icon: "\udb81\udc0b",
       actionFor: function(value) { return "omarchy-powerprofiles-set autodetect " + Util.shellQuote(value) }
+    },
+    "sesh": {
+      script: "current=$(tmux display-message -p '#S' 2>/dev/null || true); sesh list -d -c -t -z 2>/dev/null | grep -Ev '^(_lazygitrs|_popups)' | while read -r s; do [[ -z $s ]] && continue; printf '%s\\t%s\\t%s\\n' \"$s\" \"$s\" \"$current\"; done",
+      icon: "⚡",
+      volatile: true,
+      actionFor: function(value) { return "omarchy-launch-sesh-connect " + Util.shellQuote(value) }
     }
   })
 

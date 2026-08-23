@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# omarchy-launch-sesh - Open Quickshell Omarchy menu at sesh sessions route
+
+exec omarchy-menu summon sesh

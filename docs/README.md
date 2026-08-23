@@ -18,6 +18,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 
 ### 🖥️ 3. Desktop, Terminal & Hardware (`docs/desktop/`)
 - [**System, Displays & Hardware**](desktop/system-and-hardware.md): Kanshi Wayland display hotplug profiles, Ghostty terminal enhancements (CSI u escapes, epoll, custom shaders), and battery charge thresholds / CPU power profiles.
+- [**Hyprland Animations Configuration**](desktop/hyprland-animations.md): Active animation rules, cubic Bézier curve presets, tree speeds, and override methods.
 - [**Nerd Fonts Configuration**](NERD_FONTS.md): Font glyph setup and symbol rendering.
 - [**Hyprland Crash Recovery**](HYPRLAND_CRASH_FIX.md): Crash triage and stability fixes.
 

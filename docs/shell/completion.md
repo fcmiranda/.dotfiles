@@ -148,6 +148,6 @@ If you invoked the widget while already typing a command (e.g. `git add ` or `cp
   ```
 - Ready for further flags or immediate execution.
 
-### 3. Canonical Path Resolution with Tilde Compression
-- Files selected across nested directory traversals (`ChDir` / `ctrl-l`) or from global frecency history are automatically resolved to unambiguous canonical paths (`realpath`).
-- Paths located under `$HOME` are formatted with tilde compression (`~/.dotfiles/...` instead of `/home/user/.dotfiles/...`), preserving screen real-estate while maintaining universal shell portability and preventing side-effect `cd` execution on file selections.
+### 3. Smart Path Formatting (Local Relative vs. Global Tilde)
+- **Files inside current working directory (`$PWD`)**: Formatted as clean, direct relative paths (e.g. `completion.md` or `docs/shell/completion.md`), eliminating unnecessary path noise.
+- **Files outside `$PWD`**: Formatted with canonical tilde compression (`~/.dotfiles/...` instead of full absolute `/home/user/...`), preserving screen real-estate while maintaining universal shell portability and preventing side-effect `cd` execution on file selections.

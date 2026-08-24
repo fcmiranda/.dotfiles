@@ -11,6 +11,8 @@ local home = os.getenv("HOME") or "/home/fecavmi"
 o.bind("SUPER + ALT + RETURN", "Tmux", 'uwsm-app -- xdg-terminal-exec --dir="$(omarchy-cmd-terminal-cwd)" tmux new')
 hl.unbind("SUPER + SHIFT + F")
 o.bind("SUPER + SHIFT + F", "Yazi", "uwsm-app -- ghostty -e zsh -c 'tmp=$(mktemp -t yazi-cwd.XXXXXX); trap \"rm -f $tmp\" EXIT; yazi --cwd-file=\"$tmp\"; [[ -s \"$tmp\" ]] && cd \"$(<$tmp)\"; exec zsh -i'")
+hl.unbind("SUPER + B")
+o.bind("SUPER + B", "Browser", "omarchy-launch-browser")
 o.bind("SUPER + SHIFT + B", "Browser", "omarchy-launch-browser")
 o.bind("SUPER + SHIFT + ALT + B", "Browser (private)", "omarchy-launch-browser --private")
 o.bind("SUPER + SHIFT + M", "Music", "omarchy-launch-or-focus spotify")
@@ -20,7 +22,16 @@ o.bind("SUPER + SHIFT + D", "Docker", "omarchy-launch-tui lazydocker")
 o.bind("SUPER + SHIFT + G", "Signal", 'omarchy-launch-or-focus signal "uwsm-app -- signal-desktop"')
 o.bind("SUPER + SHIFT + O", "Obsidian", 'omarchy-launch-or-focus "^obsidian$" "uwsm-app -- obsidian -disable-gpu --enable-wayland-ime"')
 o.bind("SUPER + SHIFT + W", "Typora", "uwsm-app -- typora")
-o.bind("SUPER + SHIFT + SLASH", "Passwords", "uwsm-app -- 1password")
+o.bind("SUPER + SHIFT + I", "Antigravity IDE", 'omarchy-launch-or-focus "^antigravity-ide$" "uwsm-app -- antigravity-ide"')
+
+
+-- Keybindings Menu (Super + ? or Super + /)
+hl.unbind("SUPER + SLASH")
+o.bind("SUPER + SLASH", "Keybindings", "omarchy-menu-keybindings")
+o.bind("SUPER + question", "Keybindings", "omarchy-menu-keybindings")
+o.bind("SUPER + SHIFT + SLASH", "Keybindings", "omarchy-menu-keybindings")
+
+
 
 -- Web Applications & Utilities
 o.bind("SUPER + SHIFT + A", "Animation Switcher", "omarchy-launch-tui " .. home .. "/.local/bin/hypr-anim")

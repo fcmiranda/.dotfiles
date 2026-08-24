@@ -1,20 +1,12 @@
 #!/usr/bin/env bash
 # Matchmaker backend adapter for fzf-tab (mm-ftb) using ftb preset
+# Zero-Fork & Zero-Disk I/O streaming adapter
 set -e
-
-tmp_candidates=$(mktemp "/tmp/mm-ftb-candidates-XXXXXX")
-cat > "$tmp_candidates"
-
-if [ ! -s "$tmp_candidates" ]; then
-    rm -f "$tmp_candidates"
-    exit 0
-fi
 
 # Protocol for fzf-tab: Line 1 (query), Line 2 (expect_key)
 # Streamed directly to stdout so null bytes \0 are preserved
 printf "\n\n"
 
-# Run Matchmaker with the ftb preset (-o ftb)
-mm -o ftb cmd "cat '$tmp_candidates'" < /dev/tty 2> /dev/tty || true
+# Run Matchmaker directly streaming from stdin
+exec mm -o ftb "$@"
 
-rm -f "$tmp_candidates"

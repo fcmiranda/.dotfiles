@@ -27,7 +27,7 @@ BOLD='\033[1m'
 # @PREFIX_COLOR   → color13 (mauve/pink) — question AI state
 # @FG             → foreground           — window name text
 # color11 (yellow) and color1 (red) not in @options: read colors.toml directly
-_colors_toml="$HOME/.config/omarchy/current/theme/colors.toml"
+_colors_toml="$HOME/.local/state/omarchy/current/theme/colors.toml"
 _color11=$(grep '^color11' "$_colors_toml" 2>/dev/null | sed 's/.*= *"\(.*\)"/\1/')
 _color1=$(grep '^color1 ' "$_colors_toml" 2>/dev/null | sed 's/.*= *"\(.*\)"/\1/')
 [ -z "$_color11" ] && _color11="#f9e2af"  # catppuccin yellow fallback

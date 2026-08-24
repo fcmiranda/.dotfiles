@@ -11,7 +11,7 @@ SESSION_NAME="_popups"
 
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-_tmux_style="$HOME/.config/omarchy/current/theme/tmux-style.sh"
+_tmux_style="$HOME/.local/state/omarchy/current/theme/tmux-style.sh"
 [ -f "$_tmux_style" ] || _tmux_style="$SCRIPT_DIR/tmux-style.sh"
 # shellcheck source=/dev/null
 . "$_tmux_style" 2>/dev/null || true

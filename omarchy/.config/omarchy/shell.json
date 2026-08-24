@@ -1,19 +1,10 @@
 {
   "bar": {
-    "centerAnchor": "omarchy.clock",
+    "centerAnchor": "",
     "layout": {
       "center": [
         {
-          "format": "dddd HH:mm",
-          "formatAlt": "d MMMM 'W'ww yyyy",
-          "id": "omarchy.clock",
-          "verticalFormat": "HH\n—\nmm"
-        },
-        {
           "id": "omarchy.keyboard-layout"
-        },
-        {
-          "id": "omarchy.weather"
         },
         {
           "id": "omarchy.system-update"
@@ -33,6 +24,15 @@
       "right": [
         {
           "id": "omarchy.tray"
+        },
+        {
+          "format": "dddd HH:mm",
+          "formatAlt": "d MMMM 'W'ww yyyy",
+          "id": "omarchy.clock",
+          "verticalFormat": "HH\n—\nmm"
+        },
+        {
+          "id": "omarchy.weather"
         },
         {
           "id": "omarchy.agents"

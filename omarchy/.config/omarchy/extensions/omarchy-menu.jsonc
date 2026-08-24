@@ -26,6 +26,15 @@
   //
   // Example: replace the default About action by reusing the same id. Existing
   // fields are kept unless overridden.
+  "setup.default.agent.gemini": {
+    "when": "false"
+  },
+  "setup.default.agent.agy": {
+    "icon": "󱓞",
+    "label": "Antigravity",
+    "checked": "[[ \"$(omarchy-default-agent)\" == \"agy\" ]]",
+    "action": "omarchy-default-agent agy"
+  },
   "sesh": {
     "icon": "⚡",
     "label": "Sesh Sessions",

@@ -30,8 +30,8 @@ scripts in `.shell/install/packages/` and plugin scripts in `.shell/install/plug
 
 `atuin`, `bat`, `battery`, `bluetui`, `cargo`, `claude`, `duf`, `eza`, `fed`, `figlet`, `fonts`,
 `fuzzel`, `fzf`, `gh`, `ghostty`, `git`, `herdr`, `hypr`, `kanshi`, `kitty`, `lazycommit`,
-`lazygit`, `lazygitrs`, `lolcat`, `mako`, `matchmaker`, `mise`, `nvim`, `omarchy`, `opencode`,
-`procs`, `sesh`, `starship`, `tmux`, `tuikit`, `utils`, `walker`, `waybar`, `yazi`, `zsh`,
+`lazygit`, `lazygitrs`, `lolcat`, `matchmaker`, `mise`, `nvim`, `omarchy`, `opencode`,
+`procs`, `sesh`, `starship`, `tmux`, `tuikit`, `utils`, `yazi`, `zsh`,
 `zsh-plugins`.
 
 Non-stow directories: `.bare`, `.git`, `.github`, `.shell`, `scripts`.

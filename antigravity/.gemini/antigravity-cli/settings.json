@@ -1,18 +1,4 @@
 {
-  "model": "Gemini 3.1 Pro (Low)",
-  "toolPermission": "always-proceed",
-  "artifactReviewPolicy": "always-proceed",
-  "notifications": true,
-  "permissions": {
-    "allow": [
-      "command(sleep)",
-      "command(cargo add async-trait)"
-    ]
-  },
-  "trustedWorkspaces": [
-    "/home/fecavmi/.dotfiles/main",
-    "/home/fecavmi"
-  ],
   "antigravity.commands.alwaysAllow": [
     {
       "pattern": "npm run *",
@@ -22,5 +8,29 @@
       "pattern": "git (status|log|diff|branch).*",
       "match": "regex"
     }
+  ],
+  "artifactReviewPolicy": "always-proceed",
+  "model": "Gemini 3.7 Flash (High)",
+  "notifications": true,
+  "permissions": {
+    "allow": [
+      "command(sleep)",
+      "command(cargo add async-trait)"
+    ]
+  },
+  "toolPermission": "always-proceed",
+  "trustedWorkspaces": [
+    "/home/fecavmi/.dotfiles/main",
+    "/home/fecavmi",
+    "/home/fecavmi/dev/github/lazygitrs/ai-notes",
+    "/home/fecavmi/dev/github/acpd",
+    "/home/fecavmi/scratch-test-sesh",
+    "/home/fecavmi/dev/github/speco",
+    "/home/fecavmi/dev/github/ai-memory",
+    "/home/fecavmi/dev/github/lazygitrs",
+    "/home/fecavmi/Downloads",
+    "/home/fecavmi/dev/github",
+    "/home/fecavmi/dev/github/matchmaker/fecavmi",
+    "/home/fecavmi/.dotfiles"
   ]
 }

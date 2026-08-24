@@ -1,1 +1,0 @@
-#open yazi and back to terminal

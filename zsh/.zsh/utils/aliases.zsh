@@ -23,5 +23,6 @@ alias acpd-start='systemctl --user start acpd.service'
 alias acpd-status='systemctl --user status acpd.service'
 alias acpd-logs='journalctl --user -u acpd.service -f'
 
-
-
+# Zero-Friction File Transfer helpers
+alias pt='pasteto'
+alias mt='moveto'

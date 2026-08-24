@@ -172,9 +172,10 @@ chpwd() {
     printf "\033]7;file://%s%s\033\\" "${HOST:-$HOSTNAME}" "${PWD}"
 }
 
-# ai-fix - Capture last command and terminal error output, dispatching to AI agent
+# ai-fix - Capture last command, terminal error output, git status/diff, and dispatch to AI agent
 # Usage: ai-fix [optional note]
 ai-fix() {
+    local last_status=$?
     local last_cmd
     last_cmd=$(fc -ln -1 2>/dev/null | sed 's/^[[:space:]]*//')
     if [[ -z "$last_cmd" ]]; then
@@ -184,32 +185,69 @@ ai-fix() {
 
     local user_note="$*"
     local last_output=""
+    local git_context=""
+    local repo_info=""
 
+    # 1. Capture terminal scrollback from tmux (up to 45 lines)
     if [[ -n "$TMUX" ]]; then
-        last_output=$(tmux capture-pane -p -S -60 2>/dev/null | sed '/^[[:space:]]*$/d' | tail -n 35)
+        last_output=$(tmux capture-pane -p -S -80 2>/dev/null | sed '/^[[:space:]]*$/d' | tail -n 45)
     fi
 
-    local prompt="The following command failed or produced errors in the terminal:\n\n"
-    prompt+="**Executed command:** \`$last_cmd\`\n\n"
+    # 2. Capture Git & Worktree context (branch, status, recent diff)
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        local branch
+        branch=$(git branch --show-current 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
+        local root
+        root=$(git rev-parse --show-toplevel 2>/dev/null)
+        local git_st
+        git_st=$(git status --short 2>/dev/null | head -n 15)
+        local git_diff
+        git_diff=$(git diff -U2 HEAD 2>/dev/null | head -n 60)
+        [[ -z "$git_diff" ]] && git_diff=$(git diff -U2 2>/dev/null | head -n 60)
+
+        repo_info="**Working Directory:** \`$PWD\` (Repo: \`${root##*/}\` on branch \`$branch\`)\n"
+
+        if [[ -n "$git_st" ]]; then
+            git_context+="**Git Status (Modified/Untracked):**\n\`\`\`text\n$git_st\n\`\`\`\n\n"
+        fi
+        if [[ -n "$git_diff" ]]; then
+            git_context+="**Recent Git Diff (Working Tree vs HEAD):**\n\`\`\`diff\n$git_diff\n\`\`\`\n\n"
+        fi
+    else
+        repo_info="**Working Directory:** \`$PWD\`\n"
+    fi
+
+    # 3. Build structured 360° prompt
+    local prompt="The following command failed or produced an error in the terminal:\n\n"
+    prompt+="$repo_info\n"
+    prompt+="**Executed command:** \`$last_cmd\`"
+    (( last_status != 0 )) && prompt+=" (Exit code: $last_status)"
+    prompt+="\n\n"
 
     if [[ -n "$last_output" ]]; then
         prompt+="**Recent terminal output / traceback:**\n\`\`\`text\n$last_output\n\`\`\`\n\n"
+    fi
+
+    if [[ -n "$git_context" ]]; then
+        prompt+="$git_context"
     fi
 
     if [[ -n "$user_note" ]]; then
         prompt+="**Developer note:** $user_note\n\n"
     fi
 
-    prompt+="Please analyze the error, identify the root cause concisely, and provide the direct code fix or necessary command."
+    prompt+="Please analyze the error concisely, identify the root cause in the context of the recent code changes, and provide the exact fix or shell command."
 
-    echo "󰚩 Sending context for '$last_cmd' to agent..."
+    echo "󰚩 Enviando contexto 360° de '$last_cmd' ao agente..."
 
     if command -v opencode >/dev/null 2>&1; then
         opencode "$prompt"
     elif command -v agy >/dev/null 2>&1; then
         agy "$prompt"
+    elif command -v claude >/dev/null 2>&1; then
+        claude "$prompt"
     else
-        echo "ai-fix: Neither 'opencode' nor 'agy' found in PATH."
+        echo "ai-fix: Nenhum agente ('opencode', 'agy' ou 'claude') encontrado no PATH."
         return 1
     fi
 }
@@ -274,6 +312,96 @@ acpd() {
             ;;
     esac
 }
+# pasteto - Copy files to any frecency/project directory without leaving current context
+# Usage: pasteto [files...] or pt [files...]
+# If no files are passed, opens Matchmaker to visually select files in current directory.
+pasteto() {
+    local -a sources=("$@")
 
+    # 1. Visual selection if no arguments passed
+    if (( ${#sources} == 0 )); then
+        local raw_items
+        raw_items=$(mm --no-read 2>/dev/null)
+        [[ -z "$raw_items" ]] && return 0
+        local -a lines=("${(@f)raw_items}")
+        for l in "${lines[@]}"; do
+            [[ -n "$l" ]] && sources+=("$l")
+        done
+    fi
 
+    if (( ${#sources} == 0 )); then
+        echo "pasteto: Nenhum arquivo selecionado."
+        return 1
+    fi
+
+    # 2. Select target destination directory using Matchmaker Frecency
+    local target_dir
+    target_dir=$(mm list --dirs 2>/dev/null | mm -o jump --header "PASTE TO (Escolha o Destino)")
+    [[ -z "$target_dir" ]] && return 0
+
+    target_dir="${target_dir/#\~/$HOME}"
+    target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
+
+    if [[ ! -d "$target_dir" ]]; then
+        echo "pasteto: Diretório de destino inválido: $target_dir"
+        return 1
+    fi
+
+    # 3. Perform copy
+    cp -a -- "${sources[@]}" "$target_dir/" || return 1
+    echo "✓ ${#sources[@]} item(ns) copiado(s) para $target_dir"
+
+    # 4. Optional 1-key jump to destination
+    read -q "choice?Ir para o destino agora? [y/N] "
+    echo
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+        cd "$target_dir"
+    fi
+}
+
+# moveto - Move files to any frecency/project directory without leaving current context
+# Usage: moveto [files...] or mt [files...]
+moveto() {
+    local -a sources=("$@")
+
+    # 1. Visual selection if no arguments passed
+    if (( ${#sources} == 0 )); then
+        local raw_items
+        raw_items=$(mm --no-read 2>/dev/null)
+        [[ -z "$raw_items" ]] && return 0
+        local -a lines=("${(@f)raw_items}")
+        for l in "${lines[@]}"; do
+            [[ -n "$l" ]] && sources+=("$l")
+        done
+    fi
+
+    if (( ${#sources} == 0 )); then
+        echo "moveto: Nenhum arquivo selecionado."
+        return 1
+    fi
+
+    # 2. Select target destination directory using Matchmaker Frecency
+    local target_dir
+    target_dir=$(mm list --dirs 2>/dev/null | mm -o jump --header "MOVE TO (Escolha o Destino)")
+    [[ -z "$target_dir" ]] && return 0
+
+    target_dir="${target_dir/#\~/$HOME}"
+    target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
+
+    if [[ ! -d "$target_dir" ]]; then
+        echo "moveto: Diretório de destino inválido: $target_dir"
+        return 1
+    fi
+
+    # 3. Perform move
+    mv -- "${sources[@]}" "$target_dir/" || return 1
+    echo "✓ ${#sources[@]} item(ns) movido(s) para $target_dir"
+
+    # 4. Optional 1-key jump to destination
+    read -q "choice?Ir para o destino agora? [y/N] "
+    echo
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+        cd "$target_dir"
+    fi
+}
 

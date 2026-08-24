@@ -200,8 +200,8 @@ The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/ut
 ### Context-Aware Behaviors (`<Tab>`)
 
 - **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker frecency directory selection) for zero-friction directory jumping without pre-typing `j`.
-- **Autosuggestions**: If ghost text is active, `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
-- **Active Command Line (`<Tab>` with text)**: Executes Matchmaker-powered tab completion (`mm-ftb`).
+- **Autosuggestions at End of Line**: If ghost text is active and cursor is at the end of the line (`$CURSOR -eq $#BUFFER`), `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
+- **Middle-of-Line / Arguments (`<Tab>` with text)**: Completes the specific argument at cursor position via Matchmaker-powered tab completion (`mm-ftb`) without interference from ghost text.
 - **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker directory jump interface at any prompt state.
 
 ### Auto-Spacing on Aliases & Commands (`_auto_space_if_command`)
@@ -212,7 +212,7 @@ Eliminates the friction of manually typing a trailing space before requesting ar
 
 ### Matchmaker vs FZF Completion Backends
 
-- **Matchmaker Completion (`Ctrl+N` / `<Tab>`)**: Uses [`mm-ftb`](../matchmacker/.local/bin/mm-ftb) configured with the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset.
+- **Matchmaker Completion (`Ctrl+N` / `<Tab>`)**: Uses [`mm-ftb`](../matchmaker/.local/bin/mm-ftb) configured with the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset (Zero-Fork / In-Memory direct streaming).
 - **Classic FZF Completion (`Ctrl+F`)**: Falls back to classic `fzf` completion.
 
 ### Matchmaker FZF-Tab Preset Highlights ([`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml))

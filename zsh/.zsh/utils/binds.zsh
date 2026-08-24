@@ -99,22 +99,25 @@ _auto_space_if_command() {
 }
 
 _smart_tab() {
-    local trimmed="${BUFFER// /}"
-    if [[ -z "$trimmed" ]]; then
-        # Empty command line (or whitespace only) → open matchmaker jump widget directly
+    # 1. Empty command line (or whitespace only) → open matchmaker jump widget directly
+    if [[ -z "${BUFFER// /}" ]]; then
         zle _jump_widget
-    elif [[ -n "$POSTDISPLAY" ]]; then
-        # Ghost text visible → accept autosuggestion
+        return
+    fi
+
+    # 2. Ghost text visible AND cursor at the end of the line → accept autosuggestion
+    if [[ -n "$POSTDISPLAY" && $CURSOR -eq $#BUFFER ]]; then
         zle autosuggest-accept
+        return
+    fi
+
+    # 3. Middle-of-line or argument completion → trigger Matchmaker completion via mm-ftb
+    _auto_space_if_command
+    zstyle ':fzf-tab:*' fzf-command mm-ftb
+    if (( $+widgets[fzf-tab-complete] )); then
+        zle fzf-tab-complete
     else
-        _auto_space_if_command
-        # Command line has text → trigger Matchmaker completion via mm-ftb
-        zstyle ':fzf-tab:*' fzf-command mm-ftb
-        if (( $+widgets[fzf-tab-complete] )); then
-            zle fzf-tab-complete
-        else
-            zle expand-or-complete
-        fi
+        zle expand-or-complete
     fi
 }
 zle -N _smart_tab

@@ -24,7 +24,7 @@ set -euo pipefail
 
 # ─── configurable paths (no temp dir yet; used by --render-preview self-invoke) ─
 
-LIVE_CONFIG="${OMARCHY_LIVE_CONFIG:-$HOME/.config/omarchy/current/theme/starship.toml}"
+LIVE_CONFIG="${OMARCHY_LIVE_CONFIG:-$HOME/.local/state/omarchy/current/theme/starship.toml}"
 CUSTOM_PRESETS="${OMARCHY_CUSTOM_PRESETS:-$HOME/.config/omarchy/starship-presets}"
 
 # ─── helpers ──────────────────────────────────────────────────────────────────

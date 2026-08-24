@@ -31,7 +31,9 @@ Defined in [`zsh/.zsh/utils/functions.zsh`](../zsh/.zsh/utils/functions.zsh):
 | `wtr [old-name] <new-name>` | Rename a git worktree directory and its branch atomically. |
 | `wtj` | Interactively select and jump (`cd`) into a Git Worktree via Matchmaker (`mm -o wt`). |
 | `bd <parent-dir>` | Jump directly to an ancestor directory by name without counting `cd ../..` levels. |
-| `ai-fix [note]` | Capture the last executed command and recent terminal error logs, sending them directly to the AI agent. |
+| `ai-fix [note]` | **360° AI Error Dispatch**: Captures last command, exit code, terminal scrollback (45 lines), active Git branch/worktree, `git status`, and recent uncommitted `git diff`, dispatching directly to `opencode`, `agy`, or `claude`. |
+| `pasteto [files...]` / `pt` | **Zero-Friction Copy**: Interactively pick destination directory using Matchmaker frecency and copy files without leaving current context. |
+| `moveto [files...]` / `mt` | **Zero-Friction Move**: Interactively pick destination directory using Matchmaker frecency and move files without leaving current context. |
 
 ## Matchmaker Presets (`mm -o <preset>`)
 

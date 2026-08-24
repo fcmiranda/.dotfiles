@@ -12,14 +12,14 @@ The `_smart_tab` widget detects command-line state and dynamically routes the ta
 flowchart TD
     A["User presses <Tab>"] --> B{"Is command buffer empty?"}
     B -- Yes --> C["Open _jump_widget (Matchmaker Directory Jump)"]
-    B -- No --> D{"Is ghost text (autosuggestion) active?"}
-    D -- Yes --> E["Accept autosuggestion (autosuggest-accept)"]
-    D -- No --> F["Auto-space & trigger Matchmaker completion (mm-ftb)"]
+    B -- No --> D{"Is ghost text active AND cursor at end of line?"}
+    D -- "Yes ($CURSOR == $#BUFFER)" --> E["Accept autosuggestion (autosuggest-accept)"]
+    D -- "No (Mid-command or arguments)" --> F["Auto-space & trigger Matchmaker completion (mm-ftb)"]
 ```
 
 - **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker frecency directory selection) for zero-friction directory jumping without pre-typing `j`.
-- **Autosuggestions**: If ghost text is visible, `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
-- **Active Command Line (`<Tab>` with text)**: Executes Matchmaker-powered tab completion (`mm-ftb`).
+- **Autosuggestions at End of Line**: If ghost text is visible and the cursor is at the end of the line (`$CURSOR -eq $#BUFFER`), `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
+- **Middle-of-Line / Arguments (`<Tab>` with text)**: When editing in the middle of a command, `<Tab>` bypasses ghost text and opens Matchmaker-powered tab completion (`mm-ftb`) for the specific argument at the cursor.
 - **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker directory jump interface at any prompt state.
 
 ---
@@ -39,9 +39,9 @@ Eliminates the friction of having to manually type a trailing space before reque
 
 ## 3. Dual Picker Backends (`Ctrl+N` vs `Ctrl+F`)
 
-| Keybinding | Backend | Engine | Purpose |
+| Keybinding | Backend | Engine | Architecture & Purpose |
 | :--- | :--- | :--- | :--- |
-| **`Ctrl+N`** / **`<Tab>`** | **Matchmaker** | [`mm-ftb`](../../matchmacker/.local/bin/mm-ftb) | High-performance Nucleo matching with preset [`ftb.toml`](../../matchmaker/.config/matchmaker/presets/ftb.toml) |
+| **`Ctrl+N`** / **`<Tab>`** | **Matchmaker** | [`mm-ftb`](../../matchmaker/.local/bin/mm-ftb) | **Zero-Fork & Zero-Disk I/O**: Direct in-memory streaming with preset [`ftb.toml`](../../matchmaker/.config/matchmaker/presets/ftb.toml) (<2ms latency) |
 | **`Ctrl+F`** | **FZF** | `fzf` | Classic fzf fallback picker |
 
 ---

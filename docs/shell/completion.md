@@ -110,3 +110,44 @@ Triggered on empty prompt via `<Tab>` or directly with `Ctrl+T`. Optimized for d
 | **`h` / `l`** | Results (Nav) | `ChDir` | Vim-style directory navigation |
 | **`j` / `k`** | Results (Nav) | `Down / Up` | Vim-style list navigation |
 | **`Enter`** | All | `Accept` | Change shell working directory to selection |
+
+---
+
+## 7. Zero-Friction & Object-First Buffer Ergonomics
+
+When you exit Matchmaker (`_jump_widget`), the widget handles output using **Context-Aware Buffer Placement** and **Canonical Path Resolution**:
+
+```mermaid
+flowchart TD
+    A["User selects item(s) & hits <Enter>"] --> B{"Is it a single directory?"}
+    B -- "Yes (and prompt was empty)" --> C["cd into directory immediately"]
+    B -- "No (file, multiple items, or mid-command)" --> D["Resolve Canonical Path (~ compression)"]
+    D --> E{"Was prompt buffer empty?"}
+    E -- "Yes (Empty Prompt)" --> F["Set BUFFER=' file1 file2' & CURSOR=0 (Object-First)"]
+    E -- "No (Mid-Command)" --> G["Append 'file1 file2 ' to current cursor position"]
+```
+
+### 1. Object-First Command Composition (`CURSOR=0` on Empty Buffer)
+When starting from an empty prompt (e.g. hitting `<Tab>` or `Ctrl+T`), the mental model is **"Object First, Verb Second"**:
+1. You open Matchmaker and pick `completion.md` (or multiple files).
+2. The widget places the cursor at index `0` with a leading space:
+   ```zsh
+   ❯ █ ~/.dotfiles/main/docs/shell/completion.md
+   ```
+3. You immediately type your desired tool (`nvim`, `cat`, `rm`, `bat`) and hit `Enter`:
+   ```zsh
+   ❯ nvim ~/.dotfiles/main/docs/shell/completion.md [ENTER]
+   ```
+4. **Zero Cursor Navigation**: In Zsh, pressing `Enter` executes the full line buffer regardless of cursor position. No `Home`, `Ctrl+A`, or cursor repositioning keystrokes required.
+
+### 2. Context-Aware Mid-Command Appending
+If you invoked the widget while already typing a command (e.g. `git add ` or `cp `):
+- The widget appends the formatted selection directly at your active cursor with a trailing space:
+  ```zsh
+  ❯ git add ~/.dotfiles/main/docs/shell/completion.md █
+  ```
+- Ready for further flags or immediate execution.
+
+### 3. Canonical Path Resolution with Tilde Compression
+- Files selected across nested directory traversals (`ChDir` / `ctrl-l`) or from global frecency history are automatically resolved to unambiguous canonical paths (`realpath`).
+- Paths located under `$HOME` are formatted with tilde compression (`~/.dotfiles/...` instead of `/home/user/.dotfiles/...`), preserving screen real-estate while maintaining universal shell portability and preventing side-effect `cd` execution on file selections.

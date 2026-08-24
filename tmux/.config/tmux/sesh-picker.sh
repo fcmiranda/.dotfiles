@@ -58,13 +58,7 @@ MM_BIN="$HOME/.local/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$HOME/.cargo/bin/mm"
 [ -x "$MM_BIN" ] || MM_BIN="$(command -v mm 2>/dev/null || echo "mm")"
 
-<<<<<<< HEAD
-sesh list --icons | grep -Ev '(_lazygitrs|_popups|[[:space:]]+\.)' | ~/.cargo/bin/mm \
-=======
-echo "[$(date)] sesh list --icons | $MM_BIN -o $SCRIPT_DIR/sesh-picker.toml --color \"${TMUX_COLOR_SPEC:-}\"" >> /tmp/sesh-picker-mm.log
-
 sesh list --icons | grep -Ev '(_lazygitrs|_popups|[[:space:]]+\.)' | "$MM_BIN" \
->>>>>>> 7bbe675 (fix(tmux,sesh): resolve MM_BIN with ~/.local/bin fallback for non-interactive shells)
   -o "$SCRIPT_DIR/sesh-picker.toml" \
   --color "${TMUX_COLOR_SPEC:-}" \
 | (read chosen && [ -n "$chosen" ] && sesh connect "$chosen"); true

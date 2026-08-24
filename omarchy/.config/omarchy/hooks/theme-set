@@ -3,127 +3,24 @@
 # Called by omarchy-hook theme-set with the new theme name as $1.
 
 THEME_NAME="$1"
-OMARCHY_PATH="${OMARCHY_PATH:-$HOME/.local/share/omarchy}"
-CURRENT_THEME_DIR="$HOME/.config/omarchy/current/theme"
-TEMPLATES_DIR="$OMARCHY_PATH/default/themed"
-USER_TEMPLATES_DIR="$HOME/.config/omarchy/themed-overrides"
+CURRENT_THEME_DIR="$HOME/.local/state/omarchy/current/theme"
 
 # Reload tmux configuration so new theme colors apply immediately
 if tmux info &>/dev/null; then
-  tmux source-file ~/.config/tmux/tmux.conf
+  tmux source-file ~/.config/tmux/tmux.conf 2>/dev/null || true
   tmux refresh-client 2>/dev/null || true
 fi
 
-# Re-render user templates with hooked-theme color overrides (or base colors if no hooked theme)
-hex_to_rgb() {
-  local hex="${1#\#}"
-  printf "%d,%d,%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
-}
-
-append_colors_to_sed() {
-  local colors_file="$1"
-  local sed_file="$2"
-  while IFS='=' read -r key value || [[ -n $key ]]; do
-    key="${key//[\"\' ]/}"                # strip quotes and spaces from key
-    [[ $key && $key != \#* ]] || continue # skip empty lines and comments
-    value="${value#*[\"\']}"
-    value="${value%%[\"\']*}" # extract value between quotes (ignores inline comments)
-
-    printf 's|{{ %s }}|%s|g\n' "$key" "$value"            # {{ key }} -> value
-    printf 's|{{ %s_strip }}|%s|g\n' "$key" "${value#\#}" # {{ key_strip }} -> value without leading #
-    if [[ $value =~ ^# ]]; then
-      rgb=$(hex_to_rgb "$value")
-      echo "s|{{ ${key}_rgb }}|${rgb}|g"
-    fi
-  done <"$colors_file" >>"$sed_file"
-}
-
-shopt -s nullglob
-
-# if /home/fecavmi/.config/omarchy/current/theme/hyprland.conf exists rename it to /home/fecavmi/.config/omarchy/current/theme/hyprland.omarchy.conf
-# but only if it's the original theme file (i.e. does not already source hyprland.omarchy.conf)
-if [[ -f "$CURRENT_THEME_DIR/hyprland.conf" ]]; then
-  if ! grep -q "hyprland.omarchy.conf" "$CURRENT_THEME_DIR/hyprland.conf"; then
-    cp "$CURRENT_THEME_DIR/hyprland.conf" "$CURRENT_THEME_DIR/hyprland.omarchy.conf"
+# Sync acpd.toml directly to ~/.config/acpd/config.toml and reload acpd
+if [[ -f "$CURRENT_THEME_DIR/acpd.toml" ]]; then
+  mkdir -p "$HOME/.config/acpd"
+  cp "$CURRENT_THEME_DIR/acpd.toml" "$HOME/.config/acpd/config.toml"
+  if systemctl --user is-active --quiet acpd 2>/dev/null; then
+    systemctl --user restart acpd 2>/dev/null || true
+  else
+    pkill -HUP acpd 2>/dev/null || true
   fi
 fi
 
-# Re-render all templates into the active theme dir
-# User templates take precedence over built-in templates with the same filename
-declare -A rendered_templates
-for tpl in "$USER_TEMPLATES_DIR"/*.tpl "$HOME/.config/omarchy/themed"/*.tpl "$TEMPLATES_DIR"/*.tpl; do
-  [[ -r "$tpl" ]] || continue  # skip dangling symlinks or unreadable files
-  filename=$(basename "$tpl" .tpl)
-  [[ ${rendered_templates[$filename]+_} ]] && continue
-  rendered_templates[$filename]=1
-
-  sed_script=$(mktemp)
-
-  # Theme overrides first so they take precedence over base theme colors (first-match wins in sed)
-  if [[ $filename == "starship.toml" ]]; then
-    starship_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/starship/colors.toml"
-    [[ -f $starship_override ]] && append_colors_to_sed "$starship_override" "$sed_script"
-  elif [[ $filename == "hyprland.conf" ]]; then
-    hyprland_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/hyprland/colors.toml"
-    [[ -f $hyprland_override ]] && append_colors_to_sed "$hyprland_override" "$sed_script"
-  fi
-
-  # Append original theme colors if available, falling back to current theme colors
-  local_theme_dir="${THEME_NAME,,}"
-  if [[ -f "$HOME/.config/omarchy/themes/$THEME_NAME/colors.toml" ]]; then
-    append_colors_to_sed "$HOME/.config/omarchy/themes/$THEME_NAME/colors.toml" "$sed_script"
-  elif [[ -f "$OMARCHY_PATH/themes/$THEME_NAME/colors.toml" ]]; then
-    append_colors_to_sed "$OMARCHY_PATH/themes/$THEME_NAME/colors.toml" "$sed_script"
-  elif [[ -f "$OMARCHY_PATH/themes/$local_theme_dir/colors.toml" ]]; then
-    append_colors_to_sed "$OMARCHY_PATH/themes/$local_theme_dir/colors.toml" "$sed_script"
-  fi
-  append_colors_to_sed "$CURRENT_THEME_DIR/colors.toml" "$sed_script"
-
-  sed -f "$sed_script" "$tpl" >"$CURRENT_THEME_DIR/$filename"
-  rm "$sed_script"
-
-  # Sync acpd.toml directly to ~/.config/acpd/config.toml and reload acpd
-  if [[ $filename == "acpd.toml" ]]; then
-    mkdir -p "$HOME/.config/acpd"
-    cp "$CURRENT_THEME_DIR/acpd.toml" "$HOME/.config/acpd/config.toml"
-    if systemctl --user is-active --quiet acpd 2>/dev/null; then
-      systemctl --user restart acpd 2>/dev/null || true
-    else
-      pkill -HUP acpd 2>/dev/null || true
-    fi
-  fi
-done
-
-# Merge theme override colors into the active theme so subsequent tools see them
-starship_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/starship/colors.toml"
-hyprland_override="$HOME/.config/omarchy/theme-overrides/$THEME_NAME/hyprland/colors.toml"
-if [[ -f $starship_override || -f $hyprland_override ]]; then
-  : >"$CURRENT_THEME_DIR/colors.toml"
-  if [[ -f $starship_override ]]; then
-    cat "$starship_override" >>"$CURRENT_THEME_DIR/colors.toml"
-    echo >>"$CURRENT_THEME_DIR/colors.toml"
-  fi
-  if [[ -f $hyprland_override ]]; then
-    cat "$hyprland_override" >>"$CURRENT_THEME_DIR/colors.toml"
-    echo >>"$CURRENT_THEME_DIR/colors.toml"
-  fi
-fi
-
-# Restart services to apply re-rendered configs
-omarchy-restart-hyprctl
-# Clear stale uwsm app-daemon error flag (can be left behind if daemon crashed
-# during a previous hyprctl reload when /run/user tmpfs was full)
+# Clear stale uwsm app-daemon error flag if any
 rm -f "/run/user/$UID/uwsm/app_daemon_error"
-
-# Reload terminal emulator config.
-# We avoid `omarchy-restart-terminal` here because its `killall -SIGUSR2 ghostty`
-# hits helper subprocesses that don't handle the signal, causing them to die and
-# triggering a spurious "App failure" mako notification.
-
-
-
-# Write nvim colorscheme name — running Neovim instances pick it up via the
-# fs_event watcher in autocmds.lua, which handles install + apply automatically.
-if [[ -f $CURRENT_THEME_DIR/neovim.lua ]]; then
-  nvim_cs=$(grep -oP 'colorscheme\s*=\s*"\K[^"]+' "$CURRENT_THEME_DIR/neovim.lua" | head -1)
-fi

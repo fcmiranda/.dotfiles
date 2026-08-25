@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# TUI Hyprland Border Gradient & Style Switcher using Matchmaker (mm)
+set -e
+
+BORDERS_DIR="$HOME/.config/hypr/borders"
+TPL_DEST="$HOME/.config/omarchy/themed/hyprland.lua.tpl"
+REPO_TPL_DEST="$HOME/.dotfiles/main/omarchy/.config/omarchy/themed/hyprland.lua.tpl"
+PRESET_FILE="$HOME/.config/matchmaker/presets/borders.toml"
+
+# Ensure matchmaker binary is accessible
+MM_BIN=$(command -v mm || echo "$HOME/.local/bin/mm")
+
+if [ ! -x "$MM_BIN" ]; then
+    echo "Error: matchmaker (mm) binary not found!" >&2
+    exit 1
+fi
+
+if [ ! -d "$BORDERS_DIR" ]; then
+    echo "Error: Borders directory not found at $BORDERS_DIR" >&2
+    exit 1
+fi
+
+# Run matchmaker TUI with the borders preset
+SELECTED_LINE=$("$MM_BIN" --no-read --config "$PRESET_FILE")
+
+# Exit if canceled or empty
+if [ -z "$SELECTED_LINE" ]; then
+    # Re-apply current saved theme to ensure clean state if canceled
+    current_theme=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null || echo "everforest")
+    omarchy theme set "$current_theme" >/dev/null 2>&1 || true
+    exit 0
+fi
+
+# Extract preset path (column 2)
+PRESET_PATH="${SELECTED_LINE#*$'\t'}"
+[ -z "$PRESET_PATH" ] && PRESET_PATH="$SELECTED_LINE"
+
+if [ -f "$PRESET_PATH" ]; then
+    # 1. Update active user template and dotfiles repository template
+    mkdir -p "$(dirname "$TPL_DEST")"
+    cp "$PRESET_PATH" "$TPL_DEST"
+    [ -d "$(dirname "$REPO_TPL_DEST")" ] && cp "$PRESET_PATH" "$REPO_TPL_DEST"
+
+    # 2. Re-render theme with the newly chosen border template
+    current_theme=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null || echo "everforest")
+    omarchy theme set "$current_theme" >/dev/null 2>&1 || true
+
+    # 3. Read title for feedback
+    read -r TITLE < "$PRESET_PATH" || true
+    TITLE="${TITLE#--}"
+    TITLE="${TITLE#\#}"
+    TITLE="${TITLE# }"
+    [ -z "$TITLE" ] && TITLE="${PRESET_PATH##*/}"
+
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Border Style Applied" "$TITLE"
+    fi
+    echo "🌈 Border style '$TITLE' applied successfully across all themes!"
+else
+    echo "Error: Preset file not found: $PRESET_PATH" >&2
+    exit 1
+fi

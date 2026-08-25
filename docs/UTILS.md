@@ -43,6 +43,9 @@ Specialized TUI pickers configured in [`matchmaker/.config/matchmaker/presets/`]
 * `mm -o memory` — AI memory, `AGENTS.md`, and project rules explorer.
 * `mm -o jump` — Interactive directory navigation with frecency and tree view (`nav_mode`).
 * `mm -o ftb` — High-performance multi-column tab completion for `fzf-tab`.
+* `mm -o borders` / `hypr-border` — Interactive Hyprland border gradient switcher with real-time live preview (`SUPER + ALT + B`).
+* `mm -o animations` / `hypr-anim` — Interactive Hyprland window animation switcher (`SUPER + SHIFT + A`).
+
 
 See [MATCHMAKER_PRESETS.md](MATCHMAKER_PRESETS.md) for full documentation.
 

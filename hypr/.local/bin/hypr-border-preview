@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -e
+
+TPL_FILE="$1"
+[ -f "$TPL_FILE" ] || exit 0
+
+COLORS_FILE="$HOME/.local/state/omarchy/current/theme/colors.toml"
+
+if [ -f "$COLORS_FILE" ]; then
+    sed_script=$(mktemp)
+    while IFS='=' read -r key val || [ -n "$key" ]; do
+        key="${key//[\"\' ]/}"
+        [[ $key && $key != \#* ]] || continue
+        val="${val#*[\"\']}"
+        val="${val%%[\"\']*}"
+        val_strip="${val#\#}"
+        printf 's|{{ %s_strip }}|%s|g\n' "$key" "$val_strip" >> "$sed_script"
+        printf 's|{{ %s }}|%s|g\n' "$key" "$val" >> "$sed_script"
+    done < "$COLORS_FILE"
+
+    rendered_lua=$(sed -f "$sed_script" "$TPL_FILE")
+    rm -f "$sed_script"
+
+    hyprctl eval "$rendered_lua" >/dev/null 2>&1 || true
+fi
+
+bat --paging=never --style=header,grid,numbers --color=always -l lua "$TPL_FILE" 2>/dev/null || cat "$TPL_FILE"

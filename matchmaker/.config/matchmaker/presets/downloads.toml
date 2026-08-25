@@ -2,7 +2,7 @@
 # Optimized for browsing ~/Downloads with native terminal image previews
 
 [tui]
-percentage = 70
+percentage = 20 # height
 min = 15
 
 [ui]

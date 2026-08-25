@@ -4,21 +4,23 @@ nav_bar = "Plain"
 nav_color = "Magenta"
 
 [tui]
-percentage = 60
+percentage = 20 # height
 min = 12
-max = 80
+max = 40
 
 [footer]
-content = " [j/k, ↓/↑] Estilo  •  [h/l, ←/→, +/-] Velocidade  •  [r] Ângulo (45°)  •  [Enter] Salvar  •  [Esc/q] Cancelar"
-style.fg = "Magenta"
-style.modifier = "BOLD"
+content = " {magenta,bold:[Enter]} {darkgray:Salvar}  •  {cyan,bold:[j/k | ↓/↑]} {darkgray:Estilo}  •  {yellow,bold:[h/l | ←/→]} {darkgray:Velocidade}  •  {blue,bold:[r]} {darkgray:Girar Ângulo}  •  {darkgray,bold:[Esc / q]} {darkgray:Cancelar}"
+row_connection = "Full"
+match_indent = false
 
 [preview]
 show = true
 wrap = false
 
 [preview.border]
-sides = ""
+title_fg = "Cyan"
+color = "Blue"
+type = "Rounded"
 
 [previewer]
 debounce_ms = 10
@@ -26,7 +28,7 @@ delay_clear = false
 
 [[preview.layout]]
 command = "hypr-border-preview {2}"
-side = "bottom"
+side = "right"
 percentage = 22
 
 [columns]

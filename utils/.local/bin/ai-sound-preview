@@ -2,11 +2,30 @@
 # ai-sound-preview — Ultra-fast audio previewer & metadata inspector for Matchmaker (mm)
 set -eo pipefail
 
-SOUND_PATH="${1:-}"
+QUIET=0
+SOUND_PATH=""
+
+for arg in "$@"; do
+  case "$arg" in
+    -q|--quiet|--play-only)
+      QUIET=1
+      ;;
+    *)
+      SOUND_PATH="$arg"
+      ;;
+  esac
+done
+
+if [[ "$(basename "$0")" == "ai-sound-play" ]]; then
+  QUIET=1
+fi
+
 PID_FILE="/tmp/ai-sound-preview-$USER.pid"
 
 if [[ -z "$SOUND_PATH" || ! -f "$SOUND_PATH" ]]; then
-  echo -e "\033[38;5;242m󰎁  No sound file selected.\033[0m"
+  if [[ $QUIET -eq 0 ]]; then
+    echo -e "\033[38;5;242m󰎁  No sound file selected.\033[0m"
+  fi
   exit 0
 fi
 
@@ -33,6 +52,11 @@ fi
 # 3. Play audio in an isolated session (setsid) so it survives parent process termination
 setsid $PLAY_BIN "$SOUND_PATH" </dev/null >/dev/null 2>&1 &
 echo "$!" > "$PID_FILE"
+
+# If quiet mode (replay via keybinding), exit now without printing anything to stdout
+if [[ $QUIET -eq 1 ]]; then
+  exit 0
+fi
 
 # 4. Extract file metadata
 FILENAME="$(basename "$SOUND_PATH")"

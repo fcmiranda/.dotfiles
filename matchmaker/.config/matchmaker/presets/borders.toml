@@ -48,7 +48,8 @@ done
 '''
 
 [query]
-prompt = " 🌈 Hyprland Border Styles > "
+prompt = ">"
+status_inline = true
 
 [start]
 mode = "nav"

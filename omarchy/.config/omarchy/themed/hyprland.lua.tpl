@@ -1,4 +1,5 @@
-local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ magenta_strip }}ee)" }, angle = 45 }
+-- Minimal Contrast (Accent + Muted)
+local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ muted_strip }}88)" }, angle = 45 }
 local inactive_border_color = "rgba(595959aa)"
 
 hl.config({
@@ -8,7 +9,6 @@ hl.config({
       inactive_border = inactive_border_color,
     },
   },
-
   group = {
     col = {
       border_active = active_border_color,

@@ -5,8 +5,8 @@ nav_color = "Magenta"
 
 [tui]
 percentage = 20 # height
-min = 12
-max = 40
+min = 15
+max = 85
 
 [footer]
 content = " {magenta,bold:[Enter]} {darkgray:Salvar}  •  {cyan,bold:[j/k | ↓/↑]} {darkgray:Estilo}  •  {yellow,bold:[h/l | ←/→]} {darkgray:Velocidade}  •  {blue,bold:[r]} {darkgray:Girar Ângulo}  •  {darkgray,bold:[Esc / q]} {darkgray:Cancelar}"
@@ -29,7 +29,7 @@ delay_clear = false
 [[preview.layout]]
 command = "hypr-border-preview {2}"
 side = "right"
-percentage = 22
+percentage = 55
 
 [columns]
 split = "\t"

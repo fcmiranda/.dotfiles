@@ -9,6 +9,11 @@ resolve_sound() {
   local evt="$1"
   local home="$HOME"
   
+  # Check explicit mute markers
+  if [[ -f "$home/.config/omarchy/sounds/muted" || -f "$home/.config/acpd/sounds/muted" ]]; then
+    return 1
+  fi
+
   # Check pointer files
   local pointers=(
     "$home/.config/omarchy/sounds/ai-${evt}.sound"
@@ -20,6 +25,9 @@ resolve_sound() {
     if [[ -f "$ptr" ]]; then
       local val
       val="$(< "$ptr")"
+      if [[ "$val" =~ ^(none|off|disabled|muted)$ ]]; then
+        return 1
+      fi
       val="${val/#\~/$home}"
       if [[ -f "$val" ]]; then
         echo "$val"

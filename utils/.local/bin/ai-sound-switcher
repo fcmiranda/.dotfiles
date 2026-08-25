@@ -37,6 +37,22 @@ fi
 SOUND_PATH="${SELECTED_LINE#*$'\t'}"
 [[ -z "$SOUND_PATH" ]] && SOUND_PATH="$SELECTED_LINE"
 
+if [[ "$SOUND_PATH" == "none" || "$SOUND_PATH" == "off" || "$SOUND_PATH" == "disabled" ]]; then
+  mkdir -p "$HOME/.config/omarchy/sounds" "$HOME/.config/acpd/sounds"
+  echo "none" > "$HOME/.config/omarchy/sounds/ai-response.sound"
+  echo "none" > "$HOME/.config/acpd/sounds/response.sound"
+  rm -f "$HOME/.config/omarchy/sounds/ai-response.wav" "$HOME/.config/acpd/sounds/ai-response.wav"
+
+  if command -v omarchy-notification-send >/dev/null 2>&1; then
+    omarchy-notification-send "AI Sounds Muted" "Sound notifications have been disabled" -g "󰝟" -u normal 2>/dev/null || true
+  elif command -v notify-send >/dev/null 2>&1; then
+    notify-send -a "AI Notification" -i "audio-volume-muted" "AI Sounds Muted" "Sound notifications have been disabled" 2>/dev/null || true
+  fi
+
+  echo -e "\033[1;33m󰝟 AI response sound notifications disabled.\033[0m"
+  exit 0
+fi
+
 if [[ -f "$SOUND_PATH" ]]; then
   # 1. Update persistent state pointers
   mkdir -p "$HOME/.config/omarchy/sounds" "$HOME/.config/acpd/sounds"

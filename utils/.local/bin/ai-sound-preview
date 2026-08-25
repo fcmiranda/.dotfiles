@@ -22,6 +22,24 @@ fi
 
 PID_FILE="/tmp/ai-sound-preview-$USER.pid"
 
+if [[ "$SOUND_PATH" == "none" || "$SOUND_PATH" == "off" || "$SOUND_PATH" == "disabled" ]]; then
+  # Kill any running sound
+  if [[ -f "$PID_FILE" ]]; then
+    old_pid=$(< "$PID_FILE" 2>/dev/null || true)
+    [[ -n "$old_pid" ]] && kill -9 "$old_pid" 2>/dev/null || true
+  fi
+  if [[ $QUIET -eq 0 ]]; then
+    echo ""
+    echo -e "  \033[1;31m󰝟 AUDIO NOTIFICATIONS DISABLED\033[0m"
+    echo -e "  \033[38;5;240m───────────────────────────────────────────────\033[0m"
+    echo -e "  \033[1;37mStatus:\033[0m     \033[1;31mMuted / No sound effects\033[0m"
+    echo ""
+    echo -e "  \033[38;5;245mSelecting this will silence all AI response chimes.\033[0m"
+    echo ""
+  fi
+  exit 0
+fi
+
 if [[ -z "$SOUND_PATH" || ! -f "$SOUND_PATH" ]]; then
   if [[ $QUIET -eq 0 ]]; then
     echo -e "\033[38;5;242m󰎁  No sound file selected.\033[0m"

@@ -54,6 +54,13 @@ format_name() {
   echo "$name"
 }
 
+# 0. Disable / Mute option
+mute_marker=""
+if [ "$ACTIVE_SOUND" = "none" ] || [ "$ACTIVE_SOUND" = "off" ] || [ "$ACTIVE_SOUND" = "disabled" ]; then
+  mute_marker=" 󰄴 (Active)"
+fi
+printf "󰝟 None / Muted (Disable Sounds)%s\tnone\n" "$mute_marker"
+
 # 1. Curated Studio AI Sounds
 for file in "$HOME/.local/share/sounds/ai"/*.wav; do
   [ -f "$file" ] || continue

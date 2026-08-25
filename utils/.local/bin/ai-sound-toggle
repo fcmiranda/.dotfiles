@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# ai-sound-toggle — Quickly toggle AI sound notifications on/off
+set -eo pipefail
+
+STATE_FILE="$HOME/.config/omarchy/sounds/ai-response.sound"
+LAST_FILE="$HOME/.config/omarchy/sounds/ai-response.last"
+DEFAULT_SOUND="$HOME/.local/share/sounds/ai/01-crystal-chime.wav"
+
+mkdir -p "$HOME/.config/omarchy/sounds" "$HOME/.config/acpd/sounds"
+
+CURRENT=""
+[[ -f "$STATE_FILE" ]] && CURRENT="$(< "$STATE_FILE")"
+
+if [[ "$CURRENT" == "none" || "$CURRENT" == "off" || "$CURRENT" == "disabled" || -z "$CURRENT" ]]; then
+  # UNMUTE: Restore previous sound or default
+  TARGET="$DEFAULT_SOUND"
+  if [[ -f "$LAST_FILE" ]]; then
+    saved="$(< "$LAST_FILE")"
+    [[ -f "$saved" ]] && TARGET="$saved"
+  fi
+
+  echo "$TARGET" > "$STATE_FILE"
+  echo "$TARGET" > "$HOME/.config/acpd/sounds/response.sound"
+  ln -sf "$TARGET" "$HOME/.config/omarchy/sounds/ai-response.wav"
+  ln -sf "$TARGET" "$HOME/.config/acpd/sounds/ai-response.wav"
+
+  FILENAME="$(basename "$TARGET")"
+  TITLE="${FILENAME%.*}"
+  TITLE="${TITLE#*-}"
+  TITLE="${TITLE//-/ }"
+  TITLE="$(echo "$TITLE" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')"
+
+  if command -v omarchy-notification-send >/dev/null 2>&1; then
+    omarchy-notification-send "AI Sounds Enabled" "Restored: $TITLE" -g "󱚤" -u normal 2>/dev/null || true
+  elif command -v notify-send >/dev/null 2>&1; then
+    notify-send -a "AI Notification" -i "audio-speakers" "AI Sounds Enabled" "Restored: $TITLE" 2>/dev/null || true
+  fi
+  ai-sound-play "$TARGET" 2>/dev/null || true
+  echo "🔊 AI Sound notifications enabled ($TITLE)."
+else
+  # MUTE: Save current sound and set to none
+  echo "$CURRENT" > "$LAST_FILE"
+  echo "none" > "$STATE_FILE"
+  echo "none" > "$HOME/.config/acpd/sounds/response.sound"
+  rm -f "$HOME/.config/omarchy/sounds/ai-response.wav" "$HOME/.config/acpd/sounds/ai-response.wav"
+
+  if command -v omarchy-notification-send >/dev/null 2>&1; then
+    omarchy-notification-send "AI Sounds Muted" "Sound notifications disabled" -g "󰝟" -u normal 2>/dev/null || true
+  elif command -v notify-send >/dev/null 2>&1; then
+    notify-send -a "AI Notification" -i "audio-volume-muted" "AI Sounds Muted" "Sound notifications disabled" 2>/dev/null || true
+  fi
+  echo "󰝟 AI Sound notifications muted."
+fi

@@ -4,13 +4,13 @@ nav_bar = "Plain"
 nav_color = "Magenta"
 
 [tui]
-percentage = 80
-min = 10
-max = 100
+percentage = 60
+min = 15
+max = 80
 
 [preview]
 show = true
-wrap = true
+wrap = false
 
 [preview.border]
 title_fg = "Magenta"
@@ -18,13 +18,13 @@ color = "Cyan"
 type = "Rounded"
 
 [previewer]
-debounce_ms = 15
-delay_clear = true
+debounce_ms = 10
+delay_clear = false
 
 [[preview.layout]]
 command = "hypr-border-preview {2}"
-side = "right"
-percentage = 60
+side = "bottom"
+percentage = 35
 
 [columns]
 split = "\t"
@@ -48,7 +48,7 @@ done
 '''
 
 [query]
-prompt = ">"
+prompt = " 🌈 Hyprland Border Styles > "
 status_inline = true
 
 [start]
@@ -58,8 +58,24 @@ additional_commands = []
 [binds]
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
+"up" = "Up"
+"down" = "Down"
+"right" = "Execute(hypr-border-control speed_up {2})"
+"left" = "Execute(hypr-border-control speed_down {2})"
+"l" = "Execute(hypr-border-control speed_up {2})"
+"h" = "Execute(hypr-border-control speed_down {2})"
+"+" = "Execute(hypr-border-control speed_up {2})"
+"=" = "Execute(hypr-border-control speed_up {2})"
+"-" = "Execute(hypr-border-control speed_down {2})"
+"r" = "Execute(hypr-border-control rotate_angle {2})"
 "nav^^g" = "Pos(0)"
 "nav^^G" = "Pos(-1)"
+"nav^^h" = "Execute(hypr-border-control speed_down {2})"
+"nav^^l" = "Execute(hypr-border-control speed_up {2})"
+"nav^^r" = "Execute(hypr-border-control rotate_angle {2})"
+"nav^^+" = "Execute(hypr-border-control speed_up {2})"
+"nav^^=" = "Execute(hypr-border-control speed_up {2})"
+"nav^^-" = "Execute(hypr-border-control speed_down {2})"
 "nav^^q" = "Quit"
 "nav^^esc" = "Quit"
 "nav^^enter" = "Accept"

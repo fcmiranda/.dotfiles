@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Real-time interactive control for Hyprland border speed & angle in Matchmaker
+set -e
+
+STATE_FILE="/dev/shm/hypr-border-state"
+COLORS_FILE="$HOME/.local/state/omarchy/current/theme/colors.toml"
+
+ACTION="$1"
+TPL_FILE="$2"
+
+SPEED=100
+ANGLE=45
+
+if [ -f "$STATE_FILE" ]; then
+    source "$STATE_FILE" 2>/dev/null || true
+fi
+
+case "$ACTION" in
+    speed_up)
+        case "$SPEED" in
+            0) SPEED=200 ;;
+            200) SPEED=100 ;;
+            100) SPEED=50 ;;
+            50) SPEED=25 ;;
+            25) SPEED=10 ;;
+            10) SPEED=10 ;;
+            *) SPEED=50 ;;
+        esac
+        ;;
+    speed_down)
+        case "$SPEED" in
+            10) SPEED=25 ;;
+            25) SPEED=50 ;;
+            50) SPEED=100 ;;
+            100) SPEED=200 ;;
+            200) SPEED=0 ;;
+            0) SPEED=0 ;;
+            *) SPEED=100 ;;
+        esac
+        ;;
+    rotate_angle)
+        ANGLE=$(( (ANGLE + 45) % 360 ))
+        ;;
+    *)
+        ;;
+esac
+
+cat << STATE_EOF > "$STATE_FILE"
+SPEED=$SPEED
+ANGLE=$ANGLE
+STATE_EOF
+
+# Apply speed to Hyprland animations immediately
+if [ "$SPEED" -eq 0 ]; then
+    hyprctl eval 'hl.animation({ leaf = "borderangle", enabled = false })' >/dev/null 2>&1 || true
+else
+    hyprctl eval 'hl.animation({ leaf = "borderangle", enabled = true, speed = '"$SPEED"', bezier = "liner", style = "loop" })' >/dev/null 2>&1 || true
+fi
+
+# Re-apply template with updated angle
+if [ -n "$TPL_FILE" ] && [ -f "$TPL_FILE" ] && [ -f "$COLORS_FILE" ]; then
+    sed_script=$(mktemp)
+    while IFS='=' read -r key val || [ -n "$key" ]; do
+        key="${key//[\"\' ]/}"
+        [[ $key && $key != \#* ]] || continue
+        val="${val#*[\"\']}"
+        val="${val%%[\"\']*}"
+        val_strip="${val#\#}"
+        printf 's|{{ %s_strip }}|%s|g\n' "$key" "$val_strip" >> "$sed_script"
+        printf 's|{{ %s }}|%s|g\n' "$key" "$val" >> "$sed_script"
+    done < "$COLORS_FILE"
+
+    sed -f "$sed_script" "$TPL_FILE" | sed "s/angle = [0-9]*/angle = $ANGLE/g" > "$HOME/.local/state/omarchy/current/theme/hyprland.lua" 2>/dev/null || true
+    rm -f "$sed_script"
+
+    hyprctl eval 'dofile(os.getenv("HOME") .. "/.local/state/omarchy/current/theme/hyprland.lua")' >/dev/null 2>&1 || true
+fi

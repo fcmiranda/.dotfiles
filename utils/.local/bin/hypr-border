@@ -5,7 +5,10 @@ set -e
 BORDERS_DIR="$HOME/.config/hypr/borders"
 TPL_DEST="$HOME/.config/omarchy/themed/hyprland.lua.tpl"
 REPO_TPL_DEST="$HOME/.dotfiles/main/omarchy/.config/omarchy/themed/hyprland.lua.tpl"
+ANIM_FILE="$HOME/.config/hypr/animations.lua"
+REPO_ANIM_FILE="$HOME/.dotfiles/main/hypr/.config/hypr/animations.lua"
 PRESET_FILE="$HOME/.config/matchmaker/presets/borders.toml"
+STATE_FILE="/dev/shm/hypr-border-state"
 
 # Ensure matchmaker binary is accessible
 MM_BIN=$(command -v mm || echo "$HOME/.local/bin/mm")
@@ -20,8 +23,21 @@ if [ ! -d "$BORDERS_DIR" ]; then
     exit 1
 fi
 
+# Initialize state with default or existing settings
+SPEED=100
+ANGLE=45
+cat << STATE_INIT > "$STATE_FILE"
+SPEED=$SPEED
+ANGLE=$ANGLE
+STATE_INIT
+
 # Run matchmaker TUI with the borders preset
 SELECTED_LINE=$("$MM_BIN" --no-read --config "$PRESET_FILE")
+
+# Read final state after user interactions
+if [ -f "$STATE_FILE" ]; then
+    source "$STATE_FILE" 2>/dev/null || true
+fi
 
 # Exit if canceled or empty
 if [ -z "$SELECTED_LINE" ]; then
@@ -36,16 +52,32 @@ PRESET_PATH="${SELECTED_LINE#*$'\t'}"
 [ -z "$PRESET_PATH" ] && PRESET_PATH="$SELECTED_LINE"
 
 if [ -f "$PRESET_PATH" ]; then
-    # 1. Update active user template and dotfiles repository template
+    # 1. Update active user template and dotfiles repository template with chosen ANGLE
     mkdir -p "$(dirname "$TPL_DEST")"
-    cp "$PRESET_PATH" "$TPL_DEST"
-    [ -d "$(dirname "$REPO_TPL_DEST")" ] && cp "$PRESET_PATH" "$REPO_TPL_DEST"
+    sed "s/angle = [0-9]*/angle = $ANGLE/g" "$PRESET_PATH" > "$TPL_DEST"
+    [ -d "$(dirname "$REPO_TPL_DEST")" ] && sed "s/angle = [0-9]*/angle = $ANGLE/g" "$PRESET_PATH" > "$REPO_TPL_DEST"
 
-    # 2. Re-render theme with the newly chosen border template
+    # 2. Persist chosen SPEED in animations.lua
+    if [ -f "$ANIM_FILE" ]; then
+        if [ "$SPEED" -eq 0 ]; then
+            sed -i -E 's/hl\.animation\(\{ leaf = "borderangle"[^)]*\)/hl.animation({ leaf = "borderangle", enabled = false })/g' "$ANIM_FILE"
+        else
+            sed -i -E 's/hl\.animation\(\{ leaf = "borderangle"[^)]*\)/hl.animation({ leaf = "borderangle", enabled = true, speed = '"$SPEED"', bezier = "liner", style = "loop" })/g' "$ANIM_FILE"
+        fi
+    fi
+    if [ -f "$REPO_ANIM_FILE" ]; then
+        if [ "$SPEED" -eq 0 ]; then
+            sed -i -E 's/hl\.animation\(\{ leaf = "borderangle"[^)]*\)/hl.animation({ leaf = "borderangle", enabled = false })/g' "$REPO_ANIM_FILE"
+        else
+            sed -i -E 's/hl\.animation\(\{ leaf = "borderangle"[^)]*\)/hl.animation({ leaf = "borderangle", enabled = true, speed = '"$SPEED"', bezier = "liner", style = "loop" })/g' "$REPO_ANIM_FILE"
+        fi
+    fi
+
+    # 3. Re-render theme with the newly chosen border template
     current_theme=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null || echo "everforest")
     omarchy theme set "$current_theme" >/dev/null 2>&1 || true
 
-    # 3. Read title for feedback
+    # 4. Read title for feedback
     read -r TITLE < "$PRESET_PATH" || true
     TITLE="${TITLE#--}"
     TITLE="${TITLE#\#}"
@@ -53,9 +85,9 @@ if [ -f "$PRESET_PATH" ]; then
     [ -z "$TITLE" ] && TITLE="${PRESET_PATH##*/}"
 
     if command -v notify-send >/dev/null 2>&1; then
-        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Border Style Applied" "$TITLE"
+        notify-send -a "Hyprland" -i "preferences-desktop-theme" "Estilo de Borda Aplicado" "$TITLE\nVelocidade: $SPEED | Ângulo: $ANGLE°"
     fi
-    echo "🌈 Border style '$TITLE' applied successfully across all themes!"
+    echo "🌈 Estilo de borda '$TITLE' salvo! (Velocidade: $SPEED | Ângulo: $ANGLE°)"
 else
     echo "Error: Preset file not found: $PRESET_PATH" >&2
     exit 1

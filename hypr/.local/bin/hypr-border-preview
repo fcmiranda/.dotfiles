@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
+# Live preview & Interactive HUD renderer for Matchmaker hypr-border
 set -e
 
 TPL_FILE="$1"
 [ -f "$TPL_FILE" ] || exit 0
 
+STATE_FILE="/dev/shm/hypr-border-state"
 COLORS_FILE="$HOME/.local/state/omarchy/current/theme/colors.toml"
 
+SPEED=100
+ANGLE=45
+if [ -f "$STATE_FILE" ]; then
+    source "$STATE_FILE" 2>/dev/null || true
+fi
+
+# Live-apply to Hyprland
 if [ -f "$COLORS_FILE" ]; then
     sed_script=$(mktemp)
     while IFS='=' read -r key val || [ -n "$key" ]; do
@@ -18,11 +27,38 @@ if [ -f "$COLORS_FILE" ]; then
         printf 's|{{ %s }}|%s|g\n' "$key" "$val" >> "$sed_script"
     done < "$COLORS_FILE"
 
-    sed -f "$sed_script" "$TPL_FILE" > "$HOME/.local/state/omarchy/current/theme/hyprland.lua" 2>/dev/null || true
+    sed -f "$sed_script" "$TPL_FILE" | sed "s/angle = [0-9]*/angle = $ANGLE/g" > "$HOME/.local/state/omarchy/current/theme/hyprland.lua" 2>/dev/null || true
     rm -f "$sed_script"
 
+    if [ "$SPEED" -eq 0 ]; then
+        hyprctl eval 'hl.animation({ leaf = "borderangle", enabled = false })' >/dev/null 2>&1 || true
+    else
+        hyprctl eval 'hl.animation({ leaf = "borderangle", enabled = true, speed = '"$SPEED"', bezier = "liner", style = "loop" })' >/dev/null 2>&1 || true
+    fi
     hyprctl eval 'dofile(os.getenv("HOME") .. "/.local/state/omarchy/current/theme/hyprland.lua")' >/dev/null 2>&1 || true
 fi
 
-bat --paging=never --style=header,grid,numbers --color=always -l lua "$TPL_FILE" 2>/dev/null || cat "$TPL_FILE"
+# Title
+read -r TITLE < "$TPL_FILE" || true
+TITLE="${TITLE#--}"
+TITLE="${TITLE#\#}"
+TITLE="${TITLE# }"
 
+# Speed description
+case "$SPEED" in
+    10) SPEED_LABEL="10 (⚡ Turbo / 1s)" ;;
+    25) SPEED_LABEL="25 (🔥 Rápido / 2.5s)" ;;
+    50) SPEED_LABEL="50 (🚀 Dinâmico / 5s)" ;;
+    100) SPEED_LABEL="100 (✨ Suave / 10s Padrão)" ;;
+    200) SPEED_LABEL="200 (🍃 Zen / 20s Lento)" ;;
+    0) SPEED_LABEL="0 (⏸️ Estático / Sem Rotação)" ;;
+    *) SPEED_LABEL="$SPEED" ;;
+esac
+
+printf "\033[1;35m╭────────────────────────────────────────────────────────────────────────╮\033[0m\n"
+printf "\033[1;35m│\033[0m  \033[1;36m🎨 Estilo:\033[0m      \033[1;37m%-50s\033[0m\033[1;35m│\033[0m\n" "$TITLE"
+printf "\033[1;35m│\033[0m  \033[1;33m⚡ Velocidade:\033[0m  \033[1;32m%-50s\033[0m\033[1;35m│\033[0m\n" "$SPEED_LABEL"
+printf "\033[1;35m│\033[0m  \033[1;34m📐 Ângulo Base:\033[0m \033[1;33m%-50s\033[0m\033[1;35m│\033[0m\n" "$ANGLE°"
+printf "\033[1;35m├────────────────────────────────────────────────────────────────────────┤\033[0m\n"
+printf "\033[1;35m│\033[0m  \033[1;30m[h/l] ou [+/-]: Velocidade   [r]: Girar Ângulo   [Enter]: Salvar Tudo\033[0m \033[1;35m│\033[0m\n"
+printf "\033[1;35m╰────────────────────────────────────────────────────────────────────────╯\033[0m\n"

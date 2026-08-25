@@ -22,6 +22,114 @@ flowchart TD
 - **Middle-of-Line / Arguments (`<Tab>` with text)**: When editing in the middle of a command, `<Tab>` bypasses ghost text and opens Matchmaker-powered tab completion (`mm-ftb`) for the specific argument at the cursor.
 - **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker directory jump interface at any prompt state.
 
+### 1.1. Deep-Dive: Por que `$CURSOR -eq $#BUFFER` Revoluciona a Edição no Meio da Linha
+
+A checagem `$CURSOR -eq $#BUFFER` no `_smart_tab` resolve um dos maiores problemas de usabilidade (UX) em terminais que utilizam `zsh-autosuggestions` junto com menu de autocompletação (`fzf-tab` / `mm-ftb`): **o sequestro da linha pelo ghost-text durante a edição no meio do buffer**.
+
+Abaixo estão **5 exemplos reais do dia a dia de desenvolvimento** contrastando o comportamento anterior versus o atual:
+
+---
+
+#### 📌 Exemplo 1: Corrigir ou Adicionar Flag no Meio de um `git commit`
+
+Você está compondo um commit longo e move o cursor para o meio para adicionar a flag `--amend`:
+
+```text
+Buffer digitado:
+$ git commit --am█ -m "fix(auth): correct token refresh" ░--no-verify░ (sugestão cinza do histórico)
+                ▲
+         $CURSOR está aqui (no meio da linha)
+```
+
+* **❌ Como era antes (`[[ -n "$POSTDISPLAY" ]]`):**  
+  Ao apertar `<Tab>` em `--am█`, o Zsh detectava texto cinza no final, **aceitava o ghost text**, colava `--no-verify`, jogava o cursor para o fim da linha e **não completava** o `--amend`.
+* **✅ Como ficou agora (`$CURSOR -eq $#BUFFER`):**  
+  Como `$CURSOR < $#BUFFER`, o widget ignora o ghost text e abre o Matchmaker (`mm-ftb`) para autocompletar `--amend` exatamente na posição do cursor sem alterar o restante da linha.
+
+---
+
+#### 📌 Exemplo 2: Completar Caminhos de Origem em Comandos de Cópia (`cp` / `mv` / `rsync`)
+
+Você está copiando um arquivo específico para uma pasta de backup:
+
+```text
+Buffer digitado:
+$ cp src/comp█/Modal.tsx /tmp/backup/ ░src/components/Button/ /tmp/backup-old/░
+            ▲
+     $CURSOR está aqui
+```
+
+* **❌ Como era antes:**  
+  Ao apertar `<Tab>` para autocompletar `src/components/`, o Zsh aceitava a cauda antiga do histórico, misturando os dois caminhos e corrompendo o comando:  
+  `$ cp src/comp/Modal.tsx /tmp/backup/ src/components/Button/ /tmp/backup-old/`
+* **✅ Como ficou agora:**  
+  O `<Tab>` expande cirurgicamente `src/comp` $\rightarrow$ `src/components/` sem tocar no destino `/tmp/backup/` e sem puxar argumentos antigos.
+
+---
+
+#### 📌 Exemplo 3: Alterar Volumes, Portas ou Imagens no Meio de um `docker run`
+
+Você reaproveitou um comando de container do histórico e voltou para alterar o volume montado:
+
+```text
+Buffer digitado:
+$ docker run -it -v $(pwd)/di█:/app -p 3000:3000 node:20 ░--rm nginx:alpine░
+                           ▲
+                    $CURSOR está aqui
+```
+
+* **❌ Como era antes:**  
+  Ao apertar `<Tab>` para completar a pasta `dist/`, o Zsh aceitava a cauda antiga (`--rm nginx:alpine`) e deixava `di` sem completar.
+* **✅ Como ficou agora:**  
+  O `<Tab>` lista e autocompleta os diretórios locais correspondentes a `$(pwd)/dist/` via `mm-ftb`, mantendo as flags posteriores intactas.
+
+---
+
+#### 📌 Exemplo 4: Editar Nomes de Arquivos Antes de Flags Extras no Editor (`nvim` / `bat` / `cat`)
+
+Você está abrindo um arquivo de configuração passando parâmetros adicionais no final:
+
+```text
+Buffer digitado:
+$ nvim matchmaker/.config/matchmaker/presets/jum█.toml --clean ░presets/backgrounds.toml░
+                                               ▲
+                                        $CURSOR está aqui
+```
+
+* **❌ Como era antes:**  
+  O `<Tab>` ignorava `jum` e aceitava `presets/backgrounds.toml`, sobrescrevendo o caminho que você pretendia abrir.
+* **✅ Como ficou agora:**  
+  O `<Tab>` completa `jump.toml` com precisão, mantendo a flag `--clean` intacta.
+
+---
+
+#### 📌 Exemplo 5: Autocompletação de Pacotes em Monorepos e CLIs (`cargo`, `bun`, `pnpm`, `wt`)
+
+Ao rodar testes em pacotes específicos de um monorepo:
+
+```text
+Buffer digitado:
+$ cargo test --package match█ --test integration ░--package matchmaker-lib -- --nocapture░
+                            ▲
+                     $CURSOR está aqui
+```
+
+* **❌ Como era antes:**  
+  O `<Tab>` colava a cauda `-- --nocapture` no final da linha, exigindo apagar o texto indesejado manualmente.
+* **✅ Como ficou agora:**  
+  O `<Tab>` abre o seletor com a lista de pacotes do workspace (`matchmaker-cli`, `matchmaker-lib`, etc.) para seleção instantânea com preview.
+
+---
+
+#### 📊 Resumo da Matriz de Decisão do `_smart_tab`:
+
+| Posição do Cursor | Intenção do Desenvolvedor | Ação Executada |
+| :--- | :--- | :--- |
+| **Linha Vazia (`$#BUFFER == 0`)** | Navegação rápida ou seleção de alvo | Abre o TUI do **Matchmaker Jump** (`_jump_widget`). |
+| **Fim da Linha (`$CURSOR == $#BUFFER`)** | Aceitar a sugestão do histórico | Executa **`autosuggest-accept`** instantaneamente. |
+| **Meio do Comando (`$CURSOR < $#BUFFER`)** | Autocompletar o argumento/pasta sob o cursor | Abre o **`fzf-tab` com Matchmaker (`mm-ftb`)** sem poluir o restante da linha. |
+
+
 ---
 
 ## 2. Auto-Spacing on Aliases & Commands (`_auto_space_if_command`)

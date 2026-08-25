@@ -6,9 +6,17 @@
 bindkey '^[[3~' delete-char  # Standard Delete key
 bindkey '^?' backward-delete-char  # Backspace
 
-# Prevent Ctrl+Arrow keys from activating vi normal mode
+# Word navigation keys
 bindkey '^[[1;5D' backward-word  # Ctrl+Left Arrow
+bindkey '^[[5D'   backward-word
+bindkey '^[[1;3D' backward-word  # Alt+Left Arrow
+bindkey '^[b'     backward-word
+
 bindkey '^[[1;5C' forward-word   # Ctrl+Right Arrow
+bindkey '^[[5C'   forward-word
+bindkey '^[[1;3C' forward-word   # Alt+Right Arrow
+bindkey '^[f'     forward-word
+
 
 # Matchmaker Jump Widget: context-aware navigation & Object-First buffer ergonomics
 _jump_widget() {
@@ -218,6 +226,40 @@ _binds_zvm_setup() {
         zvm_bindkey viins '^R' atuin-search
         zvm_bindkey vicmd '^R' atuin-search
     fi
+
+    # Word navigation (Ctrl+Left, Ctrl+Right, Alt+Left, Alt+Right)
+    zvm_bindkey viins '^[[1;5D' backward-word
+    zvm_bindkey viins '^[[5D'   backward-word
+    zvm_bindkey viins '^[[1;3D' backward-word
+    zvm_bindkey viins '^[b'     backward-word
+    bindkey -M viins '^[[1;5D'  backward-word
+    bindkey -M viins '^[[5D'    backward-word
+    bindkey -M viins '^[[1;3D'  backward-word
+    bindkey -M viins '^[b'      backward-word
+
+    zvm_bindkey viins '^[[1;5C' forward-word
+    zvm_bindkey viins '^[[5C'   forward-word
+    zvm_bindkey viins '^[[1;3C' forward-word
+    zvm_bindkey viins '^[f'     forward-word
+    bindkey -M viins '^[[1;5C'  forward-word
+    bindkey -M viins '^[[5C'    forward-word
+    bindkey -M viins '^[[1;3C'  forward-word
+    bindkey -M viins '^[f'      forward-word
+
+    zvm_bindkey vicmd '^[[1;5D' backward-word
+    zvm_bindkey vicmd '^[[1;5C' forward-word
+    bindkey -M vicmd '^[[1;5D'  backward-word
+    bindkey -M vicmd '^[[1;5C'  forward-word
+
+    # Word deletion (Ctrl+Backspace / Alt+Backspace) & Delete key
+    zvm_bindkey viins $'\e\x7f' backward-kill-word
+    zvm_bindkey viins '^H'      backward-kill-word
+    zvm_bindkey viins '^[^?'    backward-kill-word
+    zvm_bindkey viins '^[[3~'   delete-char
+    bindkey -M viins $'\e\x7f'  backward-kill-word
+    bindkey -M viins '^H'       backward-kill-word
+    bindkey -M viins '^[^?'     backward-kill-word
+    bindkey -M viins '^[[3~'    delete-char
 
     # Custom widgets
     zvm_bindkey viins '^G' _git_files_widget

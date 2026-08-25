@@ -41,5 +41,12 @@
     "provider": "sesh",
     "aliases": ["sessions", "tmux", "projects"],
     "description": "Switch or connect to Tmux/Sesh sessions and projects"
+  },
+  "setup.sounds": {
+    "icon": "󱚤",
+    "label": "AI Notification Sound",
+    "action": "omarchy-launch-tui ~/.local/bin/ai-sound-switcher",
+    "aliases": ["sounds", "ai-sounds", "notification-sounds"],
+    "description": "Select AI response notification sound with Matchmaker"
   }
 }

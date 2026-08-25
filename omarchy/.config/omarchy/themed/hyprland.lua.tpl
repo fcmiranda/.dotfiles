@@ -1,5 +1,5 @@
--- Minimal Contrast (Accent + Muted)
-local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ muted_strip }}88)" }, angle = 45 }
+-- Crimson Alert (Accent + Red)
+local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ red_strip }}ee)" }, angle = 180 }
 local inactive_border_color = "rgba(595959aa)"
 
 hl.config({

@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# ai-sound-preview — Ultra-fast audio previewer & metadata inspector for Matchmaker (mm)
+set -eo pipefail
+
+SOUND_PATH="${1:-}"
+PID_FILE="/tmp/ai-sound-preview-$USER.pid"
+
+if [[ -z "$SOUND_PATH" || ! -f "$SOUND_PATH" ]]; then
+  echo -e "\033[38;5;242m󰎁  No sound file selected.\033[0m"
+  exit 0
+fi
+
+# 1. Kill any existing preview playback immediately to prevent overlapping audio
+if [[ -f "$PID_FILE" ]]; then
+  old_pid=$(< "$PID_FILE" 2>/dev/null || true)
+  if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+    kill -9 "$old_pid" 2>/dev/null || true
+  fi
+fi
+
+# 2. Detect audio player
+PLAY_BIN="pw-play"
+if ! command -v pw-play >/dev/null 2>&1; then
+  if command -v paplay >/dev/null 2>&1; then
+    PLAY_BIN="paplay"
+  elif command -v canberra-gtk-play >/dev/null 2>&1; then
+    PLAY_BIN="canberra-gtk-play -f"
+  else
+    PLAY_BIN="mpv --no-video --volume=85"
+  fi
+fi
+
+# 3. Play audio in an isolated session (setsid) so it survives parent process termination
+setsid $PLAY_BIN "$SOUND_PATH" </dev/null >/dev/null 2>&1 &
+echo "$!" > "$PID_FILE"
+
+# 4. Extract file metadata
+FILENAME="$(basename "$SOUND_PATH")"
+EXT="${FILENAME##*.}"
+EXT_UPPER="$(echo "$EXT" | tr '[:lower:]' '[:upper:]')"
+FILESIZE="$(du -h "$SOUND_PATH" 2>/dev/null | cut -f1)"
+
+# Format clean English title
+TITLE="${FILENAME%.*}"
+TITLE="${TITLE#*-}"
+TITLE="${TITLE//-/ }"
+TITLE="$(echo "$TITLE" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')"
+
+# Check if currently active sound
+ACTIVE_SOUND=""
+if [[ -f "$HOME/.config/omarchy/sounds/ai-response.sound" ]]; then
+  ACTIVE_SOUND="$(< "$HOME/.config/omarchy/sounds/ai-response.sound" 2>/dev/null || true)"
+elif [[ -f "$HOME/.config/acpd/sounds/response.sound" ]]; then
+  ACTIVE_SOUND="$(< "$HOME/.config/acpd/sounds/response.sound" 2>/dev/null || true)"
+fi
+
+IS_ACTIVE=0
+if [[ "$SOUND_PATH" == "$ACTIVE_SOUND" ]]; then
+  IS_ACTIVE=1
+fi
+
+# 5. Render clean English terminal preview card
+echo ""
+echo -e "  \033[1;37mTitle:\033[0m      \033[1;33m$TITLE\033[0m"
+echo -e "  \033[1;37mFile:\033[0m       \033[38;5;246m$FILENAME\033[0m"
+echo -e "  \033[1;37mFormat:\033[0m     \033[38;5;141m$EXT_UPPER\033[0m  \033[38;5;240m|\033[0m  \033[1;37mSize:\033[0m \033[38;5;222m$FILESIZE\033[0m"
+echo -e "  \033[1;37mPath:\033[0m       \033[38;5;244m$SOUND_PATH\033[0m"
+echo ""
+
+if [[ $IS_ACTIVE -eq 1 ]]; then
+  echo -e "  \033[1;32m󰄴  CURRENTLY ACTIVE SYSTEM SOUND\033[0m"
+else
+  echo -e "  \033[38;5;245m󰐊  Playing sound preview via $PLAY_BIN...\033[0m"
+fi
+echo ""

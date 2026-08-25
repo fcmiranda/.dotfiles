@@ -5,17 +5,20 @@ nav_color = "Magenta"
 
 [tui]
 percentage = 60
-min = 15
+min = 12
 max = 80
+
+[footer]
+content = " [j/k, ↓/↑] Estilo  •  [h/l, ←/→, +/-] Velocidade  •  [r] Ângulo (45°)  •  [Enter] Salvar  •  [Esc/q] Cancelar"
+style.fg = "Magenta"
+style.modifier = "BOLD"
 
 [preview]
 show = true
 wrap = false
 
 [preview.border]
-title_fg = "Magenta"
-color = "Cyan"
-type = "Rounded"
+sides = ""
 
 [previewer]
 debounce_ms = 10
@@ -24,7 +27,7 @@ delay_clear = false
 [[preview.layout]]
 command = "hypr-border-preview {2}"
 side = "bottom"
-percentage = 35
+percentage = 22
 
 [columns]
 split = "\t"
@@ -56,26 +59,35 @@ mode = "nav"
 additional_commands = []
 
 [binds]
+# Standard / query mode navigation & actions
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "up" = "Up"
 "down" = "Down"
-"right" = "Execute(hypr-border-control speed_up {2})"
-"left" = "Execute(hypr-border-control speed_down {2})"
-"l" = "Execute(hypr-border-control speed_up {2})"
-"h" = "Execute(hypr-border-control speed_down {2})"
-"+" = "Execute(hypr-border-control speed_up {2})"
-"=" = "Execute(hypr-border-control speed_up {2})"
-"-" = "Execute(hypr-border-control speed_down {2})"
-"r" = "Execute(hypr-border-control rotate_angle {2})"
+"right" = "Transform(hypr-border-control speed_up {2})"
+"left" = "Transform(hypr-border-control speed_down {2})"
+"l" = "Transform(hypr-border-control speed_up {2})"
+"h" = "Transform(hypr-border-control speed_down {2})"
+"+" = "Transform(hypr-border-control speed_up {2})"
+"=" = "Transform(hypr-border-control speed_up {2})"
+"-" = "Transform(hypr-border-control speed_down {2})"
+"r" = "Transform(hypr-border-control rotate_angle {2})"
+
+# Nav Mode Binds (active when mode = "nav")
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^up" = "Up"
+"nav^^down" = "Down"
 "nav^^g" = "Pos(0)"
 "nav^^G" = "Pos(-1)"
-"nav^^h" = "Execute(hypr-border-control speed_down {2})"
-"nav^^l" = "Execute(hypr-border-control speed_up {2})"
-"nav^^r" = "Execute(hypr-border-control rotate_angle {2})"
-"nav^^+" = "Execute(hypr-border-control speed_up {2})"
-"nav^^=" = "Execute(hypr-border-control speed_up {2})"
-"nav^^-" = "Execute(hypr-border-control speed_down {2})"
+"nav^^h" = "Transform(hypr-border-control speed_down {2})"
+"nav^^l" = "Transform(hypr-border-control speed_up {2})"
+"nav^^left" = "Transform(hypr-border-control speed_down {2})"
+"nav^^right" = "Transform(hypr-border-control speed_up {2})"
+"nav^^r" = "Transform(hypr-border-control rotate_angle {2})"
+"nav^^+" = "Transform(hypr-border-control speed_up {2})"
+"nav^^=" = "Transform(hypr-border-control speed_up {2})"
+"nav^^-" = "Transform(hypr-border-control speed_down {2})"
 "nav^^q" = "Quit"
 "nav^^esc" = "Quit"
 "nav^^enter" = "Accept"

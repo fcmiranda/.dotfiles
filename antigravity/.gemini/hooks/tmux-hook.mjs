@@ -51,6 +51,17 @@ async function sendAcpState(paneId, state, message = null) {
     log(LOG_FILE, `sendAcpState(${paneId}, ${state}) → HTTP ${res.status}`);
   } catch (e) {
     log(LOG_FILE, `sendAcpState(${paneId}, ${state}) error: ${e.message}`);
+    // Fallback: trigger sound notification directly if ACPD is unreachable
+    if (state === 'idle') {
+      try {
+        const soundChild = spawn('ai-sound-notify', ['response'], {
+          detached: true,
+          stdio: 'ignore',
+          env: process.env
+        });
+        soundChild.unref();
+      } catch (err) {}
+    }
   }
 
   // Spawn watchdog if transition to an active state

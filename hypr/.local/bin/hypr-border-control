@@ -2,15 +2,14 @@
 # Real-time interactive control for Hyprland border speed & angle in Matchmaker
 set -e
 
-STATE_FILE="/dev/shm/hypr-border-state"
-COLORS_FILE="$HOME/.local/state/omarchy/current/theme/colors.toml"
-
 ACTION="$1"
 TPL_FILE="$2"
 
+STATE_FILE="/dev/shm/hypr-border-state"
+COLORS_FILE="$HOME/.local/state/omarchy/current/theme/colors.toml"
+
 SPEED=100
 ANGLE=45
-
 if [ -f "$STATE_FILE" ]; then
     source "$STATE_FILE" 2>/dev/null || true
 fi
@@ -75,3 +74,6 @@ if [ -n "$TPL_FILE" ] && [ -f "$TPL_FILE" ] && [ -f "$COLORS_FILE" ]; then
 
     hyprctl eval 'dofile(os.getenv("HOME") .. "/.local/state/omarchy/current/theme/hyprland.lua")' >/dev/null 2>&1 || true
 fi
+
+# Emit a dynamic RunPreview with unique timestamp to bypass Matchmaker preview command deduplication
+printf 'RunPreview(hypr-border-preview %s %s)\n' "$TPL_FILE" "$(date +%s%N)"

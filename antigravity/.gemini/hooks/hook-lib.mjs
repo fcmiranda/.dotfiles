@@ -89,16 +89,22 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export function getAcpdToken() {
-  try {
-    const xdgRuntime = process.env.XDG_RUNTIME_DIR;
-    const uid = process.getuid?.() || 1000;
-    const tokenPath = xdgRuntime
-      ? join(xdgRuntime, 'acpd', 'token')
-      : join(tmpdir(), `acpd-${uid}`, 'token');
-    return readFileSync(tokenPath, 'utf8').trim();
-  } catch (e) {
-    return null;
+  const uid = process.getuid?.() || 1001;
+  const xdgRuntime = process.env.XDG_RUNTIME_DIR || `/run/user/${uid}`;
+  const candidates = [
+    join(xdgRuntime, 'acpd', 'token'),
+    join(tmpdir(), `acpd-${uid}`, 'token'),
+    join(process.env.HOME || '/home/fecavmi', '.cache', 'acpd', 'token'),
+    `/run/user/1001/acpd/token`,
+  ];
+  for (const tokenPath of candidates) {
+    try {
+      if (existsSync(tokenPath)) {
+        return readFileSync(tokenPath, 'utf8').trim();
+      }
+    } catch (e) {}
   }
+  return null;
 }
 
 export function getAcpdHeaders() {

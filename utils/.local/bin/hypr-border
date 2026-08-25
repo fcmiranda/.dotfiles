@@ -26,6 +26,19 @@ fi
 # Initialize state with default or existing settings
 SPEED=100
 ANGLE=45
+if [ -f "$ANIM_FILE" ]; then
+    if grep -q 'leaf = "borderangle".*enabled = false' "$ANIM_FILE"; then
+        SPEED=0
+    elif grep -q 'leaf = "borderangle".*speed = ' "$ANIM_FILE"; then
+        detected_speed=$(sed -n -E 's/.*leaf = "borderangle".*speed = ([0-9]+).*/\1/p' "$ANIM_FILE" | head -n1)
+        [ -n "$detected_speed" ] && SPEED="$detected_speed"
+    fi
+fi
+if [ -f "$TPL_DEST" ]; then
+    detected_angle=$(sed -n -E 's/.*angle = ([0-9]+).*/\1/p' "$TPL_DEST" | head -n1)
+    [ -n "$detected_angle" ] && ANGLE="$detected_angle"
+fi
+
 cat << STATE_INIT > "$STATE_FILE"
 SPEED=$SPEED
 ANGLE=$ANGLE
@@ -41,7 +54,8 @@ fi
 
 # Exit if canceled or empty
 if [ -z "$SELECTED_LINE" ]; then
-    # Re-apply current saved theme to ensure clean state if canceled
+    # Restore original animation config and re-apply current saved theme
+    [ -f "$ANIM_FILE" ] && hyprctl reload >/dev/null 2>&1 || true
     current_theme=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null || echo "everforest")
     omarchy theme set "$current_theme" >/dev/null 2>&1 || true
     exit 0

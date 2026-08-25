@@ -3,6 +3,7 @@
 set -e
 
 TPL_FILE="$1"
+ACTION="$2"
 [ -f "$TPL_FILE" ] || exit 0
 
 STATE_FILE="/dev/shm/hypr-border-state"
@@ -13,6 +14,41 @@ ANGLE=45
 if [ -f "$STATE_FILE" ]; then
     source "$STATE_FILE" 2>/dev/null || true
 fi
+
+case "$ACTION" in
+    speed_up)
+        case "$SPEED" in
+            0) SPEED=200 ;;
+            200) SPEED=100 ;;
+            100) SPEED=50 ;;
+            50) SPEED=25 ;;
+            25) SPEED=10 ;;
+            10) SPEED=10 ;;
+            *) SPEED=50 ;;
+        esac
+        ;;
+    speed_down)
+        case "$SPEED" in
+            10) SPEED=25 ;;
+            25) SPEED=50 ;;
+            50) SPEED=100 ;;
+            100) SPEED=200 ;;
+            200) SPEED=0 ;;
+            0) SPEED=0 ;;
+            *) SPEED=100 ;;
+        esac
+        ;;
+    rotate_angle)
+        ANGLE=$(( (ANGLE + 45) % 360 ))
+        ;;
+    *)
+        ;;
+esac
+
+cat << STATE_EOF > "$STATE_FILE"
+SPEED=$SPEED
+ANGLE=$ANGLE
+STATE_EOF
 
 # Live-apply to Hyprland
 if [ -f "$COLORS_FILE" ]; then
@@ -43,6 +79,7 @@ read -r TITLE < "$TPL_FILE" || true
 TITLE="${TITLE#--}"
 TITLE="${TITLE#\#}"
 TITLE="${TITLE# }"
+[ -z "$TITLE" ] && TITLE="${TPL_FILE##*/}"
 
 # Speed description
 case "$SPEED" in
@@ -55,10 +92,6 @@ case "$SPEED" in
     *) SPEED_LABEL="$SPEED" ;;
 esac
 
-printf "\033[1;35m╭────────────────────────────────────────────────────────────────────────╮\033[0m\n"
-printf "\033[1;35m│\033[0m  \033[1;36m🎨 Estilo:\033[0m      \033[1;37m%-50s\033[0m\033[1;35m│\033[0m\n" "$TITLE"
-printf "\033[1;35m│\033[0m  \033[1;33m⚡ Velocidade:\033[0m  \033[1;32m%-50s\033[0m\033[1;35m│\033[0m\n" "$SPEED_LABEL"
-printf "\033[1;35m│\033[0m  \033[1;34m📐 Ângulo Base:\033[0m \033[1;33m%-50s\033[0m\033[1;35m│\033[0m\n" "$ANGLE°"
-printf "\033[1;35m├────────────────────────────────────────────────────────────────────────┤\033[0m\n"
-printf "\033[1;35m│\033[0m  \033[1;30m[h/l] ou [+/-]: Velocidade   [r]: Girar Ângulo   [Enter]: Salvar Tudo\033[0m \033[1;35m│\033[0m\n"
-printf "\033[1;35m╰────────────────────────────────────────────────────────────────────────╯\033[0m\n"
+printf "  \033[1;36m🎨 Estilo:\033[0m      \033[1;37m%s\033[0m\n" "$TITLE"
+printf "  \033[1;33m⚡ Velocidade:\033[0m  \033[1;32m%s\033[0m\n" "$SPEED_LABEL"
+printf "  \033[1;34m📐 Ângulo Base:\033[0m \033[1;33m%s°\033[0m\n" "$ANGLE"

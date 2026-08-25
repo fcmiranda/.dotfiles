@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# ai-sound-switcher — Interactive AI Response Sound Switcher using Matchmaker (mm)
+set -eo pipefail
+
+PRESET_FILE="$HOME/.config/matchmaker/presets/sounds.toml"
+MM_BIN=$(command -v mm || echo "$HOME/.local/bin/mm")
+
+if [[ ! -x "$MM_BIN" ]]; then
+  echo "Error: matchmaker (mm) binary not found!" >&2
+  exit 1
+fi
+
+if [[ ! -f "$PRESET_FILE" ]]; then
+  echo "Error: Preset file not found at $PRESET_FILE" >&2
+  exit 1
+fi
+
+cleanup() {
+  local pid_file="/tmp/ai-sound-preview-$USER.pid"
+  if [[ -f "$pid_file" ]]; then
+    local old_pid
+    old_pid=$(< "$pid_file" 2>/dev/null || true)
+    [[ -n "$old_pid" ]] && kill -9 "$old_pid" 2>/dev/null || true
+    rm -f "$pid_file"
+  fi
+}
+trap cleanup EXIT
+
+# Run Matchmaker TUI
+SELECTED_LINE=$("$MM_BIN" --no-read --config "$PRESET_FILE")
+
+if [[ -z "$SELECTED_LINE" ]]; then
+  exit 0
+fi
+
+# Extract sound path (column 2)
+SOUND_PATH="${SELECTED_LINE#*$'\t'}"
+[[ -z "$SOUND_PATH" ]] && SOUND_PATH="$SELECTED_LINE"
+
+if [[ -f "$SOUND_PATH" ]]; then
+  # 1. Update persistent state pointers
+  mkdir -p "$HOME/.config/omarchy/sounds" "$HOME/.config/acpd/sounds"
+  echo "$SOUND_PATH" > "$HOME/.config/omarchy/sounds/ai-response.sound"
+  echo "$SOUND_PATH" > "$HOME/.config/acpd/sounds/response.sound"
+
+  # Also create symlink for direct consumers
+  ln -sf "$SOUND_PATH" "$HOME/.config/omarchy/sounds/ai-response.wav"
+  ln -sf "$SOUND_PATH" "$HOME/.config/acpd/sounds/ai-response.wav"
+
+  # 2. Extract clean English title
+  FILENAME="$(basename "$SOUND_PATH")"
+  TITLE="${FILENAME%.*}"
+  TITLE="${TITLE#*-}"
+  TITLE="${TITLE//-/ }"
+  TITLE="$(echo "$TITLE" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')"
+
+  # 3. Desktop notification
+  if command -v omarchy-notification-send >/dev/null 2>&1; then
+    omarchy-notification-send "AI Sound Updated" "Notification sound set to: $TITLE" -g "󱚤" -u normal 2>/dev/null || true
+  elif command -v notify-send >/dev/null 2>&1; then
+    notify-send -a "AI Notification" -i "audio-speakers" "AI Sound Updated" "Notification sound set to: $TITLE" 2>/dev/null || true
+  fi
+
+  # 4. Play confirmation sound in detached process
+  PLAY_BIN="pw-play"
+  if ! command -v pw-play >/dev/null 2>&1; then
+    command -v paplay >/dev/null 2>&1 && PLAY_BIN="paplay" || PLAY_BIN="mpv --no-video"
+  fi
+  setsid $PLAY_BIN "$SOUND_PATH" </dev/null >/dev/null 2>&1 &
+
+  echo -e "\033[1;32m✓ AI notification sound set to:\033[0m \033[1;36m$TITLE\033[0m"
+else
+  echo "Error: Sound file not found: $SOUND_PATH" >&2
+  exit 1
+fi

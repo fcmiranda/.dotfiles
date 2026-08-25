@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# ai-sound-notify — Plays the active AI notification sound for response, question, or permission
+set -eo pipefail
+
+EVENT="${1:-response}"
+
+# 1. Resolve sound path
+resolve_sound() {
+  local evt="$1"
+  local home="$HOME"
+  
+  # Check pointer files
+  local pointers=(
+    "$home/.config/omarchy/sounds/ai-${evt}.sound"
+    "$home/.config/acpd/sounds/${evt}.sound"
+    "$home/.config/omarchy/sounds/ai-response.sound"
+    "$home/.config/acpd/sounds/response.sound"
+  )
+  for ptr in "${pointers[@]}"; do
+    if [[ -f "$ptr" ]]; then
+      local val
+      val="$(< "$ptr")"
+      val="${val/#\~/$home}"
+      if [[ -f "$val" ]]; then
+        echo "$val"
+        return 0
+      fi
+    fi
+  done
+
+  # Check direct files
+  local direct=(
+    "$home/.config/omarchy/sounds/ai-${evt}.wav"
+    "$home/.config/omarchy/sounds/ai-response.wav"
+    "$home/.local/share/sounds/ai/01-crystal-chime.wav"
+    "/usr/share/sounds/freedesktop/stereo/complete.oga"
+    "/usr/share/sounds/freedesktop/stereo/message.oga"
+  )
+  for f in "${direct[@]}"; do
+    if [[ -f "$f" ]]; then
+      echo "$f"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+TARGET_SOUND="$(resolve_sound "$EVENT" || true)"
+
+if [[ -z "$TARGET_SOUND" || ! -f "$TARGET_SOUND" ]]; then
+  exit 0
+fi
+
+# Detect player
+PLAY_BIN="pw-play"
+if ! command -v pw-play >/dev/null 2>&1; then
+  if command -v paplay >/dev/null 2>&1; then
+    PLAY_BIN="paplay"
+  elif command -v canberra-gtk-play >/dev/null 2>&1; then
+    PLAY_BIN="canberra-gtk-play -f"
+  else
+    PLAY_BIN="mpv --no-video --volume=85"
+  fi
+fi
+
+# Play in background (non-blocking in detached session)
+setsid $PLAY_BIN "$TARGET_SOUND" </dev/null >/dev/null 2>&1 &

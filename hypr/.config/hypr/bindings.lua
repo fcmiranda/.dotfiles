@@ -37,6 +37,7 @@ o.bind("SUPER + SHIFT + SLASH", "Keybindings", "omarchy-menu-keybindings")
 -- Web Applications & Utilities
 o.bind("SUPER + SHIFT + A", "Animation Switcher", "omarchy-launch-tui " .. home .. "/.local/bin/hypr-anim")
 o.bind("SUPER + ALT + B", "Border Style Switcher", "omarchy-launch-tui " .. home .. "/.local/bin/hypr-border")
+o.bind("SUPER + ALT + S", "AI Sound Switcher", "omarchy-launch-tui " .. home .. "/.local/bin/ai-sound-switcher")
 o.bind("SUPER + SHIFT + ALT + A", "Grok", "omarchy-launch-webapp 'https://grok.com'")
 
 o.bind("SUPER + SHIFT + C", "Calendar", "omarchy-launch-webapp 'https://app.hey.com/calendar/weeks/'")

@@ -27,6 +27,7 @@ o.bind("SUPER + SHIFT + I", "Antigravity IDE", 'omarchy-launch-or-focus "^antigr
 
 -- Keybindings Menu (Super + ? or Super + /)
 hl.unbind("SUPER + SLASH")
+hl.unbind("SUPER + SHIFT + SLASH")
 o.bind("SUPER + SLASH", "Keybindings", "omarchy-menu-keybindings")
 o.bind("SUPER + question", "Keybindings", "omarchy-menu-keybindings")
 o.bind("SUPER + SHIFT + SLASH", "Keybindings", "omarchy-menu-keybindings")

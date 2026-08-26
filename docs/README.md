@@ -17,6 +17,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**Tmux Activity Monitoring**](TMUX_ACTIVITY.md): Activity alert and notification behavior.
 
 ### 🖥️ 3. Desktop, Terminal & Hardware (`docs/desktop/`)
+- [**Dynamic Context-Aware Workspace Pills**](desktop/quickshell-workspace-pills.md): Reactive Quickshell workspace pills with real-time app icon rewriting and title-aware webapp detection (YouTube, GitHub, Google Photos, etc.).
 - [**System, Displays & Hardware**](desktop/system-and-hardware.md): Kanshi Wayland display hotplug profiles, Ghostty terminal enhancements (CSI u escapes, epoll, custom shaders), and battery charge thresholds / CPU power profiles.
 - [**Hyprland Animations Configuration**](desktop/hyprland-animations.md): Active animation rules, cubic Bézier curve presets, tree speeds, and override methods.
 - [**Nerd Fonts Configuration**](NERD_FONTS.md): Font glyph setup and symbol rendering.
@@ -29,6 +30,9 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**Utils & Command Reference**](UTILS.md): Quick reference for repository scripts (`stow-it`, `killport`, `dotadd`, `wtr`, `battery-threshold`, `perf-toggle`, Hyprland refresh helpers).
 
 ---
+
+## 🧠 Smart Patterns & Architecture Roadmap
+- [**Smart & Context-Aware Patterns Roadmap**](SMART_PATTERNS_ROADMAP.md): Comprehensive catalog of active event-driven intelligence and future roadmap (semantic breadcrumbs, workspace indicators, command alerts, scratchpads, and Neovim LSP sync).
 
 ## 🤖 AI Workflow & Agent Architecture
 - [**TUI AI Workflows**](tui-ai-workflows.md): Interactive workflows and design patterns for agentic development.

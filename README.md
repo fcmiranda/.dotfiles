@@ -53,8 +53,10 @@ See the [**Documentation Index (`docs/README.md`)**](docs/README.md) for the com
 - ⌨️ [**Zsh Vi Mode (`docs/shell/vi-mode.md`)**](docs/shell/vi-mode.md) — Modal editing, unified surround text objects (`ib`, `ab`, `iq`, `aq`), and live Starship prompt synchronization.
 - 🪟 [**Tmux AI Status Bar (`docs/tmux/ai-status-bar.md`)**](docs/tmux/ai-status-bar.md) — Per-pane AI agent state pills, animated spinners, and `acpd` daemon hooks.
 - 📋 [**Tmux Clipboard & Scrollback (`docs/tmux/clipboard-and-scrollback.md`)**](docs/tmux/clipboard-and-scrollback.md) — Click-and-hold drag-to-copy and scrollback capture to Neovim with full ANSI color formatting.
+- 💊 [**Dynamic Workspace Pills (`docs/desktop/quickshell-workspace-pills.md`)**](docs/desktop/quickshell-workspace-pills.md) — Reactive Quickshell workspace pills with real-time app icon rewriting and title-aware webapp detection (YouTube, GitHub, Google Photos, etc.).
 - 🖥️ [**System & Hardware (`docs/desktop/system-and-hardware.md`)**](docs/desktop/system-and-hardware.md) — Kanshi display hotplug profiles, Ghostty terminal enhancements, and battery threshold / CPU power profiles.
 - 🎨 [**System Theme (`docs/SYSTEM_THEME.md`)**](docs/SYSTEM_THEME.md) — Omarchy theme rendering pipeline from `colors.toml`.
+- 🧠 [**Smart Patterns & Architecture Roadmap (`docs/SMART_PATTERNS_ROADMAP.md`)**](docs/SMART_PATTERNS_ROADMAP.md) — Architectural catalog of active event-driven intelligence and future roadmap.
 - ⚡ [**Utils & Command Reference (`docs/UTILS.md`)**](docs/UTILS.md) — Repository helpers (`stow-it`, `killport`, `dotadd`, `wtr`, `battery-threshold`, `perf-toggle`, refresh scripts).
 
 ## Useful references

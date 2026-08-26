@@ -409,96 +409,127 @@ moveto() {
 # AI Agent Worktree & Sesh Orchestration
 # ─────────────────────────────────────────────────────────────────────────────
 
-# aiwt / wtai - Create or select an isolated Git Worktree and launch an AI Agent Tmux session
+# awt - Switch, create, explore or clone Agent Worktrees
 # Usage:
-#   aiwt                   -> Abre o Matchmaker (mm -o wt) para escolher ou navegar worktrees
-#   aiwt <branch> [base]   -> Cria a worktree diretamente e conecta ao agente no Tmux
-# Examples:
-#   aiwt
-#   aiwt feat-zsh-bench
-#   wtai feat-nvim-lualine
-aiwt() {
-    local branch="$1"
-    local base="${2:-HEAD}"
-
-    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! git rev-parse --is-bare-repository >/dev/null 2>&1; then
-        echo "aiwt: Você não está dentro de um repositório Git."
-        return 1
+#   awt                     -> Open Matchmaker TUI (mm -o wt)
+#   awt <branch>            -> Switch to branch/worktree & connect via sesh
+#   awt -c <branch> [base]  -> Create a new isolated agent worktree
+#   awt clone <repo> [dir]  -> Clone repository into .bare container layout
+awt() {
+    # Clone subcommand delegation: `awt clone ...`
+    if [[ "$1" == "clone" ]]; then
+        shift
+        awtc "$@"
+        return $?
     fi
 
-    # Modo Interativo TUI: Se chamado sem argumentos, abre o Matchmaker (mm -o wt)
-    if [[ -z "$branch" ]]; then
-        local chosen
+    # Interactive TUI mode: open Matchmaker picker when called with no arguments
+    if [[ $# -eq 0 ]]; then
+        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! git rev-parse --is-bare-repository >/dev/null 2>&1; then
+            echo "awt: Not inside a Git repository."
+            return 1
+        fi
+
         if command -v mm >/dev/null 2>&1; then
-            chosen=$(mm -o wt)
+            local chosen
+            chosen=$(mm -o awt)
             [[ -z "$chosen" ]] && return 0
             chosen="${chosen/#\~/$HOME}"
             chosen=$(realpath "$chosen" 2>/dev/null || echo "$chosen")
             if command -v sesh >/dev/null 2>&1; then
                 sesh connect "$chosen"
-                return 0
             else
                 cd "$chosen"
-                return 0
             fi
+            return 0
         else
-            echo "Uso: aiwt <nome-da-branch> [branch-base]"
-            echo "Alias: wtai"
+            echo "Usage: awt [-c <branch> [base]] | [branch] | [clone <repo>]"
             return 1
         fi
     fi
 
-    local target_dir=""
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! git rev-parse --is-bare-repository >/dev/null 2>&1; then
+        echo "awt: Not inside a Git repository."
+        return 1
+    fi
+
+    # Parse arguments and flags
+    local create=0 branch="" base="HEAD"
+    case "$1" in
+        switch)
+            shift
+            if [[ "$1" == "-c" || "$1" == "--create" ]]; then
+                create=1; shift
+            fi
+            branch="$1"; base="${2:-HEAD}"
+            ;;
+        -c|--create)
+            create=1; branch="$2"; base="${3:-HEAD}"
+            ;;
+        *)
+            branch="$1"; base="${2:-HEAD}"
+            ;;
+    esac
+
+    [[ -z "$branch" ]] && { echo "awt: branch name required."; return 1; }
+
     local branch_clean="${branch//\//-}"
-    local repo_root
+    local repo_root target_dir
     repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
     target_dir="$repo_root/../$branch_clean"
 
-    # 1. Cria ou alterna a worktree via worktrunk ou git puro
+    # If the worktree directory already exists, connect directly
+    if [[ -d "$target_dir" ]]; then
+        target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
+        if command -v sesh >/dev/null 2>&1; then
+            sesh connect "$target_dir"
+        else
+            cd "$target_dir"
+        fi
+        return 0
+    fi
+
+    # Create worktree via worktrunk or native git
     if command -v wt >/dev/null 2>&1; then
-        wt add "$branch" >/dev/null 2>&1 || wt switch "$branch" >/dev/null 2>&1
+        wt switch "$branch" >/dev/null 2>&1 || wt switch --create "$branch" --base "$base" >/dev/null 2>&1
     fi
 
     if [[ ! -d "$target_dir" ]]; then
         git worktree add "$target_dir" -b "$branch" "$base" 2>/dev/null || \
         git worktree add "$target_dir" "$branch" 2>/dev/null || {
-            echo "aiwt: Falha ao criar worktree em $target_dir"
+            echo "awt: Failed to create worktree at $target_dir"
             return 1
         }
     fi
 
     target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
-    echo "✓ Worktree pronta em $target_dir"
+    echo "✓ Worktree ready at $target_dir"
 
-    # 2. Conecta instantaneamente via sesh no Tmux
+    # Connect via sesh in Tmux or change directory
     if command -v sesh >/dev/null 2>&1; then
         sesh connect "$target_dir"
     else
         cd "$target_dir"
     fi
 }
-alias wtai="aiwt"
 
-# wtclone / wtc - Clone any Git repository into the .bare worktree container layout
-# Usage: wtclone <user/repo | url> [custom-dest-dir]
+# awtc - Agent Worktree Clone (Clone repository into .bare container layout)
+# Usage: awtc <user/repo | url> [dest-dir]
 # Examples:
-#   wtclone fcmiranda/matchmaker
-#   wtclone https://github.com/rust-lang/cargo.git
-#   wtc user/repo
-wtclone() {
+#   awtc fcmiranda/matchmaker
+#   awtc https://github.com/rust-lang/cargo.git
+awtc() {
     local target="$1"
     local dest_dir="$2"
 
     if [[ -z "$target" ]]; then
-        echo "Uso: wtclone <user/repo | url> [diretório-destino]"
-        echo "Alias: wtc, clone-wt"
+        echo "Usage: awtc <user/repo | url> [dest-dir]"
         return 1
     fi
 
-    local url=""
-    local repo_name=""
+    local url="" repo_name=""
 
-    # 1. Normalização da URL e nome do repositório
+    # 1. Normalize target URL and repository name
     if [[ "$target" =~ ^https?:// ]] || [[ "$target" =~ ^git@ ]]; then
         url="$target"
         repo_name="${target##*/}"
@@ -511,12 +542,12 @@ wtclone() {
         repo_name="$target"
     fi
 
-    # 2. Definição do diretório de destino (padrão: ~/dev/github/<repo_name>)
+    # 2. Resolve destination directory (default: ~/dev/github/<repo_name>)
     local base_dir="${dest_dir:-$HOME/dev/github/$repo_name}"
     base_dir="${base_dir/#\~/$HOME}"
 
     if [[ -d "$base_dir" ]]; then
-        echo "wtclone: O diretório $base_dir já existe."
+        echo "awtc: Directory $base_dir already exists."
         if command -v sesh >/dev/null 2>&1 && [[ -d "$base_dir/main" ]]; then
             sesh connect "$base_dir/main"
             return 0
@@ -524,21 +555,21 @@ wtclone() {
         return 1
     fi
 
-    echo "==> Clonando repositório bare em: $base_dir/.bare"
+    echo "==> Cloning bare repository into: $base_dir/.bare"
     mkdir -p "$base_dir" || return 1
     
-    # 3. Clone em modo --bare
+    # 3. Clone with --bare
     if ! git clone --bare "$url" "$base_dir/.bare"; then
-        echo "wtclone: Falha ao clonar $url"
+        echo "awtc: Failed to clone $url"
         rm -rf "$base_dir"
         return 1
     fi
 
-    # 4. Configura o refspec para rastreamento padrão de branches remotas
+    # 4. Configure fetch refspec for standard remote branch tracking
     git -C "$base_dir/.bare" config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
     git -C "$base_dir/.bare" fetch origin --quiet
 
-    # 5. Descobre a branch padrão (main, master, etc.)
+    # 5. Resolve default branch (main, master, etc.)
     local default_branch
     default_branch=$(git -C "$base_dir/.bare" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
     if [[ -z "$default_branch" ]]; then
@@ -546,22 +577,20 @@ wtclone() {
     fi
     [[ -z "$default_branch" ]] && default_branch="main"
 
-    echo "==> Criando worktree principal: $base_dir/$default_branch"
+    echo "==> Creating primary worktree: $base_dir/$default_branch"
     git -C "$base_dir/.bare" worktree add "$base_dir/$default_branch" "$default_branch" 2>/dev/null || \
     git -C "$base_dir/.bare" worktree add "$base_dir/$default_branch" -b "$default_branch" "origin/$default_branch" 2>/dev/null || \
     git -C "$base_dir/.bare" worktree add "$base_dir/$default_branch" -b "$default_branch"
 
-    echo "✓ Repositório configurado com sucesso em $base_dir"
+    echo "✓ Repository configured at $base_dir"
 
-    # 6. Conecta via sesh no Tmux ou navega para a pasta
+    # 6. Connect via sesh in Tmux or change directory
     if command -v sesh >/dev/null 2>&1; then
         sesh connect "$base_dir/$default_branch"
     else
         cd "$base_dir/$default_branch"
     fi
 }
-alias wtc="wtclone"
-alias clone-wt="wtclone"
 
 
 

@@ -1,0 +1,222 @@
+# Matchmaker Agent Worktree Preset (`mm -o awt`)
+# Interactive worktree switcher with Nav Mode, live status, ahead/behind sync, and multi-tab previews.
+
+[tui]
+percentage = 80
+min = 15
+max = 90
+
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "white"
+
+[ui.parent_peek]
+enabled = false
+
+[query]
+status_inline = true
+prompt = ">"
+prompt_style.fg = "white"
+prompt_style.modifier = "BOLD"
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Connect Sesh}  •  {magenta,bold:[g/l]} {darkgray:LazyGit}  •  {yellow,bold:[c]} {darkgray:New WT}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
+row_connection = "Full"
+match_indent = false
+style.fg = "gray"
+style.modifier = "DIM"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+column_spacing = 2
+symlink_target = false
+
+[results.current_style]
+fg = "black"
+bg = "lightblue"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "lightblue"
+
+[columns]
+split = "\t"
+default = "branch"
+names = [
+    { name = "branch" },
+    { name = "status" },
+    { name = "main" },
+    { name = "remote" },
+    { name = "age" },
+    { name = "commit" },
+    { name = "path", hidden = true },
+]
+
+[previewer]
+debounce_ms = 20
+delay_clear = true
+
+[preview]
+show = false
+
+# ── Preview Layout 1: Status & Local Changes + Recent Commits ──
+[[preview.layout]]
+command = '''
+wt_path="{=path}"
+wt_path="${wt_path/#\~/$HOME}"
+if [ -d "$wt_path" ]; then
+    echo "━━━ Git Status & Local Changes ━━━━━━━━━━━━━━━━━━━━━━━"
+    git -C "$wt_path" status -s --branch 2>/dev/null
+    echo ""
+    echo "━━━ Recent Commits ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    git -C "$wt_path" log --oneline --graph --color=always -n 8 2>/dev/null
+fi
+'''
+side = "right"
+percentage = 55
+
+# ── Preview Layout 2: Diff vs Main (Merge Base) ──
+[[preview.layout]]
+command = '''
+wt_path="{=path}"
+wt_path="${wt_path/#\~/$HOME}"
+if [ -d "$wt_path" ]; then
+    echo "━━━ Diff vs main (Merge Base) ━━━━━━━━━━━━━━━━━━━━━━━━"
+    git -C "$wt_path" diff --color=always main...HEAD 2>/dev/null | head -n 120
+fi
+'''
+side = "right"
+percentage = 55
+
+# ── Preview Layout 3: Commit History & Stats ──
+[[preview.layout]]
+command = '''
+wt_path="{=path}"
+wt_path="${wt_path/#\~/$HOME}"
+if [ -d "$wt_path" ]; then
+    echo "━━━ Commit History & Statistics ━━━━━━━━━━━━━━━━━━━━━━"
+    git -C "$wt_path" log --stat --color=always -n 5 2>/dev/null
+fi
+'''
+side = "right"
+percentage = 55
+
+[start.command]
+command = '''
+main_branch="main"
+current_wt=$(git rev-parse --show-toplevel 2>/dev/null)
+
+git worktree list --porcelain 2>/dev/null | awk '
+/^worktree / { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head; path = substr($0, 10); branch = ""; head = ""; bare = 0 }
+/^bare$/     { bare = 1 }
+/^HEAD /     { head = substr($0, 6, 7) }
+/^branch /   { branch = substr($0, 8); sub("refs/heads/", "", branch) }
+END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head }
+' | while IFS=$'\t' read -r wt_path branch head; do
+    marker=" "
+    [[ "$wt_path" == "$current_wt" ]] && marker="@"
+    [[ "$branch" == "$main_branch" ]] && marker="^"
+    branch_display="$marker $branch"
+
+    status_icon="✔"
+    dirty_count=$(git -C "$wt_path" status --porcelain 2>/dev/null | wc -l)
+    if [[ "$dirty_count" -gt 0 ]]; then
+        status_icon="? ✗ (+${dirty_count})"
+    fi
+
+    counts=$(git -C "$wt_path" rev-list --left-right --count "${main_branch}...HEAD" 2>/dev/null)
+    behind=$(echo "$counts" | awk '{print $1}')
+    ahead=$(echo "$counts" | awk '{print $2}')
+    if [[ -z "$counts" ]]; then
+        main_div="-"
+    elif [[ "$ahead" -eq 0 && "$behind" -eq 0 ]]; then
+        main_div="Synced"
+    else
+        main_div="↑${ahead:-0} ↓${behind:-0}"
+    fi
+
+    upstream_div="-"
+    if git -C "$wt_path" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+        u_counts=$(git -C "$wt_path" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
+        u_behind=$(echo "$u_counts" | awk '{print $1}')
+        u_ahead=$(echo "$u_counts" | awk '{print $2}')
+        if [[ "$u_ahead" -eq 0 && "$u_behind" -eq 0 ]]; then
+            upstream_div="Synced"
+        else
+            upstream_div="⇡${u_ahead:-0} ⇣${u_behind:-0}"
+        fi
+    fi
+
+    age=$(git -C "$wt_path" log -1 --format="%cr" 2>/dev/null | sed "s/ ago//; s/ minutes/m/; s/ hours/h/; s/ days/d/; s/ weeks/w/")
+
+    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+        "$branch_display" "$status_icon" "$main_div" "$upstream_div" "${age:-now}" "$head" "$wt_path"
+done
+'''
+
+[start]
+mode = "nav"
+output_template = "{=path}"
+
+[binds]
+# Standard & fallback keys
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"ctrl-p" = "SwitchPreview"
+"ctrl-g" = "Execute(lazygitrs -p {=path})"
+"ctrl-n" = '''ExecuteOrConfirm(
+    printf "New branch name: "
+    read -r bname
+    [ -n "$bname" ] || exit 0
+    awt -c "$bname"
+)'''
+"ctrl-d" = '''ExecuteOrConfirm(
+    wt_p="{=path}"
+    printf "Remove worktree %s? [y/N]: " "$wt_p"
+    read -r ans
+    case "$ans" in
+        [yY]*) wt remove "$wt_p" 2>/dev/null || git worktree remove "$wt_p" ;;
+        *) exit 0 ;;
+    esac
+)'''
+"ctrl-u" = '''ExecuteOrConfirm(
+    echo "Fetching remotes for {=branch}..."
+    git -C "{=path}" fetch --all --prune
+)'''
+
+# Nav Mode Binds (active when mode = "nav")
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^down" = "Down"
+"nav^^up" = "Up"
+"nav^^enter" = "Accept"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"
+"nav^^p" = "SwitchPreview"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"
+"nav^^l" = "Execute(lazygitrs -p {=path})"
+"nav^^c" = '''ExecuteOrConfirm(
+    printf "New branch name: "
+    read -r bname
+    [ -n "$bname" ] || exit 0
+    awt -c "$bname"
+)'''
+"nav^^d" = '''ExecuteOrConfirm(
+    wt_p="{=path}"
+    printf "Remove worktree %s? [y/N]: " "$wt_p"
+    read -r ans
+    case "$ans" in
+        [yY]*) wt remove "$wt_p" 2>/dev/null || git worktree remove "$wt_p" ;;
+        *) exit 0 ;;
+    esac
+)'''
+"nav^^u" = '''ExecuteOrConfirm(
+    echo "Fetching remotes for {=branch}..."
+    git -C "{=path}" fetch --all --prune
+)'''

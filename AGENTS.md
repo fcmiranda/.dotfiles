@@ -9,7 +9,7 @@ This repository is a GNU Stow-managed dotfiles worktree. Keep instructions here 
 - `stow-lock.json` is generated state. Do not edit it manually.
 - The primary worktree is the only tree that should be stowed to `$HOME`. Feature worktrees are sandboxes and should not be stowed.
 
-See [git-worktree-guide.md](git-worktree-guide.md) and [GIT_WORKTREE_SETUP.md](GIT_WORKTREE_SETUP.md) for the worktree model.
+See [docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md](docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md) for the worktree model and multi-agent workflow.
 
 ## Validation
 
@@ -38,8 +38,7 @@ See [.shell/install/README.md](.shell/install/README.md) for the current bootstr
 
 ## Useful References
 
-- [git-worktree-guide.md](git-worktree-guide.md)
-- [GIT_WORKTREE_SETUP.md](GIT_WORKTREE_SETUP.md)
+- [docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md](docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md)
 - [.shell/install/README.md](.shell/install/README.md)
 - [.commitlintrc.json](.commitlintrc.json)
 - [git/GC_SGC.md](git/GC_SGC.md)

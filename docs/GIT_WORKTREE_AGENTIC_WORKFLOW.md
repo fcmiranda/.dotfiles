@@ -332,6 +332,48 @@ repoPaths:
 | **Re-stow de Pacote Atualizado** | `./stow.sh -r <pacote>` | Atualiza os symlinks no `$HOME` após o merge na `main`. |
 | **Remover Worktree Concluída** | `wt remove <branch>` | Exclui a worktree irmã e mantém o `.bare/` e a `main/` limpos. |
 
+---
+
+## 10. Fluxo de Trabalho Multi-Repositório com IA (Engine + Dotfiles)
+
+Quando uma tarefa abrange múltiplos repositórios interdependentes (ex: desenvolver uma nova funcionalidade no código Rust do [`matchmaker`](file:///home/fecavmi/dev/github/matchmaker) e criar ou ajustar presets correspondentes nos [dotfiles](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets)), adota-se o padrão **"Engine First, Config Second"**.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Desenvolvedor
+    participant Agent as Agente IA Único (Orquestrador)
+    participant Engine as Repo 1: matchmaker (~/dev/github/matchmaker/fecavmi)
+    participant Dotfiles as Repo 2: .dotfiles (~/.dotfiles/main)
+    participant Home as Ambiente Live ($HOME)
+
+    Dev->>Agent: "Implemente split vertical no matchmaker e crie o preset nos dotfiles"
+    Note over Agent: 1. Edita código Rust em matchmaker/src/<br/>2. Cria preset de teste local e roda cargo test
+    Agent->>Engine: cargo build --release (Gera binário target/release/mm)
+    
+    Note over Agent: 3. Com base no Rust recém-criado, gera o preset TOML em dotfiles
+    Agent->>Dotfiles: Escreve matchmaker/.config/matchmaker/presets/wt-split.toml
+    Agent->>Dotfiles: ./target/release/mm -o ~/.dotfiles/main/.../wt-split.toml (Valida TUI)
+
+    Note over Agent: 4. Commits atômicos e isolados por repositório
+    Agent->>Engine: git -C ~/dev/github/matchmaker/fecavmi commit -m "feat(core): add vertical split"
+    Agent->>Engine: git -C ~/dev/github/matchmaker/fecavmi push origin fecavmi
+
+    Agent->>Dotfiles: git -C ~/.dotfiles/main commit -m "feat(matchmaker): add wt-split preset"
+    Dotfiles->>Home: ./stow.sh -r matchmaker (Atualiza symlinks no $HOME)
+```
+
+### Regras Operacionais para IA em Tarefas Multi-Repo:
+
+1. **Uma Única Conversa Coordenadora**: Uma única sessão de IA mantém todo o contexto mental da alteração de baixo nível (Rust/Go/C) e da configuração de alto nível (TOML/Lua/Zsh), eliminando retrabalho de contexto.
+2. **Scoping Explícito de Git (`git -C <caminho>`)**:
+   * A IA nunca assume que comandos Git executam no repositório global; ela direciona explicitamente cada `add`, `commit` e `push` para o diretório correto.
+3. **Padrões de Commit Independentes**:
+   * O repositório da engine segue seu próprio versionamento e PRs.
+   * O repositório de dotfiles segue as regras de [`.commitlintrc.json`](file:///home/fecavmi/.dotfiles/main/.commitlintrc.json) e validação de symlinks via `./stow.sh -n`.
+4. **Deploy Seguro no `$HOME`**: O preset só é stowed para `$HOME` quando o novo binário compilado já estiver validado e disponível no sistema.
+
+
 
 
 

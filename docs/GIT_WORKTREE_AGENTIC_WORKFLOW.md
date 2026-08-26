@@ -288,33 +288,50 @@ Como as Git Worktrees compartilham o banco de dados `.bare/` de cada projeto, ca
 * **O Problema**: O Git proíbe fazer checkout da mesma branch em duas worktrees simultâneas (`fatal: 'main' is already checked out`).
 * **A Solução**: Dentro da pasta `review/`, crie uma branch de espelho chamada `_main` (`git checkout -b _main origin/main`). Isso permite inspecionar, rebasear ou comparar Pull Requests contra a `main` sem nunca bloquear a worktree `main/` de produção.
 
-### C. Configuração Genérica no `gh-dash` (`~/.config/gh-dash/config.yml`)
-O `gh-dash` suporta **mapeamento com wildcard (`*`)** no campo `repoPaths`, permitindo configurar múltiplos repositórios sem cadastrá-los 1 por 1:
+### C. Configuração no `gh-dash` (`gh/.config/gh-dash/config.yml`)
+O `gh-dash` está integrado ao GNU Stow no pacote `gh` e configurado com **wildcards globais** e atalhos dedicados para `lazygitrs`:
 
 ```yaml
-# ~/.config/gh-dash/config.yml
-repoPaths:
-  # Mapeamento genérico para todos os repos do seu usuário/org
-  fcmiranda/*: ~/dev/github/*/review
-  
-  # Mapeamentos para outras organizações
-  rust-lang/*: ~/dev/github/*/review
-
-# Atalhos customizados para navegação ultra rápida a partir de PRs
+# gh/.config/gh-dash/config.yml
 keybindings:
   prs:
     - key: g
-      name: lazygit
-      command: cd {{.RepoPath}} && lazygit
+      name: lazygitrs
+      command: cd {{.RepoPath}} && lazygitrs
     - key: s
       name: sesh
       command: sesh connect {{.RepoPath}}
+  issues:
+    - key: g
+      name: lazygitrs
+      command: cd {{.RepoPath}} && lazygitrs
+
+repoPaths:
+  fcmiranda/*: ~/dev/github/*/review
+  */*: ~/dev/github/*/review
 ```
 
 #### Como funciona no fluxo diário:
-1. Você abre o `gh-dash` no terminal (`gh dash`).
-2. Navega até um Pull Request e pressiona a tecla de checkout ou atalhos customizados (`g` para lazygit, `s` para sesh).
-3. O `gh-dash` baixa o código diretamente em `~/dev/github/<repo>/review`, deixando suas worktrees de desenvolvimento (`main`, `feat-x`) 100% limpas e intocadas.
+1. Você abre o `gh-dash` no terminal: `gh dash`.
+2. Navega até qualquer **Pull Request** ou **Issue**.
+3. Pressione **`g`**: O `gh-dash` abre o [lazygitrs](file:///home/fecavmi/.cargo/bin/lazygitrs) imediatamente na pasta `review/` correspondente.
+4. Pressione **`s`**: Cria e conecta uma sessão Tmux no `sesh` focada na revisão.
+
+---
+
+## 9. Guia Rápido de Comandos (Cheat Sheet)
+
+| Ação | Comando | Descrição |
+| :--- | :--- | :--- |
+| **Clonar repositório no modelo `.bare`** | `wtc <user/repo>` | Clona em modo bare, cria `main/` e conecta ao Tmux com a IA ativa. |
+| **Criar worktree isolada para IA** | `aiwt <nome-da-branch>` | Cria branch irmã (ex: `~/.dotfiles/feat-x`) e abre prompt da IA no Tmux. |
+| **Explorar/Alternar Worktrees (TUI)** | `aiwt` ou `wtai` | Abre o picker [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker) (`mm -o wt`) com preview de status e commits. |
+| **Dashboard de PRs / Issues** | `gh dash` | Painel TUI do GitHub. Pressione `g` para abrir o `lazygitrs` ou `s` para `sesh`. |
+| **Alternar entre Sessões do Tmux** | `Prefix + s` ou `Alt + s` | Alterna instantaneamente entre worktrees e projetos via Sesh. |
+| **Validar Symlinks nos Dotfiles** | `./stow.sh -n` | Executa dry-run obrigatório antes de qualquer merge na branch `main`. |
+| **Re-stow de Pacote Atualizado** | `./stow.sh -r <pacote>` | Atualiza os symlinks no `$HOME` após o merge na `main`. |
+| **Remover Worktree Concluída** | `wt remove <branch>` | Exclui a worktree irmã e mantém o `.bare/` e a `main/` limpos. |
+
 
 
 

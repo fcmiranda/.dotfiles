@@ -26,7 +26,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-#89dceb}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " ⚡ Sesh Workspaces " \
+      -T " ⚡ " \
       -w 75% -h 60% \
       -E "TMUX_POPUP=1 $REAL_SCRIPT"
 
@@ -42,7 +42,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-#89dceb}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " ⚡ Sesh Workspaces " \
+      -T " ⚡ " \
       -w 75% -h 60% \
       -E "TMUX_POPUP=1 $REAL_SCRIPT"
   fi

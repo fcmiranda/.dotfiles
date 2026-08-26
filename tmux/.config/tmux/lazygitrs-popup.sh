@@ -16,7 +16,8 @@ unset _tmux_style
 LZG_BIN="$HOME/.cargo/bin/lazygitrs"
 [ -x "$LZG_BIN" ] || LZG_BIN="$(command -v lazygitrs 2>/dev/null || echo "lazygitrs")"
 
-REPO_NAME=$(basename "$PROJECT_DIR" 2>/dev/null || echo "git")
+GIT_POPUP_COLOR=$(grep -E '^\s*orange\s*=' "$HOME/.local/state/omarchy/current/theme/colors.toml" 2>/dev/null | sed -E 's/.*=\s*"([^"]+)".*/\1/')
+[ -z "$GIT_POPUP_COLOR" ] && GIT_POPUP_COLOR="#e84d31"
 
 AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
 if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
@@ -31,10 +32,10 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     tmux resize-pane -Z 2>/dev/null || true
 
     tmux display-popup \
-      -S "fg=#a6e3a1" \
+      -S "fg=$GIT_POPUP_COLOR" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " 󰊢 Lazygit • $REPO_NAME " \
+      -T " 󰊢 " \
       -d "$PROJECT_DIR" \
       -E \
       -w 90% -h 88% \
@@ -48,10 +49,10 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     fi
 else
     exec tmux display-popup \
-      -S "fg=#a6e3a1" \
+      -S "fg=$GIT_POPUP_COLOR" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " 󰊢 Lazygit • $REPO_NAME " \
+      -T " 󰊢 " \
       -d "$PROJECT_DIR" \
       -E \
       -w 90% -h 88% \

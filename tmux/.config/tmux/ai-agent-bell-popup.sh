@@ -81,7 +81,7 @@ tmux set-option -t "$POPUP_SESS" status off 2>/dev/null || true
 tmux popup \
   -S "fg=${TMUX_POPUP_ALERT_BORDER_COLOR:-#f9e2af}" \
   -s "fg=$TMUX_POPUP_TEXT_COLOR" \
-  -T " 󰮯 AI Attention • $TITLE " \
+  -T " 󰮯 " \
   -w "80%" \
   -h "75%" \
   -b rounded \

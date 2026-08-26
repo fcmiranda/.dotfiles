@@ -264,5 +264,58 @@ wtclone git@github.com:joshmedeski/sesh.git
 4. Identifica a branch padrão (`main`, `master`, etc.) e cria a worktree primária `~/dev/github/<repo>/<default_branch>`.
 5. Dispara o `sesh connect`, abrindo imediatamente a sessão Tmux com o ambiente de IA pronto.
 
+---
+
+## 8. Gestão de Code Reviews com Worktree Dedicada e `gh-dash`
+
+### A. Por que a Worktree `review/` é Isolada por Repositório?
+Como as Git Worktrees compartilham o banco de dados `.bare/` de cada projeto, cada repositório possui sua própria pasta `review/`:
+
+```
+~/dev/github/matchmaker/ (Container do Matchmaker)
+├── .bare/
+├── main/
+├── feat-preview/
+└── review/              <── Worktree de review deste repositório
+
+~/dev/github/lazygitrs/  (Container do Lazygitrs)
+├── .bare/
+├── main/
+└── review/              <── Worktree de review deste repositório
+```
+
+### B. O Truque da Branch `_main`
+* **O Problema**: O Git proíbe fazer checkout da mesma branch em duas worktrees simultâneas (`fatal: 'main' is already checked out`).
+* **A Solução**: Dentro da pasta `review/`, crie uma branch de espelho chamada `_main` (`git checkout -b _main origin/main`). Isso permite inspecionar, rebasear ou comparar Pull Requests contra a `main` sem nunca bloquear a worktree `main/` de produção.
+
+### C. Configuração Genérica no `gh-dash` (`~/.config/gh-dash/config.yml`)
+O `gh-dash` suporta **mapeamento com wildcard (`*`)** no campo `repoPaths`, permitindo configurar múltiplos repositórios sem cadastrá-los 1 por 1:
+
+```yaml
+# ~/.config/gh-dash/config.yml
+repoPaths:
+  # Mapeamento genérico para todos os repos do seu usuário/org
+  fcmiranda/*: ~/dev/github/*/review
+  
+  # Mapeamentos para outras organizações
+  rust-lang/*: ~/dev/github/*/review
+
+# Atalhos customizados para navegação ultra rápida a partir de PRs
+keybindings:
+  prs:
+    - key: g
+      name: lazygit
+      command: cd {{.RepoPath}} && lazygit
+    - key: s
+      name: sesh
+      command: sesh connect {{.RepoPath}}
+```
+
+#### Como funciona no fluxo diário:
+1. Você abre o `gh-dash` no terminal (`gh dash`).
+2. Navega até um Pull Request e pressiona a tecla de checkout ou atalhos customizados (`g` para lazygit, `s` para sesh).
+3. O `gh-dash` baixa o código diretamente em `~/dev/github/<repo>/review`, deixando suas worktrees de desenvolvimento (`main`, `feat-x`) 100% limpas e intocadas.
+
+
 
 

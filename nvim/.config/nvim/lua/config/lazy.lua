@@ -18,10 +18,8 @@ require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    -- import/override with your plugins
+    -- import/override with your plugins (including lua/plugins/omarchy-colorscheme.lua)
     { import = "plugins" },
-    -- load omarchy theme
-    unpack(dofile(vim.fn.expand("~/.config/omarchy/current/theme/neovim.lua"))),
   },
   defaults = {
     -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.

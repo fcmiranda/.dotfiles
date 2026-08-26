@@ -8,7 +8,11 @@
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
 -- Watch omarchy theme changes and reload colorscheme live
-local neovim_lua_file = vim.fn.expand("~/.config/omarchy/current/theme/neovim.lua")
+local omarchy_current_dir = vim.fn.expand("~/.local/state/omarchy/current")
+if vim.fn.isdirectory(omarchy_current_dir) == 0 then
+  omarchy_current_dir = vim.fn.expand("~/.config/omarchy/current")
+end
+local neovim_lua_file = omarchy_current_dir .. "/theme/neovim.lua"
 
 local function read_omarchy_colorscheme()
   local f = io.open(neovim_lua_file, "r")
@@ -51,7 +55,7 @@ end
 
 local w = vim.uv.new_fs_event()
 if w then
-  w:start(vim.fn.expand("~/.config/omarchy/current"), {}, function(err, fname)
+  w:start(omarchy_current_dir, {}, function(err, fname)
     if err or fname ~= "theme.name" then return end
     if omarchy_theme_busy then return end
     omarchy_theme_busy = true

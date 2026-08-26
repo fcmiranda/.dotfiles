@@ -1,5 +1,5 @@
 # Matchmaker Agent Worktree Preset (`mm -o awt`)
-# Interactive worktree switcher with Nav Mode, live status, ahead/behind sync, and multi-tab previews.
+# Interactive worktree switcher with Nav Mode, column headers, ANSI colors, and multi-tab previews.
 
 [tui]
 percentage = 80
@@ -19,6 +19,11 @@ status_inline = true
 prompt = ">"
 prompt_style.fg = "white"
 prompt_style.modifier = "BOLD"
+
+[header]
+header_lines = 1
+style.fg = "Cyan"
+style.modifier = "BOLD"
 
 [footer]
 content = " {cyan,bold:[Enter]} {darkgray:Connect Sesh}  •  {magenta,bold:[g/l]} {darkgray:LazyGit}  •  {yellow,bold:[c]} {darkgray:New WT}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
@@ -111,6 +116,9 @@ command = '''
 main_branch="main"
 current_wt=$(git rev-parse --show-toplevel 2>/dev/null)
 
+# Header line (consumed by header_lines = 1)
+printf "BRANCH\tSTATUS\tMAIN ↕\tREMOTE ⇅\tAGE\tCOMMIT\tPATH\n"
+
 git worktree list --porcelain 2>/dev/null | awk '
 /^worktree / { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head; path = substr($0, 10); branch = ""; head = ""; bare = 0 }
 /^bare$/     { bare = 1 }
@@ -118,48 +126,66 @@ git worktree list --porcelain 2>/dev/null | awk '
 /^branch /   { branch = substr($0, 8); sub("refs/heads/", "", branch) }
 END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head }
 ' | while IFS=$'\t' read -r wt_path branch head; do
-    marker=" "
-    [[ "$wt_path" == "$current_wt" ]] && marker="@"
-    [[ "$branch" == "$main_branch" ]] && marker="^"
-    branch_display="$marker $branch"
-
-    status_icon="✔"
-    dirty_count=$(git -C "$wt_path" status --porcelain 2>/dev/null | wc -l)
-    if [[ "$dirty_count" -gt 0 ]]; then
-        status_icon="? ✗ (+${dirty_count})"
+    # Marker & Branch formatting with colors
+    if [[ "$wt_path" == "$current_wt" ]]; then
+        branch_display="\033[1;36m@ $branch\033[0m"
+    elif [[ "$branch" == "$main_branch" ]]; then
+        branch_display="\033[1;33m^ $branch\033[0m"
+    else
+        branch_display="  $branch"
     fi
 
+    # Dirty / Clean status with colors
+    dirty_count=$(git -C "$wt_path" status --porcelain 2>/dev/null | wc -l)
+    if [[ "$dirty_count" -gt 0 ]]; then
+        status_icon="\033[1;33m?\033[0m \033[1;31m✗\033[0m \033[31m(+${dirty_count})\033[0m"
+    else
+        status_icon="\033[1;32m✔\033[0m"
+    fi
+
+    # Main divergence (Ahead / Behind) with colored arrows
     counts=$(git -C "$wt_path" rev-list --left-right --count "${main_branch}...HEAD" 2>/dev/null)
     behind=$(echo "$counts" | awk '{print $1}')
     ahead=$(echo "$counts" | awk '{print $2}')
     if [[ -z "$counts" ]]; then
-        main_div="-"
+        main_div="\033[2m-\033[0m"
     elif [[ "$ahead" -eq 0 && "$behind" -eq 0 ]]; then
-        main_div="Synced"
+        main_div="\033[32mSynced\033[0m"
     else
-        main_div="↑${ahead:-0} ↓${behind:-0}"
+        main_div=""
+        [[ "$ahead" -gt 0 ]] && main_div+="\033[1;32m↑${ahead}\033[0m "
+        [[ "$behind" -gt 0 ]] && main_div+="\033[1;31m↓${behind}\033[0m"
+        main_div="${main_div% }"
     fi
 
-    upstream_div="-"
+    # Remote upstream divergence with colored arrows
+    upstream_div="\033[2m-\033[0m"
     if git -C "$wt_path" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
         u_counts=$(git -C "$wt_path" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
         u_behind=$(echo "$u_counts" | awk '{print $1}')
         u_ahead=$(echo "$u_counts" | awk '{print $2}')
         if [[ "$u_ahead" -eq 0 && "$u_behind" -eq 0 ]]; then
-            upstream_div="Synced"
+            upstream_div="\033[32mSynced\033[0m"
         else
-            upstream_div="⇡${u_ahead:-0} ⇣${u_behind:-0}"
+            upstream_div=""
+            [[ "$u_ahead" -gt 0 ]] && upstream_div+="\033[1;32m⇡${u_ahead}\033[0m "
+            [[ "$u_behind" -gt 0 ]] && upstream_div+="\033[1;31m⇣${u_behind}\033[0m"
+            upstream_div="${upstream_div% }"
         fi
     fi
 
+    # Age & Commit hash
     age=$(git -C "$wt_path" log -1 --format="%cr" 2>/dev/null | sed "s/ ago//; s/ minutes/m/; s/ hours/h/; s/ days/d/; s/ weeks/w/")
+    age_display="\033[2m${age:-now}\033[0m"
+    head_display="\033[33m$head\033[0m"
 
-    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-        "$branch_display" "$status_icon" "$main_div" "$upstream_div" "${age:-now}" "$head" "$wt_path"
+    printf "%b\t%b\t%b\t%b\t%b\t%b\t%s\n" \
+        "$branch_display" "$status_icon" "$main_div" "$upstream_div" "$age_display" "$head_display" "$wt_path"
 done
 '''
 
 [start]
+ansi = true
 mode = "nav"
 output_template = "{=path}"
 

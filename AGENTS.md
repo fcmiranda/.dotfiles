@@ -34,10 +34,13 @@ See [.shell/install/README.md](.shell/install/README.md) for the current bootstr
 - When a task mentions adopting an existing file into dotfiles, check [utils/.local/bin/stow-it](utils/.local/bin/stow-it).
 - If you are asked to commit, follow the conventional commit rules in [.commitlintrc.json](.commitlintrc.json) and the helper workflow in [git/GC_SGC.md](git/GC_SGC.md).
 - Link to existing docs instead of copying their content into new instruction files.
+- **Ergonomics & Zero-Churn Principle**: This repository is engineered around strict biomechanical ergonomics (Home Row first, $H=0$, sub-100ms latency, pure icon badges, dynamic Omarchy theme color sync). If a keybinding, modal layout, or popup workflow is already optimal and working, do NOT arbitrarily change, rebind, or churn it. Always consult [docs/architecture/terminal-ergonomics-and-ux-manifesto.md](docs/architecture/terminal-ergonomics-and-ux-manifesto.md) before proposing UX or keybinding modifications.
 - **System Skills Location**: Core Omarchy skills (e.g. `omarchy`, `diagnose-crash`) are managed dynamically outside of dotfiles via system symlinks in `~/.agents/skills/` pointing to `/usr/share/omarchy/default/agents/skills/`. Agents MUST read the live system skills from `~/.agents/skills/omarchy/SKILL.md` (or `/usr/share/omarchy/default/agents/skills/`) to always use the up-to-date documentation matching the installed OS version, rather than duplicating them statically in dotfiles.
 
 ## Useful References
 
+- [docs/architecture/terminal-ergonomics-and-ux-manifesto.md](docs/architecture/terminal-ergonomics-and-ux-manifesto.md)
+- [docs/tmux/popups-ergonomics-and-golden-ratio.md](docs/tmux/popups-ergonomics-and-golden-ratio.md)
 - [docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md](docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md)
 - [.shell/install/README.md](.shell/install/README.md)
 - [.commitlintrc.json](.commitlintrc.json)

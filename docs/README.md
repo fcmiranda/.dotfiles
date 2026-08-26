@@ -22,11 +22,13 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**Tmux Activity Monitoring**](TMUX_ACTIVITY.md): Activity alert and notification behavior.
 
 ### 🖥️ 3. Desktop, Terminal & Hardware (`docs/desktop/`)
+- [**Hyprland Aesthetics vs. Performance Benchmark**](desktop/hyprland-aesthetics-and-performance.md): Deep-dive comparing Liquid Glass (`hyprglass`), Tokyo Night Solar Dawn (current), Catppuccin Pastel, Cyberpunk Neon, and OLED Zen with GPU/battery benchmarks on Apple Silicon M1 Pro.
 - [**Dynamic Context-Aware Workspace Pills**](desktop/quickshell-workspace-pills.md): Reactive Quickshell workspace pills with real-time app icon rewriting and title-aware webapp detection (YouTube, GitHub, Google Photos, etc.).
 - [**System, Displays & Hardware**](desktop/system-and-hardware.md): Kanshi Wayland display hotplug profiles, Ghostty terminal enhancements (CSI u escapes, epoll, custom shaders), and battery charge thresholds / CPU power profiles.
 - [**Hyprland Animations Configuration**](desktop/hyprland-animations.md): Active animation rules, cubic Bézier curve presets, tree speeds, and override methods.
 - [**Nerd Fonts Configuration**](NERD_FONTS.md): Font glyph setup and symbol rendering.
 - [**Hyprland Crash Recovery**](HYPRLAND_CRASH_FIX.md): Crash triage and stability fixes.
+
 
 ### 🎨 4. Theme & Design System (`docs/theme/`)
 - [**System Theming Architecture**](SYSTEM_THEME.md): The Omarchy theme rendering pipeline, `colors.toml` template generation, overrides, and live reload hooks.

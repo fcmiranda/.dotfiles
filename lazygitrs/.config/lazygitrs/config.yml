@@ -8,12 +8,15 @@ gui:
 keybinding:
   universal:
     refresh: "r"
+    quit: "q"
+    quit-alt1: "<c-c>"
+    return: "<escape>"
   files:
     generateAICommit: "G"
     commitChanges: "C"
   commitMessage:
     commitMenu: "<c-o>"
-    aiGenerate: "<c-g>"
+    aiGenerate: "<c-a>"
 
 aiNotes:
   enabled: true

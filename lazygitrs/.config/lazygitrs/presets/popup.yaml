@@ -40,7 +40,7 @@ refresher:
   fetchInterval: 60
 keybinding:
   universal:
-    quit: ""
+    quit: q
     quit-alt1: <c-c>
     return: <escape>
     quitWithoutChangingDirectory: Q
@@ -140,7 +140,7 @@ keybinding:
     renameStash: r
   commitMessage:
     commitMenu: <c-o>
-    aiGenerate: <c-g>
+    aiGenerate: <c-a>
 os:
   edit: ''
   editAtLine: ''

@@ -20,7 +20,11 @@ unset _tmux_style
 # Create session if it doesn't exist, otherwise add a window if needed
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     tmux new-session -d -s "$SESSION_NAME" -n "$WINDOW_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d -c popup'
+    tmux set-option -t "$SESSION_NAME" status off 2>/dev/null || true
+    tmux set-option -w -t "$SESSION_NAME" status off 2>/dev/null || true
 else
+    tmux set-option -t "$SESSION_NAME" status off 2>/dev/null || true
+    tmux set-option -w -t "$SESSION_NAME" status off 2>/dev/null || true
     if ! tmux list-windows -t "$SESSION_NAME" -F '#W' 2>/dev/null | grep -q "^${WINDOW_NAME}$"; then
         tmux new-window -t "$SESSION_NAME" -n "$WINDOW_NAME" -c "$PROJECT_DIR" '~/.cargo/bin/lazygitrs -d -c popup'
     fi
@@ -44,9 +48,7 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
       -b rounded \
       -d "$PROJECT_DIR" \
       -E \
-      -y 28 \
-      -w "85%" \
-      -h "45%" \
+      -w 80% -h 35% -y 34 \
       "tmux attach-session -t \"$SESSION_NAME:$WINDOW_NAME\""
 
     tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
@@ -62,8 +64,6 @@ else
       -b rounded \
       -d "$PROJECT_DIR" \
       -E \
-      -y 28 \
-      -w "85%" \
-      -h "45%" \
+      -w 80% -h 35% -y 34 \
       "tmux attach-session -t \"$SESSION_NAME:$WINDOW_NAME\""
 fi

@@ -1,5 +1,5 @@
 # Matchmaker Agent Worktree Preset (`mm -o awt`)
-# Interactive worktree switcher with Nav Mode, BASE column, ANSI colors, and native Conventional Branch wizard.
+# Interactive worktree switcher with Nav Mode, BASE branch column, ANSI colors, and multi-tab previews.
 
 [tui]
 percentage = 80
@@ -207,60 +207,7 @@ output_template = "{=path}"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "ctrl-p" = "SwitchPreview"
-
-"ctrl-n" = '''Execute(
-    selected_raw="{=branch}"
-    selected_branch=$(echo "$selected_raw" | sed 's/^[ @^]*//; s/ .*//')
-
-    # 1. Type selection via Matchmaker
-    type_chosen=$(printf "feat\t✨ New feature\nfix\t🐛 Bug fix\nrefactor\t♻️  Code refactoring\nperf\t⚡ Performance optimization\nchore\t🔧 Maintenance & config\ndocs\t📝 Documentation\ntest\t🧪 Tests\nbuild\t📦 Build & dependencies\ncustom\t🏷️  Freeform / No prefix\n" | \
-        mm d "\t" o "{1}" q.prompt="Type > " tui.percentage=30 ui.border.type=Rounded 2>/dev/null </dev/tty)
-    [ -n "$type_chosen" ] || exit 0
-
-    if [[ "$type_chosen" == "custom" ]]; then
-        prefix=""
-    else
-        prefix="${type_chosen}/"
-    fi
-
-    # 2. Branch name / slug input
-    printf "\033[1;36m🌿 Branch name (%s):\033[0m " "${prefix}<name>"
-    read -r slug </dev/tty
-    [ -n "$slug" ] || exit 0
-    slug=$(echo "$slug" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
-    branch_name="${prefix}${slug}"
-
-    # 3. Base branch selection via Matchmaker
-    main_branch="main"
-    base_chosen=$({
-        printf "main\t🌱 (Default Base)\n"
-        [[ -n "$selected_branch" && "$selected_branch" != "$main_branch" ]] && printf "%s\t📌 (Selected Worktree)\n" "$selected_branch"
-        git for-each-ref --format="%(refname:short)" refs/heads | grep -vE "^(HEAD|$main_branch|$selected_branch)$" | while read -r b; do
-            printf "%s\t🌿 (Local Branch)\n" "$b"
-        done
-        git for-each-ref --format="%(refname:short)" refs/remotes/origin | grep -vE "(HEAD|$main_branch)" | while read -r r; do
-            printf "%s\t☁️  (Remote Branch)\n" "$r"
-        done
-    } | mm d "\t" o "{1}" q.prompt="Base for '${branch_name}' > " tui.percentage=40 ui.border.type=Rounded 2>/dev/null </dev/tty)
-    [ -n "$base_chosen" ] || exit 0
-
-    # 4. Provision worktree & connect
-    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-    branch_folder="${branch_name//\//-}"
-    target_dir="$repo_root/../$branch_folder"
-
-    if command -v wt >/dev/null 2>&1; then
-        wt switch --create "$branch_name" --base "$base_chosen"
-    else
-        git worktree add "$target_dir" -b "$branch_name" "$base_chosen"
-    fi
-    git -C "$target_dir" config "branch.${branch_name}.base" "$base_chosen" 2>/dev/null || true
-
-    if command -v sesh >/dev/null 2>&1; then
-        sesh connect "$target_dir"
-    fi
-)'''
-
+"ctrl-n" = '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")'''
 "ctrl-d" = '''Execute(
     wt_p="{=path}"
     printf "Remove worktree %s? [y/N]: " "$wt_p"
@@ -270,7 +217,6 @@ output_template = "{=path}"
         *) exit 0 ;;
     esac
 )'''
-
 "ctrl-u" = '''Execute(
     echo "Fetching remotes for {=branch}..."
     git -C "{=path}" fetch --all --prune
@@ -287,56 +233,7 @@ output_template = "{=path}"
 "nav^^p" = "SwitchPreview"
 "nav^^g" = "Pos(0)"
 "nav^^G" = "Pos(-1)"
-
-"nav^^c" = '''Execute(
-    selected_raw="{=branch}"
-    selected_branch=$(echo "$selected_raw" | sed 's/^[ @^]*//; s/ .*//')
-
-    type_chosen=$(printf "feat\t✨ New feature\nfix\t🐛 Bug fix\nrefactor\t♻️  Code refactoring\nperf\t⚡ Performance optimization\nchore\t🔧 Maintenance & config\ndocs\t📝 Documentation\ntest\t🧪 Tests\nbuild\t📦 Build & dependencies\ncustom\t🏷️  Freeform / No prefix\n" | \
-        mm d "\t" o "{1}" q.prompt="Type > " tui.percentage=30 ui.border.type=Rounded 2>/dev/null </dev/tty)
-    [ -n "$type_chosen" ] || exit 0
-
-    if [[ "$type_chosen" == "custom" ]]; then
-        prefix=""
-    else
-        prefix="${type_chosen}/"
-    fi
-
-    printf "\033[1;36m🌿 Branch name (%s):\033[0m " "${prefix}<name>"
-    read -r slug </dev/tty
-    [ -n "$slug" ] || exit 0
-    slug=$(echo "$slug" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
-    branch_name="${prefix}${slug}"
-
-    main_branch="main"
-    base_chosen=$({
-        printf "main\t🌱 (Default Base)\n"
-        [[ -n "$selected_branch" && "$selected_branch" != "$main_branch" ]] && printf "%s\t📌 (Selected Worktree)\n" "$selected_branch"
-        git for-each-ref --format="%(refname:short)" refs/heads | grep -vE "^(HEAD|$main_branch|$selected_branch)$" | while read -r b; do
-            printf "%s\t🌿 (Local Branch)\n" "$b"
-        done
-        git for-each-ref --format="%(refname:short)" refs/remotes/origin | grep -vE "(HEAD|$main_branch)" | while read -r r; do
-            printf "%s\t☁️  (Remote Branch)\n" "$r"
-        done
-    } | mm d "\t" o "{1}" q.prompt="Base for '${branch_name}' > " tui.percentage=40 ui.border.type=Rounded 2>/dev/null </dev/tty)
-    [ -n "$base_chosen" ] || exit 0
-
-    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-    branch_folder="${branch_name//\//-}"
-    target_dir="$repo_root/../$branch_folder"
-
-    if command -v wt >/dev/null 2>&1; then
-        wt switch --create "$branch_name" --base "$base_chosen"
-    else
-        git worktree add "$target_dir" -b "$branch_name" "$base_chosen"
-    fi
-    git -C "$target_dir" config "branch.${branch_name}.base" "$base_chosen" 2>/dev/null || true
-
-    if command -v sesh >/dev/null 2>&1; then
-        sesh connect "$target_dir"
-    fi
-)'''
-
+"nav^^c" = '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")'''
 "nav^^d" = '''Execute(
     wt_p="{=path}"
     printf "Remove worktree %s? [y/N]: " "$wt_p"
@@ -346,7 +243,6 @@ output_template = "{=path}"
         *) exit 0 ;;
     esac
 )'''
-
 "nav^^u" = '''Execute(
     echo "Fetching remotes for {=branch}..."
     git -C "{=path}" fetch --all --prune

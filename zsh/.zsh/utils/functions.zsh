@@ -471,7 +471,15 @@ awt() {
             ;;
     esac
 
-    [[ -z "$branch" ]] && { echo "awt: branch name required."; return 1; }
+    # Interactive Matchmaker wizard when called as `awt -c` without a branch name
+    if [[ "$create" -eq 1 && -z "$branch" ]]; then
+        if [[ -x "$HOME/.config/matchmaker/scripts/awt-new.sh" ]]; then
+            "$HOME/.config/matchmaker/scripts/awt-new.sh"
+            return $?
+        fi
+    fi
+
+    [[ -z "$branch" ]] && { echo "awt: branch name required. Usage: awt [-c <branch> [base]]"; return 1; }
 
     local branch_clean="${branch//\//-}"
     local repo_root target_dir

@@ -69,7 +69,7 @@ tmux (Servidor)
 
 ### Por que 1 Sessão por Worktree?
 - **Isolamento de CWD**: Cada sessão opera na raiz de sua respectiva worktree.
-- **Transição Fluida**: Alternância instantânea via `Prefix + s` ou picker `mm -o wt`.
+- **Transição Fluida**: Alternância instantânea via `Prefix + s` ou picker `mm -o awt`.
 - **Hooks Automatizados**: Configurações no `sesh.toml` iniciam sandboxes (`ai-jail agy`) automaticamente ao conectar na sessão.
 
 ---
@@ -192,7 +192,7 @@ graph TD
 
 ---
 
-## 7. Automações Implementadas: Worktrunk Global e `aiwt` (`wtai`) com Matchmaker
+## 7. Automações Implementadas: Worktrunk Global e `awt` com Matchmaker
 
 ### A. Configuração Global do Worktrunk (`worktrunk/.config/worktrunk/config.toml`)
 O `worktrunk` (`wt`) suporta configuração global de `worktree-path` no nível raiz do TOML. Isso significa que **não é necessário cadastrar repositórios 1 por 1**:
@@ -217,44 +217,44 @@ worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 
 2. **`skip-commit-generation-prompt = true`**:
    * **Fluxo Ágil e Não-Bloqueante**: O `worktrunk` possui um assistente que sugere mensagens de commit via prompt. Em um fluxo de trabalho com múltiplos agentes de IA e multiplexação rápida via Tmux/Sesh, prompts interativos adicionam atrito desnecessário.
-   * **Previsibilidade**: Permite que scripts de automação (como a função `aiwt`) executem a criação e alternância de worktrees instantaneamente em < 10ms.
+   * **Previsibilidade**: Permite que scripts de automação (como a função `awt`) executem a criação e alternância de worktrees instantaneamente em < 10ms.
 
 
-### B. Função `aiwt` / `wtai` (Zsh Helper com TUI Matchmaker)
+### B. Função `awt` (Zsh Helper com TUI Matchmaker)
 Função integrada ao [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que oferece dois modos de operação (Interativo TUI vs. Direto CLI):
 
 #### 1. Modo Interativo TUI (Sem argumentos):
 ```bash
-aiwt
-# ou
-wtai
+awt
 ```
-* Abre o picker fuzzy do [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/wt.toml) (`mm -o wt`) com preview ao vivo de `git status` e histórico de commits.
+* Abre o picker fuzzy do [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt.toml) (`mm -o awt`) com preview ao vivo de `git status` e histórico de commits.
 * Ao selecionar qualquer worktree existente e pressionar `Enter`, o `sesh` conecta você instantaneamente à sessão Tmux correspondente.
 
-#### 2. Modo Direto CLI (Com nome da branch):
+#### 2. Modo Direto CLI (Com nome da branch ou criação):
 ```bash
-aiwt feat-prompt-fast
-# ou
-wtai feat-nvim-perf
+# Alternar / Conectar
+awt feat-prompt-fast
+
+# Criar nova worktree de agente
+awt -c feat-nvim-perf
 ```
-* Cria a branch e a pasta da worktree imediatamente via `worktrunk` (`wt add`) ou `git worktree add`.
+* Cria a branch e a pasta da worktree imediatamente via `worktrunk` (`wt switch --create`) ou `git worktree add`.
 * Conecta via `sesh connect`, criando a sessão Tmux com o agente de IA (`agy`) pronto para uso em < 100ms.
 
-### C. Função `wtclone` / `wtc` (Clone Automático no Modelo `.bare`)
+### C. Função `awtc` (Clone Automático no Modelo `.bare`)
 Função integrada ao [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que automatiza o provisionamento completo de novos repositórios na arquitetura de container `.bare` + worktree:
 
 #### Uso:
 ```bash
 # Clone a partir do GitHub (user/repo):
-wtclone fcmiranda/matchmaker
+awtc fcmiranda/matchmaker
 
-# Ou usando o alias super curto:
-wtc rust-lang/cargo
+# Ou via subcomando integrado:
+awt clone fcmiranda/matchmaker
 
 # Clone a partir de URL completa (HTTPS ou SSH):
-wtclone https://github.com/astral-sh/uv.git
-wtclone git@github.com:joshmedeski/sesh.git
+awtc https://github.com/astral-sh/uv.git
+awtc git@github.com:joshmedeski/sesh.git
 ```
 
 #### O que ela executa automaticamente:
@@ -323,9 +323,9 @@ repoPaths:
 
 | Ação | Comando | Descrição |
 | :--- | :--- | :--- |
-| **Clonar repositório no modelo `.bare`** | `wtc <user/repo>` | Clona em modo bare, cria `main/` e conecta ao Tmux com a IA ativa. |
-| **Criar worktree isolada para IA** | `aiwt <nome-da-branch>` | Cria branch irmã (ex: `~/.dotfiles/feat-x`) e abre prompt da IA no Tmux. |
-| **Explorar/Alternar Worktrees (TUI)** | `aiwt` ou `wtai` | Abre o picker [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker) (`mm -o wt`) com preview de status e commits. |
+| **Clonar repositório no modelo `.bare`** | `awtc <user/repo>` | Clona em modo bare, cria `main/` e conecta ao Tmux com a IA ativa. |
+| **Criar worktree isolada para IA** | `awt -c <branch> [base]` | Cria branch irmã (ex: `~/.dotfiles/feat-x`) e abre prompt da IA no Tmux. |
+| **Explorar/Alternar Worktrees (TUI)** | `awt` | Abre o picker [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker) (`mm -o awt`) com preview de status e commits. |
 | **Dashboard de PRs / Issues** | `gh dash` | Painel TUI do GitHub. Pressione `g` para abrir o `lazygitrs` ou `s` para `sesh`. |
 | **Alternar entre Sessões do Tmux** | `Prefix + s` ou `Alt + s` | Alterna instantaneamente entre worktrees e projetos via Sesh. |
 | **Validar Symlinks nos Dotfiles** | `./stow.sh -n` | Executa dry-run obrigatório antes de qualquer merge na branch `main`. |

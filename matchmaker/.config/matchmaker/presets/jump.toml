@@ -74,8 +74,8 @@ indicator = ""               # Caractere indicador de scroll automático
 indicator_style.fg = "blue"   # Cor do indicador de autoscroll
 
 [previewer]
-debounce_ms = 25              # Delay em ms para atualizar o preview ao mover o cursor (ex: 15, 25, 50)
-delay_clear = false             # true (evita flicker limpando preview só quando novo estiver pronto) / false
+debounce_ms = 20              # Delay em ms para atualizar o preview ao mover o cursor
+delay_clear = true             # true (evita flicker retendo preview anterior até o novo estar pronto)
 
 [preview]
 show = true
@@ -84,7 +84,7 @@ media_fit = "fit"
 
 [[preview.layout]]
 side = "right"                # Posição do preview: "right", "left", "top", "bottom"
-percentage = 79               # Tamanho do painel em % (1-100)
+percentage = 60               # Tamanho balanceado do painel em % (Proporção Áurea 60/40)
 
 [binds]
 "@reloadnext" = "ReloadNext"

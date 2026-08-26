@@ -4,6 +4,7 @@ nav_basic = true
 nav_bar = "Plain"
 nav_color = "Black"
 nav_prompt = ""
+
 [start]
 sort = false
 ansi = true
@@ -16,16 +17,15 @@ max = 9999
 [matcher]
 sort_threshold = false
 
-
 [ui.border]
 sides = ""
 
 [query]
-prompt = "⚡"
+prompt = "⚡ "
 status_inline = true
 
 [footer]
-content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {red,bold:[C-d]} {darkgray:Kill}  •  {yellow,bold:[C-a]} {darkgray:All}  •  {magenta,bold:[C-t]} {darkgray:Tmux}  •  {blue,bold:[C-x]} {darkgray:Frecency}"
+content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {red,bold:[d]} {darkgray:Kill}  •  {yellow,bold:[a]} {darkgray:All}  •  {magenta,bold:[t]} {darkgray:Tmux}  •  {blue,bold:[x]} {darkgray:Frecency}"
 row_connection = "Full"
 match_indent = false
 
@@ -38,6 +38,10 @@ column_spacing = 1
 
 [results.border]
 sides = ""
+
+[previewer]
+debounce_ms = 20
+delay_clear = true
 
 [preview]
 wrap = false
@@ -57,4 +61,10 @@ percentage = 55
 "ctrl-g" = [ "SetPrompt(⚙️  )", "Reload(sesh list -c --icons)" ]
 "ctrl-x" = [ "SetPrompt(📁  )", "Reload(mm list --dirs)" ]
 "ctrl-f" = [ "SetPrompt(🔎  )", "Reload(fd -H -d 2 -t d -E .Trash . ~)" ]
-"ctrl-d" = [ "ExecuteAsync(sess=\"{=}\"; sess=\"${sess#* }\"; tmux kill-session -t \"$sess\")", "SetPrompt(⚡  )", "SetQuery()", "Reload(sesh list --icons)" ]
+"ctrl-d" = [ 'ExecuteAsync(sess="{=}"; sess="${sess#* }"; tmux kill-session -t "$sess")', "SetPrompt(⚡  )", "SetQuery()", "Reload(sesh list --icons)" ]
+"nav^^a" = [ "SetPrompt(⚡  )", "Reload(sesh list --icons)" ]
+"nav^^t" = [ "SetPrompt(🪟  )", "Reload(sesh list -t --icons)" ]
+"nav^^g" = [ "SetPrompt(⚙️  )", "Reload(sesh list -c --icons)" ]
+"nav^^x" = [ "SetPrompt(📁  )", "Reload(mm list --dirs)" ]
+"nav^^f" = [ "SetPrompt(🔎  )", "Reload(fd -H -d 2 -t d -E .Trash . ~)" ]
+"nav^^d" = [ 'ExecuteAsync(sess="{=}"; sess="${sess#* }"; tmux kill-session -t "$sess")', "SetPrompt(⚡  )", "SetQuery()", "Reload(sesh list --icons)" ]

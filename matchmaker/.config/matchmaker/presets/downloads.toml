@@ -2,7 +2,7 @@
 # Optimized for browsing ~/Downloads with native terminal image previews
 
 [tui]
-percentage = 20 # height
+percentage = 70 # height
 min = 15
 
 [ui]
@@ -25,9 +25,6 @@ max = 15
 icons = true
 symlink_target = true
 
-
-
-
 [matcher]
 sort = "smart"
 frecency = true
@@ -40,12 +37,12 @@ wrap = true
 scroll_wrap = true
 
 [previewer]
-debounce_ms = 25                # Delay em ms para atualizar o preview ao mover o cursor (ex: 15, 25, 50, 100)
-delay_clear = false              # false: limpa a imagem antiga imediatamente ao mudar de linha
+debounce_ms = 20                # Delay em ms para atualizar o preview ao mover o cursor
+delay_clear = true              # true: retém preview anterior para zero-flicker
 
 [[preview.layout]]
 side = "right"
-percentage = 80
+percentage = 65
 min = 25
 
 [start]

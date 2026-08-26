@@ -48,7 +48,7 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
       -b rounded \
       -d "$PROJECT_DIR" \
       -E \
-      -w 80% -h 35% -y 34 \
+      -w 90% -h 88% \
       "tmux attach-session -t \"$SESSION_NAME:$WINDOW_NAME\""
 
     tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
@@ -64,6 +64,6 @@ else
       -b rounded \
       -d "$PROJECT_DIR" \
       -E \
-      -w 80% -h 35% -y 34 \
+      -w 90% -h 88% \
       "tmux attach-session -t \"$SESSION_NAME:$WINDOW_NAME\""
 fi

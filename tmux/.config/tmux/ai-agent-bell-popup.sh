@@ -38,11 +38,7 @@ if [ "${#notifying_panes[@]}" -eq 0 ]; then
 fi
 
 if [ "${#notifying_panes[@]}" -eq 0 ]; then
-  tmux display-popup \
-    -b rounded \
-    -S "fg=$TMUX_POPUP_BORDER_COLOR" \
-    -w 38 -h 5 \
-    "printf '\n  No active AI Agent notification.\n'; sleep 1.5"
+  tmux display-message -d 1500 " 󰮯 No active AI Agent notification."
   exit 0
 fi
 

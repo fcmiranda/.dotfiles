@@ -29,7 +29,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -w 80% -h 35% -y 34 \
+      -w 75% -h 60% \
       -E "TMUX_POPUP=1 TMUX_ORIGIN_SESSION='$ORIG_SESS' TMUX_ORIGIN_WINDOW='$ORIG_WIN' $REAL_SCRIPT"
 
     tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
@@ -44,7 +44,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -w 80% -h 35% -y 34 \
+      -w 75% -h 60% \
       -E "TMUX_POPUP=1 TMUX_ORIGIN_SESSION='$ORIG_SESS' TMUX_ORIGIN_WINDOW='$ORIG_WIN' $REAL_SCRIPT"
   fi
 fi

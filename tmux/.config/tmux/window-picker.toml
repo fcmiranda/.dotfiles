@@ -61,6 +61,10 @@ nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "l
 [ui.border]
 sides = ""
 
+[previewer]
+debounce_ms = 20
+delay_clear = true
+
 [preview]
 wrap = false
 
@@ -71,7 +75,7 @@ color = "Gray"
 [[preview.layout]]
 command = 'sess="{=session}"; tmux capture-pane -ep -t "${sess}:{=idx}" 2>/dev/null || printf "  \033[38;2;146;131;116m(no preview)\033[0m\n"'
 side = "right"
-percentage = 70
+percentage = 60
 
 [binds]
 Start = ["ToggleColumn(title)", "ToggleColumn(name)", "ToggleColumn(session)", "ToggleColumn(idx)"]

@@ -20,27 +20,27 @@ active_spinner = "minidot"
 
 [theme.states.idle]
 icon = "󱥂"
-color = "#0db9d7"
+color = "#a5a0b6"
 
 [theme.states.busy]
 icon = "󰑮"
-color = "#ff9e64"
+color = "#6B5E73"
 
 [theme.states.working]
 icon = "󰑮"
-color = "#ff9e64"
+color = "#6B5E73"
 
 [theme.states.question]
 icon = "󱜻"
-color = "#bb9af7"
+color = "#c4d8e2"
 
 [theme.states.permission]
 icon = "󱅭"
-color = "#f7768e"
+color = "#c38b7b"
 
 [theme.states.error]
 icon = "󰨄"
-color = "#f7768e"
+color = "#c38b7b"
 
 [spinners]
 minidot = { interval = 83, frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"] }

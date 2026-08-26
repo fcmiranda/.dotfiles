@@ -1,5 +1,5 @@
--- Crimson Alert (Accent + Red)
-local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ red_strip }}ee)" }, angle = 180 }
+-- Solar Dawn (Accent + Yellow)
+local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ yellow_strip }}ee)" }, angle = 45 }
 local inactive_border_color = "rgba(595959aa)"
 
 hl.config({

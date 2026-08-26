@@ -1,6 +1,4 @@
+# Global worktrunk configuration (applies to ALL Git repositories automatically)
 skip-commit-generation-prompt = true
-[projects."github.com/fcmiranda/matchmaker"]
 worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 
-[projects."github.com/fcmiranda/lazygitrs"]
-worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"

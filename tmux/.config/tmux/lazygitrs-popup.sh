@@ -16,6 +16,8 @@ unset _tmux_style
 LZG_BIN="$HOME/.cargo/bin/lazygitrs"
 [ -x "$LZG_BIN" ] || LZG_BIN="$(command -v lazygitrs 2>/dev/null || echo "lazygitrs")"
 
+REPO_NAME=$(basename "$PROJECT_DIR" 2>/dev/null || echo "git")
+
 AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
 if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
@@ -29,9 +31,10 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     tmux resize-pane -Z 2>/dev/null || true
 
     tmux display-popup \
-      -S "fg=${TMUX_POPUP_BORDER_COLOR:-magenta}" \
+      -S "fg=#a6e3a1" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
+      -T " 󰊢 Lazygit • $REPO_NAME " \
       -d "$PROJECT_DIR" \
       -E \
       -w 90% -h 88% \
@@ -45,9 +48,10 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     fi
 else
     exec tmux display-popup \
-      -S "fg=${TMUX_POPUP_BORDER_COLOR:-magenta}" \
+      -S "fg=#a6e3a1" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
+      -T " 󰊢 Lazygit • $REPO_NAME " \
       -d "$PROJECT_DIR" \
       -E \
       -w 90% -h 88% \

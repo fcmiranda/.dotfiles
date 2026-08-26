@@ -79,10 +79,11 @@ tmux link-window -s "$sess:$win_idx" -t "$POPUP_SESS:bell" 2>/dev/null || true
 tmux set-option -t "$POPUP_SESS" status off 2>/dev/null || true
 
 tmux popup \
-  -S "fg=$TMUX_POPUP_BORDER_COLOR" \
+  -S "fg=${TMUX_POPUP_ALERT_BORDER_COLOR:-#f9e2af}" \
   -s "fg=$TMUX_POPUP_TEXT_COLOR" \
-  -w "$TMUX_POPUP_WIDTH" \
-  -h "$TMUX_POPUP_HEIGHT" \
+  -T " 󰮯 AI Attention • $TITLE " \
+  -w "80%" \
+  -h "75%" \
   -b rounded \
   -E \
   "tmux attach-session -t \"$POPUP_SESS:bell\"; tmux unlink-window -t \"$POPUP_SESS:bell\" >/dev/null 2>&1"

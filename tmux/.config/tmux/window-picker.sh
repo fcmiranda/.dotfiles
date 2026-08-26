@@ -26,9 +26,10 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
     tmux resize-pane -Z 2>/dev/null || true
 
     tmux display-popup \
-      -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
+      -S "fg=${TMUX_POPUP_BORDER_COLOR:-#cba6f7}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
+      -T " 󱂬 Windows & Agents " \
       -w 75% -h 60% \
       -E "TMUX_POPUP=1 TMUX_ORIGIN_SESSION='$ORIG_SESS' TMUX_ORIGIN_WINDOW='$ORIG_WIN' $REAL_SCRIPT"
 
@@ -41,9 +42,10 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
     exit 0
   else
     exec tmux display-popup \
-      -S "fg=${TMUX_POPUP_BORDER_COLOR:-default}" \
+      -S "fg=${TMUX_POPUP_BORDER_COLOR:-#cba6f7}" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
+      -T " 󱂬 Windows & Agents " \
       -w 75% -h 60% \
       -E "TMUX_POPUP=1 TMUX_ORIGIN_SESSION='$ORIG_SESS' TMUX_ORIGIN_WINDOW='$ORIG_WIN' $REAL_SCRIPT"
   fi

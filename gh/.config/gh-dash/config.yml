@@ -89,8 +89,8 @@ keybindings:
           name: lazygitrs
           command: cd {{.RepoPath}} && lazygitrs
 repoPaths:
-    fcmiranda/*: ~/dev/github/*/review
-    */*: ~/dev/github/*/review
+    "fcmiranda/*": ~/dev/github/*/review
+
 theme:
     ui:
         sectionsShowCount: true

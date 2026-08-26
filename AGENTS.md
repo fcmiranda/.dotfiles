@@ -40,6 +40,7 @@ See [.shell/install/README.md](.shell/install/README.md) for the current bootstr
 ## Useful References
 
 - [docs/architecture/terminal-ergonomics-and-ux-manifesto.md](docs/architecture/terminal-ergonomics-and-ux-manifesto.md)
+- [docs/architecture/workflow-keybindings-matrix.md](docs/architecture/workflow-keybindings-matrix.md)
 - [docs/tmux/popups-ergonomics-and-golden-ratio.md](docs/tmux/popups-ergonomics-and-golden-ratio.md)
 - [docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md](docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md)
 - [.shell/install/README.md](.shell/install/README.md)

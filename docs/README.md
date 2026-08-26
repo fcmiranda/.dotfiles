@@ -8,6 +8,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 
 ### 🔬 0. Core Philosophy & Ergonomics Manifesto (`docs/architecture/`)
 - [**Terminal Ergonomics & UX Architecture Manifesto**](architecture/terminal-ergonomics-and-ux-manifesto.md): Core HCI principles, KLM/GOMS ($H=0$), Doherty threshold (<100ms), pure icon badges, universal Omarchy theme color synchronization, and the Ergonomic Stability Rule.
+- [**Workflow Keybindings & Ergonomic Reference Matrix**](architecture/workflow-keybindings-matrix.md): Complete multi-layer cheat-sheet and biomechanical audit of all global, Tmux, Zsh, and Lazygitrs shortcuts.
 
 ### 🐚 1. Shell & Navigation (`docs/shell/`)
 - [**Smart Tab Completion & Matchmaker**](shell/completion.md): Context-aware `<Tab>`, auto-spacing on aliases (`gco<Tab>`), dual backends (`Ctrl+N` vs `Ctrl+F`), and the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset with on-demand preview (`Ctrl+P`).

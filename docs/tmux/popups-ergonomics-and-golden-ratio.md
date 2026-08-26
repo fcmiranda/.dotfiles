@@ -2,7 +2,7 @@
 
 Este documento formaliza a arquitetura estado da arte de interfaces flutuantes (Popups, Pickers, Modais e HUDs) desenvolvida para o ecossistema de dotfiles (`tmux`, `matchmaker`, `lazygitrs`, `sesh`). 
 
-O objetivo central desta arquitetura é atingir **Zero Fricção Cognitiva e Motora**, **latência sub-perceptiva (<100ms)**, **Signal-to-Noise máximo com identificadores icônicos puros** e **sincronização dinâmica de cores com o tema do Omarchy**.
+O objetivo central desta arquitetura é atingir **Zero Fricção Cognitiva e Motora**, **latência sub-perceptiva (<100ms)**, **Signal-to-Noise máximo com identificadores icônicos puros** e **sincronização dinâmica universal de cores com o tema do Omarchy**.
 
 ---
 
@@ -16,7 +16,7 @@ flowchart TD
         KLM["<b>KLM / GOMS (Card & Moran)</b><br/>T_execute = ∑K + ∑P + ∑H + ∑M + ∑R<br/>Meta: Eliminar H, minimizar M ≈ 0 e reduzir K"]
         DOH["<b>Doherty Threshold (&lt;100ms)</b><br/>Interação e fechamento sub-100ms<br/>Sensação biológica de continuidade mental"]
         TUFTE["<b>Signal-to-Noise &amp; Glifos Puros (Tufte)</b><br/>Ícones puros na moldura (󱂬, ⚡, 󰊢, 󱜻)<br/>Reconhecimento pré-atencional em &lt;15ms"]
-        THEME["<b>Sincronização Dinâmica Omarchy</b><br/>Bordas herdam cores vivas de colors.toml<br/>Git Orange (#e84d31), Mauve, Cyan"]
+        THEME["<b>Sincronização Dinâmica Universal</b><br/>100% dos popups herdam de colors.toml<br/>Orange, Cyan, Magenta, Yellow sincronizados"]
         AUREA["<b>Proporção Áurea (φ ≈ 1.618)</b><br/>Geometria 75% × 60% e split 40/60<br/>Conforto foveal e preservação da âncora periférica"]
     end
 ```
@@ -38,42 +38,55 @@ Quando a resposta do computador a uma ação do usuário ocorre abaixo de **100 
 ## 🎨 2. Semiótica Visual, Ícones Puros & Dinamismo Omarchy
 
 ```text
-╭── 󱂬 ──────────────────────────────────────────────────────────────────────╮  🟣 Mauve / Ciano
+╭── 󱂬 ──────────────────────────────────────────────────────────────────────╮  🟣 Mauve / Magenta
 │ 1. CAMADA EFÊMERA (Pickers / Seleção Rápida < 5s)                        │  Dimensão: 75% × 60%
 │ • Window Picker, Sesh Picker, Matchmaker Jump. Fechamento: [Esc] imediato │
 ╰───────────────────────────────────────────────────────────────────────────╯
 
-╭── 󰊢 ──────────────────────────────────────────────────────────────────────╮  🟠 Git Orange (#e84d31)
+╭── 󰊢 ──────────────────────────────────────────────────────────────────────╮  🟠 Laranja Git (colors.toml)
 │ 2. CAMADA PERSISTENTE (Workspaces de Alta Densidade / Inspeção)           │  Dimensão: 90% × 88%
 │ • Lazygitrs, Neovim Float, OpenCode Agent. Fechamento: [Esc] no Files / [q]│
 ╰───────────────────────────────────────────────────────────────────────────╯
 
-╭── 󰮯 ──────────────────────────────────────────────────────────────────────╮  🟡 Amarelo / Alerta
+╭── 󰮯 ──────────────────────────────────────────────────────────────────────╮  🟡 Amarelo Alerta (colors.toml)
 │ 3. CAMADA REATIVA (Intervenção de IA / Bells de Agentes)                  │  Dimensão: 80% × 75%
 │ • Alertas de permissão/pergunta de IA. Rotação: [prefix+i] / [Esc]        │
 ╰───────────────────────────────────────────────────────────────────────────╯
 ```
 
 ### 2.1 Por que apenas o Ícone Puro (`-T " 󰊢 "`)?
-1. **Signal-to-Noise Ratio (Edward Tufte):** Textos como *"Windows & Agents"* ou *"Lazygit"* são redundantes, pois o conteúdo interno do picker e o prompt já explicam a tela.
+1. **Signal-to-Noise Ratio (Edward Tufte):** Textos longos como *"Windows & Agents"* ou *"Lazygit"* são redundantes, pois o conteúdo interno do picker e o prompt já explicam a tela.
 2. **Reconhecimento Pré-Atencional de Glifos (15ms vs 200ms):** O cérebro humano decodifica um pictograma conhecido (`󰊢`, `⚡`, `󱂬`, `󱜻`) em **$\approx 15\text{ ms}$**, enquanto ler uma frase leva mais de $180\text{ ms}$.
 3. **Elegância Geométrica:** A borda superior arredondada fica minimalista, equilibrada e com acabamento "Zen".
 
-### 2.2 Sincronização Dinâmica com o Tema Omarchy
-As cores das bordas não são estáticas:
-* O script [`lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh) lê a cor `orange` diretamente de `~/.local/state/omarchy/current/theme/colors.toml`.
-* Se o usuário trocar o tema do sistema (`omarchy theme set <tema>`), a borda do Git se adapta automaticamente à paleta ativa (ex: Laranja Git `#e84d31`, Pêssego Catppuccin `#f6b6ab`, Laranja Gruvbox `#fe8019`).
+### 2.2 Sincronização Dinâmica Universal com o Tema Omarchy
+Todos os scripts de popup extraem suas cores semânticas diretamente do arquivo central gerado pelo Omarchy (`~/.local/state/omarchy/current/theme/colors.toml`):
 
-### Tabela de Especificação Semiótica
+```text
+               ┌────────────────────────────────────────────────────────┐
+               │    ~/.local/state/omarchy/current/theme/colors.toml    │
+               └───────────┬──────────────┬──────────────┬──────────────┘
+                           │              │              │
+                    magenta/accent       cyan          orange          yellow/alert
+                           │              │              │                   │
+                           ▼              ▼              ▼                   ▼
+                     ╭── 󱂬 ──╮      ╭── ⚡ ──╮      ╭── 󰊢 ──╮           ╭── 󰮯 ──╮
+                     │Windows│      │  Sesh │      │Lazygit│           │AI Bell│
+                     ╰───────╯      ╰───────╯      ╰───────╯           ╰───────╯
+```
 
-| Camada | Ferramenta / Script | Cor da Borda (`-S`) | Badge Mínimo (`-T`) | Dimensões | Tecla de Saída |
-| :--- | :--- | :--- | :---: | :---: | :--- |
-| **1. Efêmera** | `window-picker.sh` | **`#cba6f7` (Mauve)** | ` 󱂬 ` | `75% × 60%` | `Esc` (1 toque) |
-| **1. Efêmera** | `sesh-picker.sh` | **`#89dceb` (Sky/Cyan)** | ` ⚡ ` | `75% × 60%` | `Esc` (1 toque) |
-| **2. Persistente** | `lazygitrs-popup.sh`| **`#e84d31` / `orange`** | ` 󰊢 ` | `90% × 88%` | `Esc` (Files) / `q` |
-| **2. Persistente** | `opencode` (`Alt+o`)| **`#b4befe` (Lavender)** | ` 󱜻 ` | `85% × 85%` | `Ctrl+C` / `exit` |
-| **2. Persistente** | `nvim` (`prefix+N`) | **`#fab387` (Peach)** | `  ` | `90% × 90%` | `:q` |
-| **3. Reativa** | `ai-agent-bell` | **`#f9e2af` (Yellow)** | ` 󰮯 ` | `80% × 75%` | `Esc` / `prefix+i` |
+Sempre que o tema do sistema é alterado (`omarchy theme set <tema>`), 100% dos popups adaptam suas bordas harmoniosamente à nova paleta (ex: Catppuccin Mocha, Gruvbox Dark, Tokyo Night, Nord).
+
+### Tabela de Especificação Semiótica Universal
+
+| Camada | Ferramenta / Script | Chave Dinâmica no Omarchy | Fallback | Badge (`-T`) | Dimensões | Fechamento |
+| :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| **1. Efêmera** | [`window-picker.sh`](../../tmux/.config/tmux/window-picker.sh) | `magenta` / `accent` | `#cba6f7` | ` 󱂬 ` | `75% × 60%` | `Esc` (1 toque) |
+| **1. Efêmera** | [`sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh) | `cyan` / `blue` | `#89dceb` | ` ⚡ ` | `75% × 60%` | `Esc` (1 toque) |
+| **2. Persistente** | [`lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh)| `orange` / `peach` | `#e84d31` | ` 󰊢 ` | `90% × 88%` | `Esc` (Files) / `q` |
+| **2. Persistente** | `opencode` (`Alt+o`) | `accent` / `blue` | `#b4befe` | ` 󱜻 ` | `85% × 85%` | `Ctrl+C` / `exit` |
+| **2. Persistente** | `nvim` (`prefix+N`) | `orange` / `peach` | `#fab387` | `  ` | `90% × 90%` | `:q` |
+| **3. Reativa** | [`ai-agent-bell`](../../tmux/.config/tmux/ai-agent-bell-popup.sh) | `yellow` / `bright_yellow` | `#f9e2af` | ` 󰮯 ` | `80% × 75%` | `Esc` / `prefix+i` |
 
 ---
 

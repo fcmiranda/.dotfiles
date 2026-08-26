@@ -1,20 +1,26 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import { execSync } from "child_process"
-import { readFileSync } from "fs"
+import { existsSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { join } from "path"
 
 function getAcpdToken(): string | null {
-  try {
-    const xdgRuntime = process.env.XDG_RUNTIME_DIR
-    const uid = process.getuid?.() ?? 1000
-    const tokenPath = xdgRuntime
-      ? join(xdgRuntime, "acpd", "token")
-      : join(tmpdir(), `acpd-${uid}`, "token")
-    return readFileSync(tokenPath, "utf8").trim()
-  } catch {
-    return null
+  const uid = process.getuid?.() ?? 1001
+  const xdgRuntime = process.env.XDG_RUNTIME_DIR || `/run/user/${uid}`
+  const candidates = [
+    join(xdgRuntime, "acpd", "token"),
+    join(tmpdir(), `acpd-${uid}`, "token"),
+    join(process.env.HOME || "/home/fecavmi", ".cache", "acpd", "token"),
+    `/run/user/1001/acpd/token`,
+  ]
+  for (const tokenPath of candidates) {
+    try {
+      if (existsSync(tokenPath)) {
+        return readFileSync(tokenPath, "utf8").trim()
+      }
+    } catch {}
   }
+  return null
 }
 
 function getAcpdHeaders(): Record<string, string> {

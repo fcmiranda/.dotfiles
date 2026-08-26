@@ -84,7 +84,7 @@ export function setLazygitrsIcon(pane, icon) {
   } catch (e) {}
 }
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 

@@ -1,8 +1,27 @@
 
 
+ver forma facil de remover branches
+trocar de branch, ja criando pasta ou trocando a pasta
+ter o .bare na pasta pai
+documentar isso
+
+
+
+
+ajustar modelo de trabalho em worktrees
+sesh worktree
+
+
 
 ARRUMAR O ctrl i 
+
+mm
 arrumar imagens nao carregando matchmaker
+colocar borda top entre os grupos pasta locais, arquivos das pastas
+
+
+nao esta funcionando copiar via vim zsh para outros aplicativos (yy) por exemplo
+talvez adicionar no mm uma forma de copiar diretamente o path
 
 arrumar hypr boder animacao nao mostrando
 alterar notificao para ingles, para de mudar de wallpaper

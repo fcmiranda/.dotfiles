@@ -35,7 +35,7 @@
     "checked": "[[ \"$(omarchy-default-agent)\" == \"agy\" ]]",
     "action": "omarchy-default-agent agy"
   },
-  "sesh": {
+  "apps.sesh": {
     "icon": "⚡",
     "label": "Sesh Sessions",
     "provider": "sesh",

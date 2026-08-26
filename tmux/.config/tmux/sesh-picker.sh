@@ -10,6 +10,9 @@ if [ "$1" = "--fullscreen" ]; then
     exec tmux split-window -Z "$REAL_SCRIPT" --fullscreen
   fi
 elif [ -z "${TMUX_POPUP:-}" ]; then
+  SESH_POPUP_COLOR=$(grep -E '^\s*cyan\s*=' "$HOME/.local/state/omarchy/current/theme/colors.toml" 2>/dev/null | sed -E 's/.*=\s*"([^"]+)".*/\1/')
+  [ -z "$SESH_POPUP_COLOR" ] && SESH_POPUP_COLOR="${TMUX_POPUP_BORDER_COLOR:-#89dceb}"
+
   AI_STATE=$(tmux display-message -p '#{@ai_agent_state_raw}')
   if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
     CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
@@ -23,7 +26,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
     tmux resize-pane -Z 2>/dev/null || true
 
     tmux display-popup \
-      -S "fg=${TMUX_POPUP_BORDER_COLOR:-#89dceb}" \
+      -S "fg=$SESH_POPUP_COLOR" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
       -T " ⚡ " \
@@ -39,7 +42,7 @@ elif [ -z "${TMUX_POPUP:-}" ]; then
     exit 0
   else
     exec tmux display-popup \
-      -S "fg=${TMUX_POPUP_BORDER_COLOR:-#89dceb}" \
+      -S "fg=$SESH_POPUP_COLOR" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
       -T " ⚡ " \

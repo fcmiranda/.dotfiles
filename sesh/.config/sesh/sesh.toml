@@ -1,6 +1,10 @@
 [[wildcard]]
-pattern = "~/**"
-startup_command = "ai-jail agy"
+pattern = "~/dev/github/**"
+startup_command = "agy"
+
+[[wildcard]]
+pattern = "~/.dotfiles/*"
+startup_command = "agy"
 
 [[session]]
 name = " Downloads"

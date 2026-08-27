@@ -26,7 +26,7 @@ style.fg = "Cyan"
 style.modifier = "BOLD"
 
 [footer]
-content = " {cyan,bold:[Enter]} {darkgray:Connect Sesh}  •  {yellow,bold:[c]} {darkgray:New WT}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
+content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {yellow,bold:[c]} {darkgray:New}  •  {magenta,bold:[m]} {darkgray:Merge}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
 row_connection = "Full"
 match_indent = false
 style.fg = "gray"
@@ -222,6 +222,10 @@ output_template = "{=session}\t{=path}"
     '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")''',
     "Reload",
 ]
+"@merge_worktree" = [
+    '''Execute(~/.config/matchmaker/scripts/awt-merge.sh "{=branch}" "{=path}" "{=session}" "{=base}")''',
+    "Reload",
+]
 "@fetch_remotes" = [
     '''Execute(
         echo "Fetching remotes for {=branch}..."
@@ -250,5 +254,6 @@ output_template = "{=session}\t{=path}"
 "nav^^g" = "Pos(0)"
 "nav^^G" = "Pos(-1)"
 "nav^^c" = "@new_worktree"
+"nav^^m" = "@merge_worktree"
 "nav^^d" = "@delete_worktree"
 "nav^^u" = "@fetch_remotes"

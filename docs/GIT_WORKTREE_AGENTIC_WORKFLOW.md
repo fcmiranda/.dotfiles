@@ -314,7 +314,32 @@ Ao pressionar **`d`** em qualquer linha do `awt`:
 
 ---
 
-### E. Clonagem de Repositórios em Modo Bare (`awtc` / `awt clone`)
+### E. Handler de Merge Inteligente de Worktrees (`m` / `awt-merge.sh`)
+
+Ao pressionar **`m`** em qualquer linha do `awt`:
+
+1. **Detecção Flexível de Origem e Destino**:
+   - **Merge na Base / Main**: Se o cursor estiver na branch atual (`@`), o destino é automaticamente a branch base configurada (`branch.<name>.base` ou `main`).
+   - **Merge em Qualquer Outra Branch**: Se você mover o cursor para qualquer outra branch da lista (ex: `fecavmi`, `staging`, `main`), o Matchmaker define essa branch como o **destino exato** do merge!
+2. **Action Box de Confirmação Interativo**:
+   ```text
+   🔀  Merge 'feature/wtmm' into 'fecavmi'? >
+   > 🚀 Yes, Merge & Cleanup (Merge feature/wtmm into fecavmi, remove feature/wtmm & switch session)
+     🛡️  No, Cancel
+   ```
+3. **Execução Segura e Transição de Sessões**:
+   - Executa o merge (`wt merge <destino>` ou `git merge`).
+   - **Em caso de Sucesso**:
+     - Remove a pasta da worktree de origem (`wt remove`).
+     - Remove a branch mesclada no Git (`git branch -d`).
+     - Alterna a sessão ativa do Tmux para a branch destino (`sesh connect`).
+     - Encerra a sessão Tmux antiga da feature.
+   - **Em caso de Conflito**:
+     - Mantém ambas as worktrees intactas e emite um alerta claro no terminal para você inspecionar e resolver os arquivos conflitantes.
+
+---
+
+### F. Clonagem de Repositórios em Modo Bare (`awtc` / `awt clone`)
 
 Função no [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que provisiona novos repositórios na arquitetura de container `.bare` + worktree:
 
@@ -389,6 +414,7 @@ repoPaths:
 | :---: | :--- | :--- |
 | **`Enter`** | **Connect Sesh** | Alterna ou cria a sessão Tmux para a worktree selecionada. |
 | **`c`** / **`ctrl-n`** | **New WT Wizard** | Abre o wizard interativo de 4 passos com Conventional Commits. |
+| **`m`** | **Merge WT** | Faz merge da branch atual na branch selecionada (ou na base) e limpa a sessão. |
 | **`d`** / **`ctrl-d`** | **Delete WT** | Deleta a worktree, mata a sessão Tmux e redireciona (`sesh last`). |
 | **`p`** / **`ctrl-p`** | **Switch Preview** | Alterna entre as 3 abas de preview (Status, Diff vs Main, Log Stats). |
 | **`u`** / **`ctrl-u`** | **Fetch Remotes** | Executa `git fetch --all --prune` na worktree selecionada. |

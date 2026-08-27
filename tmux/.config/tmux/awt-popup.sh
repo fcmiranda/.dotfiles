@@ -36,7 +36,7 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
       -S "fg=$AWT_POPUP_COLOR" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
-      -T " 󰙅 " \
+      -T "  " \
       -d "$PROJECT_DIR" \
       -E \
       -w 85% -h 75% \

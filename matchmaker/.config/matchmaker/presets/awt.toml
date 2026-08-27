@@ -141,9 +141,9 @@ END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch 
 
     # Marker & Branch formatting with colors
     if [[ "$wt_path" == "$current_wt" ]]; then
-        branch_display="\033[1;36m󰙅 $branch\033[0m"
+        branch_display="\033[1;36m $branch\033[0m"
     elif [[ "$branch" == "$main_branch" ]]; then
-        branch_display="\033[1;33m󰊢 $branch\033[0m"
+        branch_display="\033[1;33m $branch\033[0m"
     else
         branch_display="  $branch"
     fi
@@ -215,13 +215,13 @@ mode = "nav"
 output_template = "{=session}\t{=path}"
 
 [binds]
-"@delete_worktree" = '''Confirm({red,bold:󰙇} Delete worktree {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")'''
+"@delete_worktree" = '''Confirm({red,bold:󱓌} Delete worktree {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")'''
 "@new_worktree" = [
     '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")''',
     "Reload",
 ]
 "@merge_worktree" = '''Confirm({magenta,bold:} Merge into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=branch}" "{=path}" "{=session}" "{=base}")'''
-"@rebase_worktree" = '''Confirm({yellow,bold:󰙆} Rebase {=branch} onto {=base}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-rebase.sh "{=branch}" "{=path}" "{=base}")'''
+"@rebase_worktree" = '''Confirm({yellow,bold:󱓎} Rebase {=branch} onto {=base}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-rebase.sh "{=branch}" "{=path}" "{=base}")'''
 "@rename_worktree" = '''Prompt({cyan,bold:} Rename branch to: | ~/.config/matchmaker/scripts/awt-rename.sh "{=branch}" "{=path}" "{input}" | {=branch})'''
 "@fetch_remotes" = [
     '''Execute(

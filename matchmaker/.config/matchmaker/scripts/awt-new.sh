@@ -33,7 +33,7 @@ while true; do
         2)
             # ── Step 2: Worktree Branch Name via Matchmaker Prompt Box (`mm -o awt-prompt`) ──
             initial_val="${prefix}${slug}"
-            prompt_str="${icon} Branch name: "
+            prompt_str="${icon}"
 
             branch_input=$(mm -o awt-prompt prompt="$prompt_str" initial="$initial_val" "${MM_TUI_ARGS[@]}")
 

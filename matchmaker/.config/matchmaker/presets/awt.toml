@@ -143,9 +143,9 @@ END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch 
     if [[ "$wt_path" == "$current_wt" ]]; then
         branch_display="\033[1;36m $branch\033[0m"
     elif [[ "$branch" == "$main_branch" ]]; then
-        branch_display="\033[1;33m $branch\033[0m"
+        branch_display="\033[1;33m $branch\033[0m"
     else
-        branch_display="  $branch"
+        branch_display=" $branch"
     fi
 
     # Base branch detection

@@ -8,6 +8,7 @@ selected_branch=$(echo "$selected_raw" | sed "s/^[ @^]*//; s/ .*//")
 
 step=1
 prefix=""
+icon="🏷️ "
 slug=""
 branch_name=""
 bbase=""
@@ -21,10 +22,12 @@ prompt_for_branch_slug() {
     local rest=""
     OUTPUT_SLUG=""
 
-    # Clear terminal screen to prevent ghost lines from previous steps
+    # Clear terminal screen to prevent ghost lines
     clear >/dev/tty 2>/dev/null || printf "\033[H\033[2J" >/dev/tty
 
-    printf "%b%s" "$prompt_msg" "$buf" >/dev/tty
+    # Draw prompt on Line 1 and footer on Line 3, then restore cursor to Line 1
+    printf "%b%s\n\n \033[36m[Enter]\033[0m \033[2mConfirm\033[0m  •  \033[33m[Esc / Empty]\033[0m \033[2mBack\033[0m\033[2A\r%b%s" \
+        "$prompt_msg" "$buf" "$prompt_msg" "$buf" >/dev/tty
 
     while IFS= read -r -s -n 1 key </dev/tty; do
         # 1. ESC key pressed
@@ -79,22 +82,26 @@ while true; do
             fi
 
             case "$type_choice" in
-                *"feat"*)     prefix="feat/" ;;
-                *"fix"*)      prefix="fix/" ;;
-                *"refactor"*) prefix="refactor/" ;;
-                *"perf"*)     prefix="perf/" ;;
-                *"chore"*)    prefix="chore/" ;;
-                *"docs"*)     prefix="docs/" ;;
-                *"test"*)     prefix="test/" ;;
-                *"build"*)    prefix="build/" ;;
-                *)            prefix="" ;;
+                *"feat"*)     prefix="feat/";     icon="✨" ;;
+                *"fix"*)      prefix="fix/";      icon="🐛" ;;
+                *"refactor"*) prefix="refactor/"; icon="♻️ " ;;
+                *"perf"*)     prefix="perf/";     icon="⚡" ;;
+                *"chore"*)    prefix="chore/";    icon="🔧" ;;
+                *"docs"*)     prefix="docs/";     icon="📝" ;;
+                *"test"*)     prefix="test/";     icon="🧪" ;;
+                *"build"*)    prefix="build/";    icon="📦" ;;
+                *)            prefix="";          icon="🏷️ " ;;
             esac
             step=2
             ;;
 
         2)
-            # ── Step 2: Worktree Branch Slug Input with Instant ESC ──
-            prompt_header=$(printf "\033[1;36m🏷️  Branch Name (%s<name>)\033[0m \033[2m[Esc / Empty: Back]\033[0m: " "${prefix}")
+            # ── Step 2: Worktree Branch Slug Input with Type Icon & Footer ──
+            if [[ -n "$prefix" ]]; then
+                prompt_header=$(printf "%s \033[1;36mBranch Name (%s<name>):\033[0m " "$icon" "${prefix}")
+            else
+                prompt_header=$(printf "%s \033[1;36mBranch Name (<name>):\033[0m " "$icon")
+            fi
 
             if ! prompt_for_branch_slug "$prompt_header" "$slug"; then
                 # Instant Esc pressed -> go back to Step 1

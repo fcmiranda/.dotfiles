@@ -214,20 +214,17 @@ mode = "nav"
 output_template = "{=session}\t{=path}"
 
 [binds]
+"@delete_worktree" = [
+    '''Execute(~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")''',
+    "Reload",
+]
+
 # Standard & fallback keys
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "ctrl-p" = "SwitchPreview"
 "ctrl-n" = '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")'''
-"ctrl-d" = '''Execute(
-    wt_p="{=path}"
-    printf "Remove worktree %s? [y/N]: " "$wt_p"
-    read -r ans </dev/tty
-    case "$ans" in
-        [yY]*) wt remove "$wt_p" 2>/dev/null || git worktree remove "$wt_p" ;;
-        *) exit 0 ;;
-    esac
-)'''
+"ctrl-d" = "@delete_worktree"
 "ctrl-u" = '''Execute(
     echo "Fetching remotes for {=branch}..."
     git -C "{=path}" fetch --all --prune
@@ -245,15 +242,7 @@ output_template = "{=session}\t{=path}"
 "nav^^g" = "Pos(0)"
 "nav^^G" = "Pos(-1)"
 "nav^^c" = '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")'''
-"nav^^d" = '''Execute(
-    wt_p="{=path}"
-    printf "Remove worktree %s? [y/N]: " "$wt_p"
-    read -r ans </dev/tty
-    case "$ans" in
-        [yY]*) wt remove "$wt_p" 2>/dev/null || git worktree remove "$wt_p" ;;
-        *) exit 0 ;;
-    esac
-)'''
+"nav^^d" = "@delete_worktree"
 "nav^^u" = '''Execute(
     echo "Fetching remotes for {=branch}..."
     git -C "{=path}" fetch --all --prune

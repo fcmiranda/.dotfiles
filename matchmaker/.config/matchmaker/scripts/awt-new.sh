@@ -9,63 +9,6 @@ prefix=""
 slug=""
 branch_name=""
 bbase=""
-OUTPUT_SLUG=""
-
-prompt_for_branch_slug() {
-    local prompt_msg="$1"
-    local initial_val="$2"
-    local buf="$initial_val"
-    local key=""
-    local rest=""
-    OUTPUT_SLUG=""
-
-    # Clear terminal screen to prevent ghost lines
-    clear >/dev/tty 2>/dev/null || printf "\033[H\033[2J" >/dev/tty
-
-    # Draw prompt on Line 1 and footer on Line 3, then restore cursor to Line 1
-    printf "%b%s\n\n \033[36m[Enter]\033[0m \033[2mConfirm\033[0m  •  \033[33m[Esc / Empty]\033[0m \033[2mBack\033[0m\033[2A\r%b%s" \
-        "$prompt_msg" "$buf" "$prompt_msg" "$buf" >/dev/tty
-
-    while IFS= read -r -s -n 1 key </dev/tty; do
-        # 1. ESC key pressed
-        if [[ "$key" == $'\e' ]]; then
-            read -r -s -n 2 -t 0.05 rest </dev/tty
-            if [[ -z "$rest" ]]; then
-                echo "" >/dev/tty
-                return 1
-            fi
-            continue
-        fi
-
-        # 2. Enter key pressed (read returns empty string on newline)
-        if [[ -z "$key" ]]; then
-            echo "" >/dev/tty
-            OUTPUT_SLUG="$buf"
-            return 0
-        fi
-
-        # 3. Ctrl-C (0x03) or Ctrl-D (0x04)
-        if [[ "$key" == $'\x03' || "$key" == $'\x04' ]]; then
-            echo "" >/dev/tty
-            exit 0
-        fi
-
-        # 4. Backspace (0x7F / 127 or 0x08 / \b)
-        if [[ "$key" == $'\x7f' || "$key" == $'\b' || "$key" == $'\177' ]]; then
-            if [[ ${#buf} -gt 0 ]]; then
-                buf="${buf%?}"
-                printf "\b \b" >/dev/tty
-            fi
-            continue
-        fi
-
-        # 5. Printable characters
-        if [[ "$key" =~ [[:print:]] ]]; then
-            buf+="$key"
-            printf "%s" "$key" >/dev/tty
-        fi
-    done
-}
 
 while true; do
     case "$step" in
@@ -83,27 +26,20 @@ while true; do
             ;;
 
         2)
-            # ── Step 2: Worktree Branch Slug Input with Type Icon & Footer ──
-            if [[ -n "$prefix" ]]; then
-                prompt_header=$(printf "%s \033[1;36mBranch Name (%s<name>):\033[0m " "$icon" "${prefix}")
-            else
-                prompt_header=$(printf "%s \033[1;36mBranch Name (<name>):\033[0m " "$icon")
-            fi
+            # ── Step 2: Worktree Branch Name via Matchmaker Prompt Box (`mm -o awt-prompt`) ──
+            prompt_label="${icon} Branch name: "
+            initial_val="${prefix}${slug}"
 
-            if ! prompt_for_branch_slug "$prompt_header" "$slug"; then
-                # Instant Esc pressed -> go back to Step 1
+            branch_input=$(mm -o awt-prompt --query.prompt "$prompt_label" --query.initial "$initial_val")
+
+            # If user pressed Esc or cancelled -> go back to Step 1
+            if [[ -z "$branch_input" ]]; then
                 step=1
                 continue
             fi
 
-            # If user pressed enter with empty string -> go back to Step 1
-            if [[ -z "$OUTPUT_SLUG" ]]; then
-                step=1
-                continue
-            fi
-
-            slug=$(echo "$OUTPUT_SLUG" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
-            branch_name="${prefix}${slug}"
+            branch_name=$(echo "$branch_input" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+            slug="${branch_name#"${prefix}"}"
             step=3
             ;;
 
@@ -121,7 +57,7 @@ while true; do
             ;;
 
         4)
-            # ── Step 4: Provision Worktree & Connect via Sesh ──
+            # ── Step 4: Provision Worktree, Run Hooks & Connect via Sesh ──
             repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
             branch_folder="${branch_name//\//-}"
             target_dir="$repo_root/../$branch_folder"

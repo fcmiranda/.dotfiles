@@ -1,0 +1,33 @@
+# Matchmaker Agent Worktree Prompt Input Preset (mm -o awt-prompt)
+
+[tui]
+percentage = 15
+min = 3
+max = 4
+
+[ui]
+nav_mode = false
+
+[query]
+status_inline = true
+prompt = "> "
+prompt_style.fg = "cyan"
+prompt_style.modifier = "BOLD"
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Confirm}  •  {yellow,bold:[Esc]} {darkgray:Back}"
+row_connection = "Full"
+style.fg = "gray"
+style.modifier = "DIM"
+
+[results]
+reverse = false
+
+[start]
+ansi = true
+mode = "standard"
+output_template = "{=query}"
+
+[binds]
+"enter" = "Accept"
+"esc" = "Quit"

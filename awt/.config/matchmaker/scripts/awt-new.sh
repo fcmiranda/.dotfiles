@@ -87,6 +87,11 @@ while true; do
             if command -v sesh >/dev/null 2>&1; then
                 sesh connect "$target_dir"
             fi
+
+            # Dismiss popup modal completely so user lands cleanly in the new session
+            if [ -n "$TMUX" ]; then
+                tmux display-popup -C 2>/dev/null || true
+            fi
             exit 0
             ;;
     esac

@@ -168,8 +168,9 @@ esac
 # 4. Interactive Matchmaker wizard when called as `awt -c` or `awt new` without branch name
 if [[ "$create" -eq 1 && -z "$branch" ]]; then
     new_script="$HOME/.config/matchmaker/scripts/awt-new.sh"
+    cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
     if [[ -x "$new_script" ]]; then
-        exec "$new_script"
+        exec "$new_script" "$cur_branch"
     fi
     exit 0
 fi

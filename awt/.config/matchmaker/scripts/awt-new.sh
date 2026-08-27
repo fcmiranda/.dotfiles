@@ -15,6 +15,8 @@ if [ "$TMUX_POPUP" = "1" ]; then
     MM_TUI_ARGS=("tui.percentage=100" "tui.max=9999")
 fi
 
+selected_base="${1:-}"
+
 while true; do
     case "$step" in
         1)
@@ -50,7 +52,7 @@ while true; do
 
         3)
             # ── Step 3: Base Branch Selection via Matchmaker Preset (`mm -o awt-base`) ──
-            bbase=$(mm -o awt-base "${MM_TUI_ARGS[@]}")
+            bbase=$(mm -o awt-base "${MM_TUI_ARGS[@]}" -- "$selected_base")
 
             # If Esc was pressed in Step 3 -> step back to Step 2 with previous slug preserved!
             if [[ -z "$bbase" ]]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 100% Matchmaker Presets Worktree Creation Wizard
 
-trap 'exit 0' INT
+trap 'exit 0' HUP INT TERM
 
 step=1
 icon="󰓹"

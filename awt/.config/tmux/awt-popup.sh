@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # awt-popup.sh - Floating Worktree Manager Modal with dynamic Omarchy palette
+trap 'exit 0' HUP INT TERM
+
 REAL_SCRIPT=$(readlink -f "$0" 2>/dev/null || realpath "$0")
 PROJECT_DIR="${1:-$PWD}"
 
@@ -39,7 +41,7 @@ if [ -z "${TMUX_POPUP:-}" ]; then
           -d "$PROJECT_DIR" \
           -E \
           -w 85% -h 75% \
-          "TMUX_POPUP=1 $REAL_SCRIPT '$PROJECT_DIR'"
+          "TMUX_POPUP=1 '$REAL_SCRIPT' '$PROJECT_DIR' || true" || true
 
         tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
         tmux set-option -w -t "$CURRENT_PANE" automatic-rename on 2>/dev/null || true
@@ -56,7 +58,7 @@ if [ -z "${TMUX_POPUP:-}" ]; then
           -d "$PROJECT_DIR" \
           -E \
           -w 85% -h 75% \
-          "TMUX_POPUP=1 $REAL_SCRIPT '$PROJECT_DIR'"
+          "TMUX_POPUP=1 '$REAL_SCRIPT' '$PROJECT_DIR' || true" || true
     fi
     exit 0
 fi

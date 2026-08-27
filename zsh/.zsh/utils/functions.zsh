@@ -409,43 +409,6 @@ moveto() {
 # AI Agent Worktree & Sesh Orchestration
 # ─────────────────────────────────────────────────────────────────────────────
 
-_awt_connect_dir() {
-    local target="$1"
-    target="${target/#\~/$HOME}"
-    target=$(realpath "$target" 2>/dev/null || echo "$target")
-
-    if ! command -v sesh >/dev/null 2>&1; then
-        cd "$target"
-        return 0
-    fi
-
-    local cur_session=""
-    cur_session=$(tmux display-message -p '#{session_name}' 2>/dev/null)
-
-    local base_name="$(basename "$target")"
-    local repo_name="$(basename "$(dirname "$target")")"
-    local candidate_name="${repo_name}/${base_name}"
-    candidate_name="${candidate_name#.}"
-
-    local existing_session=""
-    if tmux has-session -t "$candidate_name" 2>/dev/null; then
-        existing_session="$candidate_name"
-    elif tmux has-session -t "_${candidate_name}" 2>/dev/null; then
-        existing_session="_${candidate_name}"
-    elif tmux has-session -t "$base_name" 2>/dev/null; then
-        existing_session="$base_name"
-    fi
-
-    if [[ -n "$existing_session" ]]; then
-        # Already attached to this exact session? Do nothing!
-        [[ "$cur_session" == "$existing_session" ]] && return 0
-        sesh connect "$existing_session"
-    else
-        # Brand new session: create via sesh (runs startup_command = agy)
-        sesh connect "$target"
-    fi
-}
-
 # awt - Agent Worktree Manager (Interactive TUI with Matchmaker, Smart Switch & Create)
 # Usage:
 #   awt                      -> Opens Matchmaker interactive TUI picker
@@ -468,10 +431,26 @@ awt() {
         fi
 
         if command -v mm >/dev/null 2>&1; then
-            local chosen
-            chosen=$(mm -o awt)
-            [[ -z "$chosen" ]] && return 0
-            _awt_connect_dir "$chosen"
+            local output session target cur_session
+            output=$(mm -o awt)
+            [[ -z "$output" ]] && return 0
+
+            IFS=$'\t' read -r session target <<< "$output"
+            cur_session=$(tmux display-message -p '#{session_name}' 2>/dev/null)
+
+            # If already attached to this exact session, do nothing!
+            [[ "$cur_session" == "$session" ]] && return 0
+
+            # If session exists in Tmux, switch by name; otherwise connect to path
+            if command -v sesh >/dev/null 2>&1; then
+                if tmux has-session -t "$session" 2>/dev/null; then
+                    sesh connect "$session"
+                else
+                    sesh connect "$target"
+                fi
+            else
+                cd "$target"
+            fi
             return 0
         else
             echo "Usage: awt [-c <branch> [base]] | [branch] | [clone <repo>]"
@@ -516,10 +495,22 @@ awt() {
     local repo_root target_dir
     repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
     target_dir="$repo_root/../$branch_clean"
+    target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
 
     # If the worktree directory already exists, connect directly
     if [[ -d "$target_dir" ]]; then
-        _awt_connect_dir "$target_dir"
+        if command -v sesh >/dev/null 2>&1; then
+            local repo_name="$(basename "$repo_root")"
+            local sess="${repo_name}/${branch_clean}"
+            sess="${sess#.}"
+            if tmux has-session -t "$sess" 2>/dev/null; then
+                sesh connect "$sess"
+            else
+                sesh connect "$target_dir"
+            fi
+        else
+            cd "$target_dir"
+        fi
         return 0
     fi
 
@@ -537,7 +528,12 @@ awt() {
     fi
 
     echo "✓ Worktree ready at $target_dir"
-    _awt_connect_dir "$target_dir"
+
+    if command -v sesh >/dev/null 2>&1; then
+        sesh connect "$target_dir"
+    else
+        cd "$target_dir"
+    fi
 }
 
 # awtc - Agent Worktree Clone (Clone repository into .bare container layout)

@@ -61,6 +61,7 @@ names = [
     { name = "remote" },
     { name = "age" },
     { name = "commit" },
+    { name = "session", hidden = true },
     { name = "path", hidden = true },
 ]
 
@@ -119,7 +120,7 @@ main_branch="main"
 current_wt=$(git rev-parse --show-toplevel 2>/dev/null)
 
 # Header line (consumed by header_lines = 1)
-printf "BRANCH\tBASE\tSTATUS\tMAIN ↕\tREMOTE ⇅\tAGE\tCOMMIT\tPATH\n"
+printf "BRANCH\tBASE\tSTATUS\tMAIN ↕\tREMOTE ⇅\tAGE\tCOMMIT\tSESSION\tPATH\n"
 
 git worktree list --porcelain 2>/dev/null | awk '
 /^worktree / { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head; path = substr($0, 10); branch = ""; head = ""; bare = 0 }
@@ -128,6 +129,15 @@ git worktree list --porcelain 2>/dev/null | awk '
 /^branch /   { branch = substr($0, 8); sub("refs/heads/", "", branch) }
 END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head }
 ' | while IFS=$'\t' read -r wt_path branch head; do
+    # Session name calculation for Sesh
+    repo_parent=$(basename "$(dirname "$wt_path")")
+    repo_base=$(basename "$wt_path")
+    if [[ "$repo_parent" == ".dotfiles" ]]; then
+        session_name="_dotfiles/$repo_base"
+    else
+        session_name="${repo_parent}/${repo_base}"
+    fi
+
     # Marker & Branch formatting with colors
     if [[ "$wt_path" == "$current_wt" ]]; then
         branch_display="\033[1;36m@ $branch\033[0m"
@@ -193,15 +203,15 @@ END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch 
     age_display="\033[2m${age:-now}\033[0m"
     head_display="\033[33m$head\033[0m"
 
-    printf "%b\t%b\t%b\t%b\t%b\t%b\t%b\t%s\n" \
-        "$branch_display" "$base_display" "$status_icon" "$main_div" "$upstream_div" "$age_display" "$head_display" "$wt_path"
+    printf "%b\t%b\t%b\t%b\t%b\t%b\t%b\t%s\t%s\n" \
+        "$branch_display" "$base_display" "$status_icon" "$main_div" "$upstream_div" "$age_display" "$head_display" "$session_name" "$wt_path"
 done
 '''
 
 [start]
 ansi = true
 mode = "nav"
-output_template = "{=path}"
+output_template = "{=session}\t{=path}"
 
 [binds]
 # Standard & fallback keys

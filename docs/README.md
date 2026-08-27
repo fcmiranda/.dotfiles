@@ -42,6 +42,8 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**Smart & Context-Aware Patterns Roadmap**](SMART_PATTERNS_ROADMAP.md): Comprehensive catalog of active event-driven intelligence and future roadmap (semantic breadcrumbs, workspace indicators, command alerts, scratchpads, and Neovim LSP sync).
 
 ## 🤖 AI Workflow & Agent Architecture
+- [**Agent Worktree Manager & Multi-Agent Git Orchestrator (`GIT_WORKTREE_AGENTIC_WORKFLOW.md`)**](GIT_WORKTREE_AGENTIC_WORKFLOW.md): Complete guide to the AWT ecosystem, 4-layer architecture, conventional wizard, live previews, and automated lifecycle hooks.
+- [**AWT Dotfiles Package Readme (`awt/README.md`)**](../awt/README.md): Dedicated package documentation, CLI command cheat sheet, and keybindings reference.
 - [**TUI AI Workflows**](tui-ai-workflows.md): Interactive workflows and design patterns for agentic development.
 - [**Autonomous Agent Examples**](autonomous-agent-examples.md) ([EN](autonomous-agent-examples-en.md)): Practical scenarios and agent configurations.
 - [**AI Jail & Memory Architecture**](ai-jail-memory-guide-pt.md) ([EN](ai-jail-memory-guide-en.md)): Memory isolation and workspace jail documentation.

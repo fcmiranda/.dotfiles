@@ -33,8 +33,8 @@
 * **Step 1 — Conventional Type Selection**: Pick conventional prefixes with unified Nerd Font icons:
   ` feat`, ` fix`, `󰣪 refactor`, `󰓅 perf`, ` ci`, ` chore`, `󰧮 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
 * **Step 2 — In-Place Branch Prompt**: Fast Matchmaker prompt box with memory of previous inputs; press `Esc` to step back to Step 1 without losing context.
-* **Step 3 — Base Branch Selector**: Single-column branch selector with ` main` and ` <branch>` styling, showing recent commit SHAs.
-* **Step 4 — Automated Provisioning**: Creates the worktree, copies `.env` via `post-create.sh`, provisions a dedicated Tmux session via `sesh`, switches client, and dismisses the modal.
+* **Step 3 — Base Branch Selector**: Dynamically highlights the currently selected/active branch at **Row 0** (` <branch> current base`), followed by ` main (default base)` and all other local branches. If branching off the current context, press **`Enter`** (1 stroke) to confirm immediately.
+* **Step 4 — Automated Provisioning & Single-Execution Guard**: Creates the worktree, copies `.env` via `post-create.sh`, provisions a dedicated Tmux session via `sesh`, switches client, and dismisses the modal cleanly without duplicate startup commands.
 
 ### 3. 📊 Real-Time 3-Tab Live Previews (`p`)
 Toggle instantly between 3 live preview panes in Nav Mode:

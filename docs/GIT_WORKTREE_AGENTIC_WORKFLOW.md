@@ -254,15 +254,15 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
 #### 4-Step Architecture:
 
 1. **Step 1: Conventional Type Selection (`mm -o awt-type`)**:
-   - Uses the modular preset [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-type.toml).
-   - Presents conventional types with Nerd Font icons and descriptions:
-     ` feat`, ` fix`, `󰣩 refactor`, `󰓅 perf`, ` ci`, `󰒓 chore`, `󰈚 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
+   - Uses the modular preset [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/presets/awt-type.toml).
+   - Presents conventional types in unified single columns with matching ANSI colors and Nerd Font icons:
+     ` feat`, ` fix`, `󰣪 refactor`, `󰓅 perf`, ` ci`, ` chore`, `󰧮 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
    - `Esc`: Aborts and returns directly to the main `awt` dashboard.
 
 2. **Step 2: Branch Name via Native Matchmaker Prompt (`mm -o awt-prompt`)**:
-   - Opens a dedicated, sleek Matchmaker prompt with the selected type icon and prefix pre-filled:
+   - Opens a dedicated Matchmaker prompt with the selected type icon and prefix pre-filled:
      ```text
-      Branch name: feat/auth-oauth2_
+      Branch name: feat/auth-oauth2_
 
       [Enter] Confirm  •  [Esc] Back
      ```
@@ -272,25 +272,28 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
    - **State Memory**: Navigating back from Step 3 preserves the previous slug in the input buffer.
 
 3. **Step 3: Base Branch Selection (`mm -o awt-base`)**:
-   - Uses the modular preset [`awt-base.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-base.toml).
-   - Dynamically lists `main (default base)`, the currently selected cursor branch, and all local repository branches with commit hashes and roles.
+   - Uses the modular preset [`awt-base.toml`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/presets/awt-base.toml).
+   - **Dynamic Row 0 Pre-selection**: The currently focused or active branch is automatically highlighted at **Row 0** (` <branch> current base`), followed by ` main (default base)` and all other local branches with commit hashes.
+   - **Single Keypress Confirmation**: If you want to branch from the selected branch, simply press **`Enter`** (1 stroke).
    - `Esc`: Returns to Step 2 with the branch name pre-filled.
 
-4. **Step 4: Provisioning & Automated Connection**:
+4. **Step 4: Provisioning, Hooks & Automated Session Switch**:
    - Creates the sibling worktree via `wt switch --create "$branch" --base "$base"` or `git worktree add`.
    - Saves base branch configuration: `git config branch.<name>.base "$base"`.
-   - Connects instantly via `sesh connect`, launching **`agy`** (Antigravity CLI) in the new session.
+   - Executes the [`post-create.sh`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/hooks/post-create.sh) lifecycle hook (replicating `.env` and triggering repo-level setup).
+   - Connects instantly via `sesh connect "$target_dir"`, launching **`agy`** (Antigravity CLI) in the new session.
+   - Automatically closes the floating popup modal (`tmux display-popup -C`) with clean signal trapping (`trap 'exit 0' HUP INT TERM`), landing you directly inside the new workspace without error banners or duplicate commands.
 
 ---
 
-### C. Smart Tmux Session Connection (No Duplicate Prompts)
+### C. Smart Tmux Session Connection & Single-Execution Guard
 
-To prevent Sesh from re-triggering `startup_command = "agy"` in sessions that already exist or where the user is actively working, the [`awt`](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh#L433) function implements **direct session resolution**:
+To prevent Sesh from re-triggering `startup_command = "agy"` in sessions that already exist or during worktree provisioning, the [`awt`](file:///home/fecavmi/.dotfiles/main/awt/.local/bin/awt) CLI binary and [`awt-popup.sh`](file:///home/fecavmi/.dotfiles/main/awt/.config/tmux/awt-popup.sh) modal implement **direct session resolution & creation guards**:
 
-1. **Preset Emits Name and Path**: `awt.toml` outputs `{=session}\t{=path}` (e.g. `matchmaker/feature-wtmm\t/home/fecavmi/...`).
+1. **Preset Emits Name and Path**: `awt.toml` outputs `{=session}\t{=path}\t{=raw}` (e.g. `matchmaker/feature-images\t/home/fecavmi/...\tfeature/images`).
 2. **Already in Active Session**: If the selected session is the currently focused terminal, Matchmaker closes cleanly without altering buffer or AI conversation history.
-3. **Background Session**: Sesh connects directly by **session name** (`sesh connect "matchmaker/feature-wtmm"`), switching clients without re-injecting startup commands.
-4. **New Worktree**: Sesh receives the absolute directory path and initializes the session with `agy` from scratch.
+3. **Background Session**: Sesh connects directly by **session name** (`sesh connect "matchmaker/feature-images"`), switching clients without re-injecting startup commands.
+4. **Provisioning Guard**: `awt-new.sh` manages worktree creation and Sesh connection with a temporary guard file (`/tmp/awt_new_created_$USER`), preventing the parent `awt-popup.sh` from triggering a duplicate `sesh connect` call upon exit.
 
 ---
 

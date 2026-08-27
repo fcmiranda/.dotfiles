@@ -40,7 +40,7 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
       -d "$PROJECT_DIR" \
       -E \
       -w 85% -h 75% \
-      "$MM_BIN -o awt"
+      "$MM_BIN -o awt || true"
 
     tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
     tmux set-option -w -t "$CURRENT_PANE" automatic-rename on 2>/dev/null || true
@@ -49,7 +49,7 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
         tmux select-pane -t "$CURRENT_PANE" 2>/dev/null || true
     fi
 else
-    exec tmux display-popup \
+    tmux display-popup \
       -S "fg=$AWT_POPUP_COLOR" \
       -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
       -b rounded \
@@ -57,5 +57,7 @@ else
       -d "$PROJECT_DIR" \
       -E \
       -w 85% -h 75% \
-      "$MM_BIN -o awt"
+      "$MM_BIN -o awt || true" || true
 fi
+
+exit 0

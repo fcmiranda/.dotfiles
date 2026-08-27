@@ -66,6 +66,7 @@ printf "\t\033[1;36mfeat\033[0m\tfeat/\tNew feature\n\
 \t\033[1;31mfix\033[0m\tfix/\tBug fix\n\
 󰑮\t\033[1;33mrefactor\033[0m\trefactor/\tCode restructuring\n\
 \t\033[1;35mperf\033[0m\tperf/\tPerformance optimization\n\
+\t\033[1;36mci\033[0m\tci/\tCI/CD workflows / pipelines\n\
 󰒓\t\033[1;34mchore\033[0m\tchore/\tMaintenance / config\n\
 󰈙\t\033[1;32mdocs\033[0m\tdocs/\tDocumentation\n\
 󰙨\t\033[1;36mtest\033[0m\ttest/\tTest suites\n\

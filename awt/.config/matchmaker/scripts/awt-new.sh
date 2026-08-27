@@ -84,6 +84,7 @@ while true; do
             fi
 
             # Connect via Sesh (creates session and switches Tmux client)
+            touch "/tmp/awt_new_created_${USER:-user}" 2>/dev/null || true
             if command -v sesh >/dev/null 2>&1; then
                 sesh connect "$target_dir"
             fi

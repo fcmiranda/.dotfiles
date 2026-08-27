@@ -70,6 +70,12 @@ MM_BIN="$HOME/.local/bin/mm"
 output=$("$MM_BIN" -o awt tui.percentage=100 tui.max=9999)
 [ -z "$output" ] && exit 0
 
+# If awt-new.sh already provisioned and connected to the session, exit immediately to prevent double execution
+if [ -f "/tmp/awt_new_created_${USER:-user}" ]; then
+    rm -f "/tmp/awt_new_created_${USER:-user}" 2>/dev/null || true
+    exit 0
+fi
+
 IFS=$'\t' read -r session target <<< "$output"
 cur_session=$(tmux display-message -p '#{session_name}' 2>/dev/null || echo "")
 

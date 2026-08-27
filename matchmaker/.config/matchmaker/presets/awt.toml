@@ -52,6 +52,7 @@ fg = "lightblue"
 [columns]
 split = "\t"
 default = "branch"
+max_columns = 10
 names = [
     { name = "branch" },
     { name = "base" },

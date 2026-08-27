@@ -362,6 +362,32 @@ awtc git@github.com:joshmedeski/sesh.git
 
 ---
 
+### G. Arquitetura do Action Box Nativo e Roadmap de Possibilidades
+
+Com a introdução da ação nativa **`Confirm(...)`** e a estrutura do widget `ActionBox` na engine do Matchmaker, abre-se um leque de possibilidades ergonômicas para interação inline diretamente na TUI:
+
+#### 1. Como Funciona a Ação Nativa `Confirm(...)`
+```toml
+[binds]
+"@minha_acao" = '''Confirm({cor,estilo:ÍCONE} Pergunta de Confirmação? (Enter/Esc) | comando_a_executar "{=placeholder}")'''
+```
+- **Zero Sub-processos**: Desenha o popover diretamente pelo backend Ratatui sobre o canvas da TUI, sem abrir instâncias secundárias do `mm`.
+- **Interpolação Dinâmica**: Os placeholders `{=branch}`, `{=path}`, `{=session}`, `{=base}` são resolvidos em tempo de execução via Attachment Formatter.
+- **Execução Síncrona & Reload Automático**: O comando roda de forma síncrona (`child.wait()`), fechando o popover e disparando o `Reload` da lista ao concluir.
+- **Cancelamento Seguro**: Pressionar `Esc` ou `q` fecha a caixinha instantaneamente sem disparar o comando.
+
+#### 2. Possibilidades de Extensão Futura (Roadmap):
+
+| Padrão | Atalho Sugerido | Sintaxe / Ideia | Comportamento na TUI |
+| :--- | :---: | :--- | :--- |
+| **Criação com Input Nativo** | `c` | `Prompt({yellow:✨} Branch name: feat/ \| awt-new.sh "feat/{input}")` | Digitação do nome da branch diretamente no popover da TUI com substituição de `{input}`. |
+| **Renomear Branch / WT** | `r` | `Prompt({cyan:✏️} Rename branch {=branch} to: \| git branch -m "{=branch}" "{input}")` | Permite renomear branches locais instantaneamente pelo menu. |
+| **Rebase na Branch Base** | `R` *(Shift+R)* | `Confirm({yellow:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) \| git rebase {=base})` | Faz o rebase da branch selecionada na sua base configurada. |
+| **Criar Tag no Commit** | `t` | `Prompt({green:🏷️} Tag name for {=branch}: \| git tag "{input}" "{=branch}")` | Cria uma tag Git no commit da worktree selecionada. |
+| **Push Seguro com Lease** | `P` *(Shift+P)* | `Confirm({red:🚀} Push force-with-lease {=branch}? (Enter/Esc) \| git push --force-with-lease)` | Envia commits para o repositório remoto com proteção contra sobrescrita. |
+
+---
+
 ## 8. Gestão de Code Reviews com Worktree Dedicada e `gh-dash`
 
 ### A. Por que a Worktree `review/` é Isolada por Repositório?

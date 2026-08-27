@@ -9,21 +9,30 @@ show_help() {
 awt - Agent Worktree Manager & Multi-Agent Git Orchestrator
 
 USAGE:
-    awt                             Open interactive Matchmaker TUI dashboard
-    awt -c | new | add              Launch interactive Conventional Commits wizard
-    awt -c <branch> [base]          Create new worktree from base and connect session
-    awt <branch> | switch <branch>  Switch/connect to existing worktree Tmux session
-    awt popup                       Open floating AWT modal in Tmux (85% × 75%)
-    awt clone <repo> [dir]          Clone repository into .bare container layout
-    awt rm | remove <branch>        Delete worktree, Git branch, and kill Tmux session
-    awt rebase [base]               Rebase active worktree onto base branch
-    awt merge [branch]              Merge active worktree into base branch with hooks
-    awt help | -h | --help          Show this help message
+    awt                                     Open interactive Matchmaker TUI dashboard
+    awt -c | new | add [flags]              Launch interactive Conventional Commits wizard
+    awt -c <branch> [base] [flags]          Create worktree from base and connect session
+    awt <branch> | switch <branch>          Switch/connect to existing worktree Tmux session
+    awt popup                               Open floating AWT modal in Tmux (85% × 75%)
+    awt clone <repo> [dir]                  Clone repository into .bare container layout
+    awt rm | remove <branch> [flags]        Delete worktree, Git branch, and kill Tmux session
+    awt rebase [base]                       Rebase active worktree onto base branch with auto-stash
+    awt merge [branch] [flags]              Merge active worktree into base branch with hooks
+    awt help | -h | --help                  Show this help message
+
+FLAGS & OPTIONS:
+    --no-tmux, --no-connect                 Create or merge worktree without switching Tmux session
+    --squash / --no-squash                  Squash all commits on merge (default: no-squash / ff)
+    --no-commit                             Perform merge without auto-committing (staged)
+    --no-remove                             Keep worktree directory after merge
+    -f, --force                             Force remove dirty worktree on deletion
+    --no-delete-branch                      Keep Git branch ref when removing worktree folder
 
 SHORTCUTS & ALIASES:
-    Ctrl + Shift + G                Global Tmux floating popup
-    awc                             Shortcut for 'awt -c'
-    awp                             Shortcut for 'awt popup'
+    Ctrl + Shift + G                        Global Tmux floating popup
+    awc                                     Shortcut for 'awt -c'
+    awp                                     Shortcut for 'awt popup'
+    awtc                                    Standalone .bare clone utility
 HELP
     exit 0
 }
@@ -52,8 +61,19 @@ case "$1" in
         ;;
     rm|remove|del|delete)
         shift
-        branch="$1"
-        [[ -z "$branch" ]] && { echo "Usage: awt rm <branch>"; exit 1; }
+        flags=()
+        branch=""
+        for arg in "$@"; do
+            case "$arg" in
+                -f|--force|--no-delete-branch|--no-tmux)
+                    flags+=("$arg")
+                    ;;
+                *)
+                    [[ -z "$branch" ]] && branch="$arg" || flags+=("$arg")
+                    ;;
+            esac
+        done
+        [[ -z "$branch" ]] && { echo "Usage: awt rm <branch> [-f|--force] [--no-delete-branch] [--no-tmux]"; exit 1; }
         repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
         branch_folder="${branch//\//-}"
         target_dir="$repo_root/../$branch_folder"
@@ -62,7 +82,7 @@ case "$1" in
         [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$branch_folder"
         delete_script="$HOME/.config/matchmaker/scripts/awt-delete.sh"
         if [[ -x "$delete_script" ]]; then
-            exec "$delete_script" "$session_name" "$target_dir" "$branch"
+            exec "$delete_script" "$session_name" "$target_dir" "$branch" "${flags[@]}"
         fi
         exit 0
         ;;
@@ -73,13 +93,24 @@ case "$1" in
         cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
         rebase_script="$HOME/.config/matchmaker/scripts/awt-rebase.sh"
         if [[ -x "$rebase_script" ]]; then
-            exec "$rebase_script" "$cur_branch" "$repo_root" "$base"
+            exec "$rebase_script" "$cur_branch" "$repo_root" "$base" "$@"
         fi
         exit 0
         ;;
     merge)
         shift
-        target="${1:-}"
+        flags=()
+        target=""
+        for arg in "$@"; do
+            case "$arg" in
+                --squash|--no-squash|--no-commit|--no-remove|--no-tmux|--no-connect|--no-rebase)
+                    flags+=("$arg")
+                    ;;
+                *)
+                    [[ -z "$target" ]] && target="$arg" || flags+=("$arg")
+                    ;;
+            esac
+        done
         repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
         cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
         repo_parent="$(basename "$(dirname "$repo_root")")"
@@ -88,7 +119,7 @@ case "$1" in
         [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$cur_folder"
         merge_script="$HOME/.config/matchmaker/scripts/awt-merge.sh"
         if [[ -x "$merge_script" ]]; then
-            exec "$merge_script" "$target" "$repo_root" "$session_name" ""
+            exec "$merge_script" "$target" "$repo_root" "$session_name" "" "${flags[@]}"
         fi
         exit 0
         ;;
@@ -135,49 +166,53 @@ fi
 
 # 3. Parse arguments and flags
 create=0
+no_connect=0
 branch=""
 base="HEAD"
 
-case "$1" in
-    new|create|add)
-        shift
-        create=1
-        branch="$1"
-        base="${2:-HEAD}"
-        ;;
-    switch)
-        shift
-        if [[ "$1" == "-c" || "$1" == "--create" ]]; then
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        new|create|add)
             create=1
             shift
-        fi
-        branch="$1"
-        base="${2:-HEAD}"
-        ;;
-    -c|--create)
-        create=1
-        branch="$2"
-        base="${3:-HEAD}"
-        ;;
-    *)
-        branch="$1"
-        base="${2:-HEAD}"
-        ;;
-esac
+            ;;
+        switch)
+            shift
+            ;;
+        -c|--create)
+            create=1
+            shift
+            ;;
+        --no-tmux|--no-connect)
+            no_connect=1
+            shift
+            ;;
+        *)
+            if [[ -z "$branch" ]]; then
+                branch="$1"
+            elif [[ "$base" == "HEAD" ]]; then
+                base="$1"
+            fi
+            shift
+            ;;
+    esac
+done
 
 # 4. Interactive Matchmaker wizard when called as `awt -c` or `awt new` without branch name
 if [[ "$create" -eq 1 && -z "$branch" ]]; then
     new_script="$HOME/.config/matchmaker/scripts/awt-new.sh"
     cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
     if [[ -x "$new_script" ]]; then
-        exec "$new_script" "$cur_branch"
+        flags=()
+        [[ $no_connect -eq 1 ]] && flags+=("--no-tmux")
+        exec "$new_script" "$cur_branch" "${flags[@]}"
     fi
     exit 0
 fi
 
-[[ -z "$branch" ]] && { echo "awt: branch name required. Usage: awt [-c <branch> [base]]"; exit 1; }
+[[ -z "$branch" ]] && { echo "awt: branch name required. Usage: awt [-c <branch> [base] [--no-tmux]]"; exit 1; }
 
-# 5. Direct Connection or Creation
+# 5. Direct Connection or Creation via 100% Native Git
 branch_clean="${branch//\//-}"
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 target_dir="$repo_root/../$branch_clean"
@@ -185,7 +220,7 @@ target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
 
 # If the worktree directory already exists, connect directly
 if [[ -d "$target_dir" ]]; then
-    if command -v sesh >/dev/null 2>&1; then
+    if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
         repo_name="$(basename "$repo_root")"
         sess="${repo_name}/${branch_clean}"
         sess="${sess#.}"
@@ -200,22 +235,24 @@ if [[ -d "$target_dir" ]]; then
     exit 0
 fi
 
-# Create worktree via worktrunk or native git
-if command -v wt >/dev/null 2>&1; then
-    wt switch "$branch" >/dev/null 2>&1 || wt switch --create "$branch" --base "$base" >/dev/null 2>&1
-fi
-
+# Create worktree purely via native Git
 if [[ ! -d "$target_dir" ]]; then
     git worktree add "$target_dir" -b "$branch" "$base" 2>/dev/null || \
     git worktree add "$target_dir" "$branch" 2>/dev/null || {
         echo "awt: Failed to create worktree at $target_dir"
         exit 1
     }
+    git -C "$target_dir" config "branch.${branch}.base" "$base" 2>/dev/null || true
+fi
+
+# Run lifecycle post-create hook
+if [[ -x "$HOME/.config/matchmaker/hooks/post-create.sh" ]]; then
+    "$HOME/.config/matchmaker/hooks/post-create.sh" "$target_dir" "$branch" "$base" 2>/dev/null || true
 fi
 
 echo "✓ Worktree ready at $target_dir"
 
-if command -v sesh >/dev/null 2>&1; then
+if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
     exec sesh connect "$target_dir"
 else
     cd "$target_dir"

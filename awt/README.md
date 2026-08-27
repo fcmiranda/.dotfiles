@@ -79,13 +79,21 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 | `awt` | — | Open interactive Matchmaker TUI dashboard in current pane (30% height). |
 | `awt popup` | **`awp`** / `Ctrl+Shift+G` | Open full floating AWT modal ($85\% \times 75\%$) in Tmux. |
 | `awt -c` / `awt new` / `awt add` | **`awc`** | Launch the interactive 4-step Conventional Commits wizard. |
-| `awt -c <branch> [base]` | — | Create new worktree and immediately attach/switch to its Tmux session. |
+| `awt -c <branch> [base] [--no-tmux]` | — | Create new worktree from base and connect session (or stay with `--no-tmux`). |
 | `awt <branch>` / `awt switch <branch>` | — | Switch directly to the Tmux session for the specified worktree. |
-| `awt rm <branch>` / `awt del <branch>` | — | Delete worktree directory, Git branch, and kill its Tmux session. |
+| `awt rm <branch> [-f] [--no-delete-branch]` | — | Delete worktree directory, Git branch (or keep ref), and kill session. |
 | `awt rebase [base]` | — | Safely rebase current worktree onto base branch with auto-stash. |
-| `awt merge [branch]` | — | Merge current worktree into base branch with lifecycle hooks. |
+| `awt merge [branch] [flags]` | — | Merge current worktree into base with hooks (`--squash`, `--no-commit`, `--no-remove`, `--no-tmux`). |
 | `awt clone <repo> [dir]` | **`awtc`** | Clone repository in `.bare` layout and provision initial worktree. |
-| `awt help` / `awt -h` | — | Display CLI help and usage options. |
+| `awt help` / `awt -h` | — | Display CLI help, usage options, and flag reference. |
+
+### 🚩 Flags Reference:
+* `--no-tmux`, `--no-connect`: Create or merge worktree without creating/switching the Tmux session.
+* `--squash` / `--no-squash`: Squash all commits into one on merge (default: fast-forward or linear merge).
+* `--no-commit`: Perform merge without auto-committing (leaves changes staged in the index).
+* `--no-remove`: Keep the worktree directory intact after merging.
+* `-f`, `--force`: Force remove dirty worktrees containing uncommitted changes.
+* `--no-delete-branch`: Remove worktree directory while preserving the Git branch reference.
 
 ---
 

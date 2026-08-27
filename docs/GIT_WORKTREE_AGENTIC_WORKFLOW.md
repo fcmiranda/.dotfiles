@@ -496,11 +496,11 @@ While low-level CLI utilities like `wt` (Worktree CLI) provide direct Git comman
 | **Floating Worktree Modal** | **`Ctrl + Shift + G`** / `awp` | Open floating AWT modal (`85% × 75%`) with live previews from anywhere in Tmux. |
 | **Open Interactive Dashboard** | `awt` | Open Matchmaker picker (`mm -o awt`) in current pane. |
 | **Launch Creation Wizard** | `awt -c` / `awt new` / `awc` | Launch interactive Conventional Commits creation wizard. |
-| **Direct CLI Worktree Creation** | `awt -c <branch> [base]` | Create branch and immediately attach to Tmux session. |
+| **Direct CLI Worktree Creation** | `awt -c <branch> [base] [--no-tmux]` | Create branch and attach to Tmux session (or stay with `--no-tmux`). |
 | **Direct CLI Connect / Switch** | `awt <branch>` / `awt switch <branch>` | Jump directly to the Tmux session for specified worktree. |
-| **Direct CLI Delete Worktree** | `awt rm <branch>` | Delete worktree directory, Git branch, and kill Tmux session. |
+| **Direct CLI Delete Worktree** | `awt rm <branch> [-f] [--no-delete-branch]` | Delete worktree directory, Git branch (or keep ref), and kill session. |
 | **Direct CLI Rebase** | `awt rebase [base]` | Rebase active worktree onto base branch with auto-stash. |
-| **Direct CLI Merge** | `awt merge [branch]` | Merge active worktree into base branch with lifecycle hooks. |
+| **Direct CLI Merge** | `awt merge [branch] [flags]` | Merge with hooks (`--squash`, `--no-commit`, `--no-remove`, `--no-tmux`). |
 | **PR / Issue Dashboard** | `gh dash` | GitHub TUI dashboard. Press `g` for `lazygitrs` or `s` for `sesh`. |
 | **Switch Tmux Sessions** | `Prefix + t` / `Prefix + s` | Fast session and window switcher via Sesh & Matchmaker. |
 | **Validate Dotfile Symlinks** | `./stow.sh -n` | Mandatory dry-run check before any merge into `main`. |

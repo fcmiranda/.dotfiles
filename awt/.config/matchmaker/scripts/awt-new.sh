@@ -17,6 +17,13 @@ fi
 
 selected_base="$(echo "${1:-}" | sed -E 's/^[^a-zA-Z0-9._/-]+[[:space:]]*//')"
 
+connect_tmux=1
+for arg in "$@"; do
+    if [[ "$arg" == "--no-tmux" || "$arg" == "--no-connect" ]]; then
+        connect_tmux=0
+    fi
+done
+
 while true; do
     case "$step" in
         1)
@@ -64,18 +71,14 @@ while true; do
             ;;
 
         4)
-            # ── Step 4: Provision Worktree, Run Hooks & Connect via Sesh ──
+            # ── Step 4: Provision Worktree via Native Git, Run Hooks & Connect via Sesh ──
             repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
             branch_folder="${branch_name//\//-}"
             target_dir="$repo_root/../$branch_folder"
 
             printf "\n\033[1;32m󰄬 Creating worktree '%s' (base: %s)...\033[0m\n" "$branch_name" "$bbase"
 
-            if command -v wt >/dev/null 2>&1; then
-                wt switch --create "$branch_name" --base "$bbase"
-            else
-                git worktree add "$target_dir" -b "$branch_name" "$bbase"
-            fi
+            git worktree add "$target_dir" -b "$branch_name" "$bbase"
             git -C "$target_dir" config "branch.${branch_name}.base" "$bbase" 2>/dev/null || true
 
             # Run post-create hook if present
@@ -83,15 +86,17 @@ while true; do
                 "$HOME/.config/matchmaker/hooks/post-create.sh" "$target_dir" "$branch_name" "$bbase" 2>/dev/null || true
             fi
 
-            # Connect via Sesh (creates session and switches Tmux client)
-            touch "/tmp/awt_new_created_${USER:-user}" 2>/dev/null || true
-            if command -v sesh >/dev/null 2>&1; then
-                sesh connect "$target_dir"
-            fi
+            # Connect via Sesh unless --no-tmux / --no-connect was requested
+            if [[ $connect_tmux -eq 1 ]]; then
+                touch "/tmp/awt_new_created_${USER:-user}" 2>/dev/null || true
+                if command -v sesh >/dev/null 2>&1; then
+                    sesh connect "$target_dir"
+                fi
 
-            # Dismiss popup modal completely so user lands cleanly in the new session
-            if [ -n "$TMUX" ]; then
-                tmux display-popup -C 2>/dev/null || true
+                # Dismiss popup modal completely so user lands cleanly in the new session
+                if [ -n "$TMUX" ]; then
+                    tmux display-popup -C 2>/dev/null || true
+                fi
             fi
             exit 0
             ;;

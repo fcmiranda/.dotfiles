@@ -11,7 +11,7 @@ branch_name=""
 bbase=""
 
 MM_TUI_ARGS=()
-if [ "$TMUX_POPUP" = "1" ] || [ -n "$TMUX" ]; then
+if [ "$TMUX_POPUP" = "1" ]; then
     MM_TUI_ARGS=("tui.percentage=100" "tui.max=9999")
 fi
 

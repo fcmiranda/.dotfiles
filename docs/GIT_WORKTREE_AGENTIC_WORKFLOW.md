@@ -293,12 +293,20 @@ Para evitar que o Sesh execute o `startup_command = "agy"` em sessões que já e
 
 ---
 
-### D. Handler de Deleção Segura e Limpeza de Tmux (`d` / `ctrl-d` / `awt-delete.sh`)
+### D. Handler de Deleção Segura com Action Box Condicional (`d` / `ctrl-d` / `awt-delete.sh`)
 
 Ao pressionar **`d`** em qualquer linha do `awt`:
 
-1. **Proteção de Base**: Bloqueia a exclusão acidental da branch `main` ou `master`.
-2. **Confirmação Visual**: Solicita confirmação no terminal (`🗑️ Remove worktree <branch>? [y/N]`).
+1. **Proteção de Base**: Bloqueia imediatamente a exclusão da branch base principal (`main` ou `master`).
+2. **Deleção Instantânea vs Action Box Condicional**:
+   - **Sem commits / Sem alterações pendentes (`ahead == 0 && dirty == 0`)**: A worktree e a sessão Tmux são excluídas **imediatamente sem pedir nenhuma confirmação**, oferecendo máxima agilidade no dia a dia.
+   - **Com commits customizados ou arquivos modificados**: Abre automaticamente um **Action Box do Matchmaker** alertando sobre o risco e solicitando decisão:
+     ```text
+     ⚠️ Worktree has 2 commit(s), 1 uncommitted file(s)! Delete? >
+     > 🛡️  No, Cancel (Keep feat/nova-feature)
+       🗑️  Yes, Force Delete (feat/nova-feature with 2 commit(s), 1 uncommitted file(s))
+     ```
+     Pressionar `Enter` na opção de cancelamento ou `Esc`/`q` aborta a ação sem tocar nos arquivos.
 3. **Limpeza Completa no Git**: Executa `wt remove` / `git worktree remove -f` e deleta a branch (`git branch -D`).
 4. **Redirecionamento e Fechamento de Sessão Tmux**:
    - **Se for a sessão atual**: Executa `sesh last` (ou `tmux switch-client -l`) para redirecionar você para a sessão anterior e, em seguida, mata a sessão excluída (`tmux kill-session`).

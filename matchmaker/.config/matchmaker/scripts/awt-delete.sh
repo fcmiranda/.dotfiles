@@ -14,13 +14,32 @@ if [[ "$branch_clean" == "main" || "$branch_clean" == "master" ]]; then
     exit 0
 fi
 
-# 2. Confirmation prompt
-printf "\n\033[1;33m🗑️  Remove worktree \033[1;31m%s\033[1;33m (\033[1;36m%s\033[1;33m)? [y/N]: \033[0m" "$branch_clean" "$wt_path" >/dev/tty
-read -r ans </dev/tty
-case "$ans" in
-    [yY]*) ;;
-    *) exit 0 ;;
-esac
+# 2. Check if worktree has custom commits or uncommitted changes
+base_branch=$(git -C "$wt_path" config "branch.${branch_clean}.base" 2>/dev/null)
+base_branch="${base_branch:-main}"
+
+ahead_commits=$(git -C "$wt_path" rev-list --count "${base_branch}..HEAD" 2>/dev/null || echo "0")
+dirty_count=$(git -C "$wt_path" status --porcelain 2>/dev/null | wc -l)
+
+# If worktree has commits or dirty files -> require Action Box confirmation!
+if [[ "$ahead_commits" -gt 0 || "$dirty_count" -gt 0 ]]; then
+    details=""
+    if [[ "$ahead_commits" -gt 0 ]]; then
+        details+="${ahead_commits} commit(s)"
+    fi
+    if [[ "$dirty_count" -gt 0 ]]; then
+        [[ -n "$details" ]] && details+=", "
+        details+="${dirty_count} uncommitted file(s)"
+    fi
+
+    confirm_choice=$(printf "cancel\t🛡️  No, Cancel (Keep %s)\ndelete\t🗑️  Yes, Force Delete (%s with %s)\n" "$branch_clean" "$branch_clean" "$details" | \
+        mm columns.split="\t" start.output_template="{1}" query.prompt="⚠️  Worktree has ${details}! Delete? > " tui.percentage=20 results.icons=false --status-inline)
+
+    # If user cancelled, pressed Esc, or chose No -> exit cleanly
+    if [[ "$confirm_choice" != "delete" ]]; then
+        exit 0
+    fi
+fi
 
 # 3. Check if currently attached to this session in Tmux
 cur_session=$(tmux display-message -p '#{session_name}' 2>/dev/null)
@@ -30,7 +49,6 @@ if [[ -n "$cur_session" && ( "$cur_session" == "$session_name" || "$cur_session"
 fi
 
 # 4. Remove Worktree from Git
-printf "\n\033[1;33mRemoving worktree '%s'...\033[0m\n" "$wt_path" >/dev/tty
 if command -v wt >/dev/null 2>&1; then
     wt remove "$wt_path" 2>/dev/null || wt remove -f "$branch_clean" 2>/dev/null || git worktree remove -f "$wt_path" 2>/dev/null
 else
@@ -59,5 +77,4 @@ else
     elif tmux has-session -t "_$session_name" 2>/dev/null; then
         tmux kill-session -t "_$session_name" 2>/dev/null || true
     fi
-    printf "\033[1;32m✓ Worktree and session removed successfully.\033[0m\n" >/dev/tty
 fi

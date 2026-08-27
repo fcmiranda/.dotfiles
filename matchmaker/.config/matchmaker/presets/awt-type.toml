@@ -4,6 +4,7 @@
 percentage = 45
 min = 12
 max = 30
+restore_fullscreen = false
 
 [ui]
 nav_mode = true

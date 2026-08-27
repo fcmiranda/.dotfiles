@@ -1,0 +1,83 @@
+# Matchmaker Agent Worktree Conventional Type Preset (`mm -o awt-type`)
+
+[tui]
+percentage = 35
+min = 12
+max = 50
+
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "white"
+
+[ui.parent_peek]
+enabled = false
+
+[query]
+status_inline = true
+prompt = "Type > "
+prompt_style.fg = "white"
+prompt_style.modifier = "BOLD"
+
+[header]
+header_lines = 1
+style.fg = "Cyan"
+style.modifier = "BOLD"
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Select Type}  •  {darkgray,bold:[Esc/q]} {darkgray:Cancel}"
+row_connection = "Full"
+match_indent = false
+style.fg = "gray"
+style.modifier = "DIM"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+column_spacing = 3
+symlink_target = false
+
+[results.current_style]
+fg = "black"
+bg = "lightblue"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "lightblue"
+
+[columns]
+split = "\t"
+default = "type"
+names = [
+    { name = "type" },
+    { name = "description" },
+]
+
+[preview]
+show = false
+
+[start.command]
+command = '''
+printf "TYPE\tDESCRIPTION\n\033[1;36mfeat\033[0m\tNew feature\n\033[1;31mfix\033[0m\tBug fix\n\033[1;33mrefactor\033[0m\tCode restructuring\n\033[1;35mperf\033[0m\tPerformance optimization\n\033[1;34mchore\033[0m\tMaintenance / config\n\033[1;32mdocs\033[0m\tDocumentation\n\033[1;36mtest\033[0m\tTest suites\n\033[1;33mbuild\033[0m\tDependencies / build\n\033[2mcustom\033[0m\tNo prefix / freeform\n"
+'''
+
+[start]
+ansi = true
+mode = "nav"
+output_template = "{=type}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^down" = "Down"
+"nav^^up" = "Up"
+"nav^^enter" = "Accept"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"

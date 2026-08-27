@@ -1,0 +1,90 @@
+# Matchmaker Agent Worktree Base Branch Preset (`mm -o awt-base`)
+
+[tui]
+percentage = 45
+min = 15
+max = 60
+
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "white"
+
+[ui.parent_peek]
+enabled = false
+
+[query]
+status_inline = true
+prompt = "Base > "
+prompt_style.fg = "white"
+prompt_style.modifier = "BOLD"
+
+[header]
+header_lines = 1
+style.fg = "Cyan"
+style.modifier = "BOLD"
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Select Base}  •  {darkgray,bold:[Esc/q]} {darkgray:Back}"
+row_connection = "Full"
+match_indent = false
+style.fg = "gray"
+style.modifier = "DIM"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+column_spacing = 3
+symlink_target = false
+
+[results.current_style]
+fg = "black"
+bg = "lightblue"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "lightblue"
+
+[columns]
+split = "\t"
+default = "branch"
+names = [
+    { name = "branch" },
+    { name = "role" },
+    { name = "commit" },
+]
+
+[preview]
+show = false
+
+[start.command]
+command = '''
+printf "BRANCH\tROLE\tCOMMIT\n"
+printf "\033[1;33mmain\033[0m\t\033[32mdefault base\033[0m\t%s\n" "$(git rev-parse --short main 2>/dev/null)"
+git branch --format='%(refname:short)' 2>/dev/null | grep -vE '^(main|master)$' | while read -r b; do
+    [ -n "$b" ] || continue
+    sha=$(git rev-parse --short "$b" 2>/dev/null)
+    printf "%s\t\033[2mlocal branch\033[0m\t\033[33m%s\033[0m\n" "$b" "$sha"
+done
+'''
+
+[start]
+ansi = true
+mode = "nav"
+output_template = "{=branch}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^down" = "Down"
+"nav^^up" = "Up"
+"nav^^enter" = "Accept"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 100% Native Matchmaker Worktree Creation Wizard with Instant ESC Navigation
+# 100% Matchmaker Presets Worktree Creation Wizard
 
 trap 'exit 0' INT
 
@@ -70,9 +70,8 @@ prompt_for_branch_slug() {
 while true; do
     case "$step" in
         1)
-            # ── Step 1: Conventional Type Selection via Matchmaker (mm) ──
-            type_choice=$(printf "feat\t(new feature)\nfix\t(bug fix)\nrefactor\t(code restructuring)\nperf\t(performance optimization)\nchore\t(maintenance / config)\ndocs\t(documentation)\ntest\t(test suites)\nbuild\t(dependencies / build)\ncustom\t(no prefix / freeform)\n" | \
-                mm columns.split="\t" start.output_template="{1}" query.prompt="Type [Esc: Cancel] > " tui.percentage=35 results.icons=false --status-inline)
+            # ── Step 1: Conventional Type Selection via Matchmaker Preset (`mm -o awt-type`) ──
+            type_choice=$(mm -o awt-type)
 
             # If Esc / canceled in Step 1 -> exit completely back to main awt list
             if [[ -z "$type_choice" ]]; then
@@ -115,20 +114,8 @@ while true; do
             ;;
 
         3)
-            # ── Step 3: Base Branch Selection via Matchmaker (mm) ──
-            base_list="main\t(default base)\n"
-            if [[ "$selected_branch" != "main" && -n "$selected_branch" ]]; then
-                base_list+="${selected_branch}\t(selected item)\n"
-            fi
-            all_branches=$(git branch --format="%(refname:short)" 2>/dev/null | grep -vE "^(main|${selected_branch:-main})$")
-            if [[ -n "$all_branches" ]]; then
-                while IFS= read -r b; do
-                    [[ -n "$b" ]] && base_list+="${b}\t(local branch)\n"
-                done <<< "$all_branches"
-            fi
-
-            bbase=$(printf "%b" "$base_list" | \
-                mm columns.split="\t" start.output_template="{1}" query.prompt="Base for ${branch_name} [Esc: Back] > " tui.percentage=40 results.icons=false --status-inline)
+            # ── Step 3: Base Branch Selection via Matchmaker Preset (`mm -o awt-base`) ──
+            bbase=$(mm -o awt-base)
 
             # If Esc was pressed in Step 3 -> step back to Step 2 with previous slug preserved!
             if [[ -z "$bbase" ]]; then

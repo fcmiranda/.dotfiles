@@ -1,9 +1,9 @@
 # Matchmaker Agent Worktree Conventional Type Preset (`mm -o awt-type`)
 
 [tui]
-percentage = 45
-min = 12
-max = 30
+percentage = 30
+min = 10
+max = 20
 restore_fullscreen = false
 
 [ui]
@@ -15,10 +15,13 @@ nav_color = "white"
 enabled = false
 
 [query]
-status_inline = true
+status_inline = false
 prompt = "> "
 prompt_style.fg = "white"
 prompt_style.modifier = "BOLD"
+
+[status]
+show = false
 
 [footer]
 content = " {cyan,bold:[Enter]} {darkgray:Select Type}  •  {darkgray,bold:[Esc/q]} {darkgray:Cancel}"

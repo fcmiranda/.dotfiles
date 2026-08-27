@@ -2,9 +2,9 @@
 # Interactive worktree switcher with Nav Mode, BASE branch column, ANSI colors, and multi-tab previews.
 
 [tui]
-percentage = 45
-min = 15
-max = 30
+percentage = 30
+min = 12
+max = 25
 restore_fullscreen = false
 
 [ui]

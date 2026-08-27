@@ -50,31 +50,31 @@ fi
 
 # 4. Remove Worktree from Git
 if command -v wt >/dev/null 2>&1; then
-    wt remove "$wt_path" 2>/dev/null || wt remove -f "$branch_clean" 2>/dev/null || git worktree remove -f "$wt_path" 2>/dev/null
+    wt remove "$wt_path" >/dev/null 2>&1 || wt remove -f "$branch_clean" >/dev/null 2>&1 || git worktree remove -f "$wt_path" >/dev/null 2>&1
 else
-    git worktree remove -f "$wt_path" 2>/dev/null || true
+    git worktree remove -f "$wt_path" >/dev/null 2>&1 || true
 fi
 
 # Also delete branch if not already deleted
-git branch -D "$branch_clean" 2>/dev/null || true
+git branch -D "$branch_clean" >/dev/null 2>&1 || true
 
 # 5. Handle Tmux session cleanup & redirection
 if [[ $is_current_session -eq 1 ]]; then
     printf "\033[1;32m✓ Worktree removed. Switching to last Tmux session...\033[0m\n" >/dev/tty
     # Switch to previous session before killing current session
     if command -v sesh >/dev/null 2>&1; then
-        sesh last 2>/dev/null || tmux switch-client -l 2>/dev/null || tmux switch-client -n 2>/dev/null
+        sesh last >/dev/null 2>&1 || tmux switch-client -l >/dev/null 2>&1 || tmux switch-client -n >/dev/null 2>&1
     else
-        tmux switch-client -l 2>/dev/null || tmux switch-client -n 2>/dev/null
+        tmux switch-client -l >/dev/null 2>&1 || tmux switch-client -n >/dev/null 2>&1
     fi
     # Kill the deleted session
-    tmux kill-session -t "$session_name" 2>/dev/null || tmux kill-session -t "_$session_name" 2>/dev/null || true
+    tmux kill-session -t "$session_name" >/dev/null 2>&1 || tmux kill-session -t "_$session_name" >/dev/null 2>&1 || true
     exit 0
 else
     # If the session was in background, kill it cleanly
-    if tmux has-session -t "$session_name" 2>/dev/null; then
-        tmux kill-session -t "$session_name" 2>/dev/null || true
-    elif tmux has-session -t "_$session_name" 2>/dev/null; then
-        tmux kill-session -t "_$session_name" 2>/dev/null || true
+    if tmux has-session -t "$session_name" >/dev/null 2>&1; then
+        tmux kill-session -t "$session_name" >/dev/null 2>&1 || true
+    elif tmux has-session -t "_$session_name" >/dev/null 2>&1; then
+        tmux kill-session -t "_$session_name" >/dev/null 2>&1 || true
     fi
 fi

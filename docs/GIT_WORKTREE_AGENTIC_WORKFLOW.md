@@ -1,217 +1,218 @@
-# Fluxo de Trabalho Git Worktree para Múltiplos Agentes de IA
+# Git Worktree Workflow for Multi-Agent AI Development
 
-Este documento define o padrão arquitetural, ergonômico e operacional para desenvolvimento paralelo com múltiplos agentes de IA no repositório de dotfiles e projetos satélites.
+This document defines the architectural, ergonomic, and operational standard for parallel development with multiple AI agents in dotfiles and satellite repositories.
 
 ---
 
-## 1. Arquitetura do Repositório: `.bare` + Worktrees
+## 1. Repository Architecture: `.bare` + Worktrees
 
-### O Problema do Git Tradicional vs. A Superioridade do Modelo `.bare`
+### The Problem with Traditional Git vs. The Superiority of the `.bare` Model
 
-No Git convencional (`git clone`), a pasta raiz do projeto contém tanto a pasta oculta `.git` quanto o código da branch ativa. Ao criar worktrees nesse formato, o desenvolvedor é forçado a:
-1. Criar subpastas dentro do próprio repositório (poluindo o `git status` e ferramentas de busca); ou
-2. Criar pastas externas soltas com caminhos inconsistentes.
+In conventional Git (`git clone`), the project root contains both the hidden `.git` folder and the active branch's source code. When creating worktrees in this format, the developer is forced to:
+1. Create subdirectories inside the repository itself (polluting `git status` and search indexing); or
+2. Create detached external directories with inconsistent file paths.
 
-Com o **Modelo `.bare` Container**, o repositório é clonado em modo bare (`.bare`) e a pasta raiz vira um **Container de Worktrees Irmãs**:
+With the **`.bare` Container Model**, the repository is cloned in bare mode (`.bare`), transforming the project root into a **Sibling Worktree Container**:
 
 ```
-~/dev/github/matchmaker/ (Container do Projeto)
-├── .bare/               (Banco de dados Git compartilhado)
-├── main/                (Worktree da branch principal)
-├── feat-preview/        (Worktree irmã - Agente IA 1)
-└── fix-parser/          (Worktree irmã - Agente IA 2)
+~/dev/github/matchmaker/ (Project Container)
+├── .bare/               (Shared Git object database)
+├── main/                (Main branch worktree)
+├── feat-preview/        (Sibling worktree - AI Agent 1)
+└── fix-parser/          (Sibling worktree - AI Agent 2)
 ```
 
-#### Vantagens do Modelo `.bare`:
-* **Isometria e Simetria**: A branch `main` e as branches de feature têm exatamente o mesmo status estrutural.
-* **Isolamento Total**: Excluir uma branch (`wt remove feat-x`) é simplesmente deletar a pasta irmã `feat-x/`, sem risco de corromper o histórico do Git em `.bare/`.
-* **Zero Poluição**: Nenhum arquivo de uma branch vaza para outra branch.
-* **Ideal para Dotfiles (GNU Stow)**: Permite que apenas `main/` seja stificada para `$HOME`, enquanto todas as outras worktrees funcionam como **sandboxes seguras de IA**.
+#### Advantages of the `.bare` Model:
+* **Isometry and Symmetry**: The `main` branch and feature branches share identical structural status.
+* **Complete Isolation**: Removing a branch (`wt remove feat-x`) simply deletes the sibling folder `feat-x/`, with zero risk of corrupting the Git object database in `.bare/`.
+* **Zero Pollution**: No file or build artifact from one branch ever leaks into another branch.
+* **Ideal for Dotfiles (GNU Stow)**: Allows only `main/` to be stowed to `$HOME`, while all other worktrees operate as **safe AI sandboxes**.
 
 ```mermaid
 graph TD
-    BARE[".dotfiles/.bare (Git Bare Repository)"] --> MAIN[".dotfiles/main (Worktree de Produção / Stowed)"]
-    BARE --> WT1[".dotfiles/feat-zsh-perf (Sandbox IA 1)"]
-    BARE --> WT2[".dotfiles/feat-nvim-ui (Sandbox IA 2)"]
+    BARE[".dotfiles/.bare (Git Bare Repository)"] --> MAIN[".dotfiles/main (Production Worktree / Stowed)"]
+    BARE --> WT1[".dotfiles/feat-zsh-perf (AI Sandbox 1)"]
+    BARE --> WT2[".dotfiles/feat-nvim-ui (AI Sandbox 2)"]
     
     MAIN ===|./stow.sh| HOME["$HOME (~/.config, ~/.zsh, ~/.local/bin, etc.)"]
-    WT1 -.->|ISOLADO / NÃO STOWADO| HOME
-    WT2 -.->|ISOLADO / NÃO STOWADO| HOME
+    WT1 -.->|ISOLATED / NOT STOWED| HOME
+    WT2 -.->|ISOLATED / NOT STOWED| HOME
 ```
 
-### Regras Fundamentais de Segurança nos Dotfiles
-1. **`main/` é a única Worktree Stowed**: O `$HOME` aponta estritamente para `~/.dotfiles/main/`.
-2. **Feature Worktrees são Sandboxes**: Agentes de IA operam em worktrees isoladas (`~/.dotfiles/<branch>`). Alucinações, erros de sintaxe ou exclusões acidentais de arquivos não quebram o desktop ativo em tempo real.
-3. **Validação Obrigatória de Symlinks**: Antes de qualquer merge na `main`, é obrigatório rodar `./stow.sh -n` (dry-run) para garantir integridade.
-
+### Fundamental Security Rules in Dotfiles
+1. **`main/` is the only Stowed Worktree**: `$HOME` strictly symlinks to `~/.dotfiles/main/`.
+2. **Feature Worktrees are Sandboxes**: AI agents operate in isolated worktrees (`~/.dotfiles/<branch>`). Hallucinations, syntax errors, or accidental file deletions never break the live desktop environment.
+3. **Mandatory Symlink Validation**: Before merging any changes into `main`, running `./stow.sh -n` (dry-run) is strictly required to verify link integrity.
 
 ---
 
-## 2. Topologia Tmux + Sesh: Mapeamento de Sessões e Ergonomia
+## 2. Tmux + Sesh Topology: Session Mapping and Ergonomics
 
-O modelo ergonômico adotado é **1 Worktree = 1 Sessão no Tmux (via `sesh`)**.
+The ergonomic model is **1 Worktree = 1 Tmux Session (via `sesh`)**.
 
 ```
-tmux (Servidor)
-├── Sessão: dotfiles@main (Produção / Live)
-│   ├── Janela 1: Shell principal
-│   ├── Janela 2: lazygitrs
-│   └── Janela 3: Logs / Testes
+tmux (Server)
+├── Session: dotfiles@main (Production / Live)
+│   ├── Window 1: Primary Shell
+│   ├── Window 2: lazygitrs
+│   └── Window 3: Logs / Tests
 │
-├── Sessão: dotfiles@feat-zsh-perf (Agente IA 1)
-│   ├── Janela 1: Agente de IA (agy / opencode)
-│   └── Janela 2: Testes locais da worktree
+├── Session: dotfiles@feat-zsh-perf (AI Agent 1)
+│   ├── Window 1: AI Agent (agy / opencode)
+│   └── Window 2: Local worktree tests
 │
-└── Sessão: dotfiles@feat-nvim-ui (Agente IA 2)
-    ├── Janela 1: Agente de IA (claude / agy)
-    └── Janela 2: Neovim sandbox
+└── Session: dotfiles@feat-nvim-ui (AI Agent 2)
+    ├── Window 1: AI Agent (claude / agy)
+    └── Window 2: Neovim sandbox
 ```
 
-### Por que 1 Sessão por Worktree?
-- **Isolamento de CWD**: Cada sessão opera na raiz de sua respectiva worktree.
-- **Transição Fluida**: Alternância instantânea via `Prefix + s` ou picker `mm -o awt`.
-- **Hooks Automatizados**: Configurações no `sesh.toml` iniciam sandboxes (`ai-jail agy`) automaticamente ao conectar na sessão.
+### Why 1 Session per Worktree?
+- **CWD Isolation**: Each session operates at the root of its respective worktree.
+- **Fluid Transition**: Instant switching via `Prefix + s` or the Matchmaker picker (`mm -o awt`).
+- **Automated Hooks**: `sesh.toml` configurations launch sandboxes (`ai-jail agy`) automatically upon attaching to the session.
 
 ---
 
-## 3. Estratégias de Merge e Teste na `main`
+## 3. Merge and Testing Strategies in `main`
 
-Como apenas `main/` está linkada ao `$HOME`, o teste de alterações no sistema ativo requer integração com a branch principal.
+Because only `main/` is linked to `$HOME`, testing changes in the active system requires integration with the main branch.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Dev as Usuário
-    participant WT as Feature Worktree (IA)
+    actor Dev as Developer
+    participant WT as Feature Worktree (AI)
     participant Main as main (Live Dotfiles)
-    participant Home as $HOME (Ambiente Ativo)
+    participant Home as $HOME (Live Environment)
 
-    Note over WT: Agente conclui tarefa & gera commits
-    Dev->>WT: Validação interna & diff (lazygitrs)
-    Dev->>Main: git merge feat-minha-branch
-    Main->>Main: ./stow.sh -n (Dry-run de symlinks)
-    alt Sem conflitos
-        Main->>Home: ./stow.sh -r <pacote> (Re-stow)
-        Dev->>Home: Testa ao vivo (hyprctl reload / source ~/.zshrc)
-    else Conflito detectado
-        Main->>Dev: Alerta de conflito / Aborta
+    Note over WT: Agent completes task & creates commits
+    Dev->>WT: Internal validation & diff inspection (lazygitrs)
+    Dev->>Main: git merge feat-my-branch
+    Main->>Main: ./stow.sh -n (Symlink Dry-run)
+    alt No Conflicts
+        Main->>Home: ./stow.sh -r <package> (Re-stow)
+        Dev->>Home: Live test (hyprctl reload / source ~/.zshrc)
+    else Conflict Detected
+        Main->>Dev: Conflict Alert / Abort
     end
 ```
 
-### Passo a Passo Operacional:
-1. **Entrar na worktree `main`**:
+### Operational Step-by-Step Guide:
+1. **Switch to the `main` worktree**:
    ```bash
    sesh connect ~/.dotfiles/main
-   # ou via terminal
+   # or via terminal
    cd /home/fecavmi/.dotfiles/main
    ```
-2. **Executar o merge**:
+2. **Execute the merge**:
    ```bash
-   git merge feat-minha-branch
+   git merge feat-my-branch
    ```
-3. **Validar e Re-stowar**:
+3. **Validate and Re-stow**:
    ```bash
-   ./stow.sh -n           # 1. Verifica se não há quebras
-   ./stow.sh -r <pacote>  # 2. Atualiza os links simbólicos no $HOME
+   ./stow.sh -n           # 1. Verify link integrity (dry-run)
+   ./stow.sh -r <package> # 2. Update symlinks in $HOME
    ```
-4. **Recarregar o componente afetado**:
+4. **Reload the affected component**:
    - Hyprland: `hyprctl reload`
    - Zsh: `source ~/.zshrc`
    - Waybar: `killall waybar; waybar &`
 
 ---
 
-## 4. Gestão de Reversões e Rollbacks
+## 4. Rollback and Reversion Management
 
-Se após o merge e teste no `$HOME` você não gostar de uma alteração ou precisar reverter um commit da feature:
+If after merging and testing in `$HOME` you need to undo a change or revert a feature commit:
 
 ```mermaid
 graph TD
-    A["Merge feito na main & Testado no $HOME"] --> B{"Gostou do resultado?"}
-    B -->|Sim| C["wt remove feat-branch && git branch -d feat-branch"]
-    B -->|Não| D{"A main já foi enviada ao git push?"}
+    A["Merged into main & Tested in $HOME"] --> B{"Satisfied with result?"}
+    B -->|Yes| C["wt remove feat-branch && git branch -d feat-branch"]
+    B -->|No| D{"Has main already been pushed?"}
     
-    D -->|Não (Local)| E["Na main: git reset --hard HEAD~1"]
-    E --> F["./stow.sh -r <pacote> (Restaura $HOME anterior)"]
-    F --> G["Na feature branch: corrigir ou git revert <commit>"]
+    D -->|No (Local)| E["In main: git reset --hard HEAD~1"]
+    E --> F["./stow.sh -r <package> (Restores previous $HOME)"]
+    F --> G["In feature branch: fix or git revert <commit>"]
     
-    D -->|Sim (Remoto)| H["Na main: git revert -m 1 <merge-commit>"]
-    H --> I["./stow.sh -r <pacote> && git push origin main"]
-    I --> J["Na feature branch: aplicar correções incrementais"]
+    D -->|Yes (Remote)| H["In main: git revert -m 1 <merge-commit>"]
+    H --> I["./stow.sh -r <package> && git push origin main"]
+    I --> J["In feature branch: apply incremental fixes"]
 ```
 
-### Cenário A: A `main` é apenas local (Mais comum em Dotfiles)
-1. **Desfazer o merge na `main`**:
+### Scenario A: `main` is Local-Only (Most Common in Dotfiles)
+1. **Undo the merge in `main`**:
    ```bash
    git reset --hard HEAD~1
-   ./stow.sh -r <pacote>
+   ./stow.sh -r <package>
    ```
-   *Seu `$HOME` volta instantaneamente ao estado estável anterior.*
+   *Your `$HOME` immediately returns to the previous stable state.*
 
-2. **Ajustar na branch da feature**:
-   Na sessão da worktree da feature:
-   - Se quiser descartar o último commit: `git reset --hard HEAD~1`
-   - Se quiser desfazer um commit intermediário: `git revert <hash-do-commit>`
-   - Se quiser refatorar: Peça ao agente de IA para corrigir o ponto indesejado.
+2. **Adjust in the feature branch**:
+   In the feature worktree session:
+   - To discard the last commit: `git reset --hard HEAD~1`
+   - To revert an intermediate commit: `git revert <commit-hash>`
+   - To refactor: Ask the AI agent to correct the desired logic.
 
-3. **Re-testar**:
-   Faça novo merge na `main` e re-stowe.
+3. **Re-test**:
+   Perform a new merge into `main` and re-stow.
 
-### Cenário B: A `main` já foi commitada e enviada ao remote
-1. **Reverter o commit de merge na `main`**:
+### Scenario B: `main` Has Already Been Pushed to Remote
+1. **Revert the merge commit in `main`**:
    ```bash
    git revert -m 1 HEAD
-   ./stow.sh -r <pacote>
+   ./stow.sh -r <package>
    git push origin main
    ```
-2. **Trabalhar na branch**:
-   Crie novos commits de correção (`fix: ...`) antes de tentar nova integração.
+2. **Work on the feature branch**:
+   Create new fix commits (`fix: ...`) before attempting a new integration.
 
 ---
 
-## 5. Divisão de Responsabilidades: IA vs. Manual
+## 5. Division of Responsibilities: AI vs. Manual
 
-| Ação | Quem executa? | Justificativa |
+| Action | Who Executes? | Rationale |
 | :--- | :---: | :--- |
-| **Criação de branches e código na worktree** | 🤖 **IA Autônoma** | Rápido, isolado na sandbox, sem risco para o `$HOME`. |
-| **Geração de commits** | 🤖 **IA com Conventional Commits** | Segue as regras do `.commitlintrc.json` e `git/GC_SGC.md`. |
-| **Inspeção de diffs e revisão** | 👤 **Usuário (via lazygitrs)** | Inspeção visual com popup TUI (`Prefix + g`). |
-| **Merge na `main` e Re-stow** | 🤖 **IA Supervisionada / 👤 Usuário** | A IA pode executar se solicitada, mas **deve sempre rodar `./stow.sh -n` primeiro** e confirmar antes de aplicar. |
-| **Rollbacks e Reversões destrutivas** | 👤 **Usuário ou IA assistida** | Previne loops de `git reset` não intencionais. |
+| **Branch creation and code authoring** | 🤖 **Autonomous AI** | Fast, sandbox-isolated, zero risk to `$HOME`. |
+| **Commit generation** | 🤖 **AI with Conventional Commits** | Adheres to `.commitlintrc.json` and `git/GC_SGC.md`. |
+| **Diff inspection and review** | 👤 **Developer (via lazygitrs)** | Visual inspection with TUI popup (`Prefix + g`). |
+| **Merge into `main` and Re-stow** | 🤖 **Supervised AI / 👤 Developer** | AI can execute when requested, but **must always run `./stow.sh -n` first** and confirm before applying. |
+| **Rollbacks and destructive resets** | 👤 **Developer or Assisted AI** | Prevents unintended `git reset` loops. |
 
 ---
 
-## 6. Onde configurar cada responsabilidade?
+## 6. Where to Configure Each Responsibility?
 
-1. **`AGENTS.md` (Ground Truth / Regras Invioláveis)**:
-   - Contém restrições que todos os agentes leem antes de cada ação (ex: "Nunca stowar feature worktrees para o $HOME", "Sempre validar symlinks com `./stow.sh -n`").
-2. **`docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md` (Este documento)**:
-   - O guia completo de arquitetura, referenciado pelo `AGENTS.md` e disponível para consulta humana e de agentes.
-3. **Skills (`~/.agents/skills/` ou `.agents/skills/`)**:
-   - Skills operacionais para comandos específicos (ex: automação de criação de worktrees, merge assistido com verificação de lint e stow).
+1. **`AGENTS.md` (Ground Truth / Inviolable Rules)**:
+   - Contains constraints all agents read prior to executing any action (e.g. "Never stow feature worktrees to $HOME", "Always validate symlinks with `./stow.sh -n`").
+2. **`docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md` (This Document)**:
+   - Complete architectural guide referenced by `AGENTS.md` and available for human and agent reference.
+3. **Skills (`~/.agents/skills/` or `.agents/skills/`)**:
+   - Operational skills for specific commands (e.g. automated worktree creation, assisted merge with lint and stow verification).
 
 ---
 
-## 7. O Ecossistema `awt` (Agent Worktree) com Matchmaker & Sesh
+## 7. The `awt` (Agent Worktree) Ecosystem with Matchmaker & Sesh
 
-O `awt` é o orquestrador unificado de worktrees e agentes de IA, construído inteiramente sobre o **Matchmaker (`mm`)**, **Sesh**, **Tmux** e **Worktrunk (`wt`)**.
+`awt` is the unified worktree and AI agent orchestrator, built natively on top of **Matchmaker (`mm`)**, **Sesh**, **Tmux**, and **Worktrunk (`wt`)**.
 
 ```mermaid
 graph LR
-    A["awt"] -->|Sem argumentos| B["Matchmaker Dashboard (mm -o awt)"]
-    A -->|c ou awt -c| C["Wizard Interativo de Criação (awt-new.sh)"]
-    A -->|d| D["Handler de Deleção & Tmux (awt-delete.sh)"]
-    A -->|clone| E["awtc (Bare Clone Provisioner)"]
+    A["awt"] -->|No arguments| B["Matchmaker Dashboard (mm -o awt)"]
+    A -->|c or awt -c| C["Interactive Creation Wizard (awt-new.sh)"]
+    A -->|d| D["Deletion & Tmux Cleanup (awt-delete.sh)"]
+    A -->|m| E["Intelligent Merge Handler (awt-merge.sh)"]
+    A -->|clone| F["awtc (Bare Clone Provisioner)"]
 
     B -->|Enter| SESH["Sesh Connect (Tmux Session)"]
-    C -->|Conclui| SESH
+    C -->|Complete| SESH
+    E -->|Complete| SESH
 ```
 
 ---
 
-### A. Dashboard Interativo do Matchmaker (`awt.toml` / `mm -o awt`)
+### A. Interactive Matchmaker Dashboard (`awt.toml` / `mm -o awt`)
 
-Executado ao digitar `awt` sem argumentos no terminal:
+Executed by running `awt` without arguments in the terminal:
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
@@ -222,191 +223,189 @@ Executado ao digitar `awt` sem argumentos no terminal:
 └──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Recursos do Dashboard:
-1. **Nav Mode Ativo**: Navegação rápida estilo Vim (`j`, `k`, `g`, `G`) com barra de navegação limpa.
-2. **Marcadores Visuais**:
-   - `@ <branch>` (Ciano / Bold): Worktree ativa no terminal atual.
-   - `^ <branch>` (Amarelo / Bold): Branch base principal (`main` / `master`).
-3. **Metadados Ricos e Coloridos**:
-   - `BASE`: Branch de origem configurada no Git (`branch.<name>.base`).
-   - `STATUS`: Limpo (`✔` verde) ou Modificado com contagem (`? ✗ (+N)` amarelo/vermelho).
-   - `MAIN ↕`: Divergência em relação à branch `main` (`↑N` ahead verde, `↓N` behind vermelho).
-   - `REMOTE ⇅`: Divergência em relação ao upstream remoto (`⇡N` unpushed, `⇣N` unpulled).
-   - `AGE` & `COMMIT`: Tempo relativo do último commit e hash abreviado.
-4. **Previsões Multi-Layout em Tempo Real (`p` / `ctrl-p`)**:
-   - **Aba 1**: `Git Status & Local Changes` + Gráfico de Commits (`git log --graph`).
-   - **Aba 2**: `Diff vs Main` (Merge Base comparativo).
-   - **Aba 3**: `Commit History & Stats` (Estatísticas de arquivos alterados).
+#### Dashboard Features:
+1. **Active Nav Mode**: Fast Vim-style navigation (`j`, `k`, `g`, `G`) with clean navigation bar.
+2. **Visual Markers**:
+   - `@ <branch>` (Cyan / Bold): Active worktree in the current terminal.
+   - `^ <branch>` (Yellow / Bold): Primary base branch (`main` / `master`).
+3. **Rich Colored Metadata**:
+   - `BASE`: Git-configured base branch (`branch.<name>.base`).
+   - `STATUS`: Clean (`✔` green) or Modified with change count (`? ✗ (+N)` yellow/red).
+   - `MAIN ↕`: Divergence relative to `main` (`↑N` ahead green, `↓N` behind red).
+   - `REMOTE ⇅`: Divergence relative to remote upstream (`⇡N` unpushed, `⇣N` unpulled).
+   - `AGE` & `COMMIT`: Relative time since last commit and abbreviated hash.
+4. **Multi-Layout Real-Time Previews (`p` / `ctrl-p`)**:
+   - **Tab 1**: `Git Status & Local Changes` + Commit Graph (`git log --graph`).
+   - **Tab 2**: `Diff vs Main` (Comparative Merge Base).
+   - **Tab 3**: `Commit History & Stats` (File change statistics).
 
 ---
 
-### B. Wizard Interativo de Criação de Branches (`c` / `ctrl-n` / `awt-new.sh`)
+### B. Interactive Branch Creation Wizard (`c` / `ctrl-n` / `awt-new.sh`)
 
-Acionado ao pressionar **`c`** dentro do Matchmaker ou ao executar **`awt -c`**:
+Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
 
 ```text
-[Passo 1: Tipo no mm]  ◄──(Esc)──  [Passo 2: Nome da Branch]  ◄──(Esc)──  [Passo 3: Base no mm]
-         │                                  │                                    │
-         └──(Enter)─────────────────────────┴──(Enter)───────────────────────────┴──(Enter)──► 🚀 Sesh
+[Step 1: Type via mm]  ◄──(Esc)──  [Step 2: Branch Name]  ◄──(Esc)──  [Step 3: Base via mm]
+          │                                 │                                   │
+          └──(Enter)────────────────────────┴──(Enter)──────────────────────────┴──(Enter)──► 🚀 Sesh
 ```
 
-#### Arquitetura dos 4 Passos:
+#### 4-Step Architecture:
 
-1. **Passo 1: Seleção do Tipo Convencional (`mm -o awt-type`)**:
-   - Utiliza o preset modular [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-type.toml).
-   - Apresenta os tipos convencionais com ícones e descrições:
+1. **Step 1: Conventional Type Selection (`mm -o awt-type`)**:
+   - Uses the modular preset [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-type.toml).
+   - Presents conventional types with icons and descriptions:
      `✨ feat`, `🐛 fix`, `♻️ refactor`, `⚡ perf`, `🔧 chore`, `📝 docs`, `🧪 test`, `📦 build`, `🏷️ custom`.
-   - `Esc`: Aborta e retorna diretamente para o dashboard do `awt`.
+   - `Esc`: Aborts and returns directly to the main `awt` dashboard.
 
-2. **Passo 2: Digitação do Nome com GNU Readline & Event Loop (`awt-new.sh`)**:
-   - Prompt customizado com o ícone do tipo:
+2. **Step 2: Branch Slug Input with Character Event Loop (`awt-new.sh`)**:
+   - Custom prompt featuring the selected type icon:
      ```text
      ✨ Branch Name (feat/<name>): auth-oauth2
 
       [Enter] Confirm  •  [Esc / Empty] Back
      ```
-   - **Zero Poluição de Tela**: Limpa o terminal (`clear >/dev/tty`) antes de desenhar, evitando textos fantasmas de passos anteriores.
-   - **`Esc` Instantâneo**: Interceptação em baixo nível no `/dev/tty` (`read -r -s -n 1`), retornando imediatamente para o Passo 1.
-   - **`Enter` Instantâneo**: Submete a branch para o Passo 3.
-   - **Memória de Estado**: Se você voltar do Passo 3, o nome anterior é preservado no buffer.
+   - **Zero Screen Pollution**: Clears terminal (`clear >/dev/tty`) before drawing to prevent ghost artifacts.
+   - **Instant `Esc`**: Low-level interception on `/dev/tty` (`read -r -s -n 1`), immediately returning to Step 1.
+   - **Instant `Enter`**: Submits the branch name to Step 3.
+   - **State Memory**: Returning from Step 3 preserves the previous slug in the buffer.
 
-3. **Passo 3: Seleção da Branch Base (`mm -o awt-base`)**:
-   - Utiliza o preset modular [`awt-base.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-base.toml).
-   - Lista dinamicamente `main (default base)`, a branch selecionada no cursor e todas as branches locais do repositório com respectivos commits e papéis.
-   - `Esc`: Volta para o Passo 2 com o nome da branch preenchido.
+3. **Step 3: Base Branch Selection (`mm -o awt-base`)**:
+   - Uses the modular preset [`awt-base.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-base.toml).
+   - Dynamically lists `main (default base)`, the currently selected cursor branch, and all local repository branches with commit hashes and roles.
+   - `Esc`: Returns to Step 2 with the branch name pre-filled.
 
-4. **Passo 4: Provisionamento e Conexão Automática**:
-   - Cria a worktree irmã via `wt switch --create "$branch" --base "$base"` ou `git worktree add`.
-   - Salva a branch base no Git config: `git config branch.<name>.base "$base"`.
-   - Conecta instantaneamente via `sesh connect`, abrindo o **`agy`** (Antigravity CLI) na nova sessão.
-
----
-
-### C. Conexão Inteligente de Sessões Tmux (Sem re-execução de prompts)
-
-Para evitar que o Sesh execute o `startup_command = "agy"` em sessões que já existem ou onde o usuário já está trabalhando, a função [`awt`](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh#L433) implementa **resolução direta de sessões**:
-
-1. **Preset Entrega Nome e Caminho**: O `awt.toml` cospe `{=session}\t{=path}` (ex: `matchmaker/feature-wtmm\t/home/fecavmi/...`).
-2. **Já na Sessão Ativa**: Se a sessão selecionada for a mesma onde o terminal já está focado, o Matchmaker fecha sem mexer no buffer ou histórico de IA.
-3. **Sessão Aberta em Background**: O Sesh conecta diretamente pelo **nome da sessão** (`sesh connect "matchmaker/feature-wtmm"`), alternando visualmente sem re-injetar o comando `agy`.
-4. **Worktree Nova**: O Sesh recebe o caminho absoluto e cria a sessão Tmux com o `agy` inicializado do zero.
+4. **Step 4: Provisioning & Automated Connection**:
+   - Creates the sibling worktree via `wt switch --create "$branch" --base "$base"` or `git worktree add`.
+   - Saves base branch configuration: `git config branch.<name>.base "$base"`.
+   - Connects instantly via `sesh connect`, launching **`agy`** (Antigravity CLI) in the new session.
 
 ---
 
-### D. Handler de Deleção Segura com Action Box Nativo (`d` / `ctrl-d` / `awt-delete.sh`)
+### C. Smart Tmux Session Connection (No Duplicate Prompts)
 
-Ao pressionar **`d`** em qualquer linha do `awt`:
+To prevent Sesh from re-triggering `startup_command = "agy"` in sessions that already exist or where the user is actively working, the [`awt`](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh#L433) function implements **direct session resolution**:
 
-1. **Proteção de Base**: Bloqueia imediatamente a exclusão da branch base principal (`main` ou `master`).
-2. **Action Box Nativo Instantâneo (`Confirm(...)`)**:
-   Abre o popover interno do Matchmaker desenhado diretamente na TUI:
+1. **Preset Emits Name and Path**: `awt.toml` outputs `{=session}\t{=path}` (e.g. `matchmaker/feature-wtmm\t/home/fecavmi/...`).
+2. **Already in Active Session**: If the selected session is the currently focused terminal, Matchmaker closes cleanly without altering buffer or AI conversation history.
+3. **Background Session**: Sesh connects directly by **session name** (`sesh connect "matchmaker/feature-wtmm"`), switching clients without re-injecting startup commands.
+4. **New Worktree**: Sesh receives the absolute directory path and initializes the session with `agy` from scratch.
+
+---
+
+### D. Safe Deletion Handler with Native Action Box (`d` / `ctrl-d` / `awt-delete.sh`)
+
+When pressing **`d`** on any row in `awt`:
+
+1. **Base Protection**: Instantly blocks deletion of the default base branch (`main` or `master`).
+2. **Native Instant Action Box (`Confirm(...)`)**:
+   Opens the native Matchmaker popover drawn directly on the TUI canvas:
    ```text
    [ 🗑️ Delete worktree feat/auth? (Enter/Esc) ]
    ```
-   - **`Enter`**: Confirma a exclusão, remove a worktree, encerra a sessão Tmux e atualiza a lista na hora (`Reload`).
-   - **`Esc` ou `q`**: Cancela instantaneamente e fecha o popover sem tocar nos arquivos.
-3. **Limpeza Completa no Git**: Executa `wt remove` / `git worktree remove -f` e deleta a branch (`git branch -D`).
-4. **Redirecionamento e Fechamento de Sessão Tmux**:
-   - **Se for a sessão atual**: Executa `sesh last` (ou `tmux switch-client -l`) para redirecionar você para a sessão anterior e, em seguida, mata a sessão excluída (`tmux kill-session`).
-   - **Se for uma sessão em background**: Mata a sessão no Tmux e executa o `Reload` automático do Matchmaker, removendo a linha da lista instantaneamente sem fechar o menu!
+   - **`Enter`**: Confirms deletion, removes worktree, terminates Tmux session, and reloads the list immediately (`Reload`).
+   - **`Esc` or `q`**: Instantly cancels and closes the popover without modifying files.
+3. **Complete Git Cleanup**: Executes `wt remove` / `git worktree remove -f` and deletes the branch (`git branch -D`).
+4. **Redirection and Session Cleanup**:
+   - **Current Active Session**: Runs `sesh last` (or `tmux switch-client -l`) to redirect to the previous session before killing the deleted session (`tmux kill-session`).
+   - **Background Session**: Kills the Tmux session and automatically triggers Matchmaker's `Reload` macro without closing the picker!
 
 ---
 
-### E. Handler de Merge Inteligente de Worktrees (`m` / `awt-merge.sh`)
+### E. Intelligent Worktree Merge Handler (`m` / `awt-merge.sh`)
 
-Ao pressionar **`m`** em qualquer linha do `awt`:
+When pressing **`m`** on any row in `awt`:
 
-1. **Detecção Flexível de Origem e Destino**:
-   - **Merge na Base / Main**: Se o cursor estiver na branch atual (`@`), o destino é automaticamente a branch base configurada (`branch.<name>.base` ou `main`).
-   - **Merge em Qualquer Outra Branch**: Se você mover o cursor para qualquer outra branch da lista (ex: `fecavmi`, `staging`, `main`), o Matchmaker define essa branch como o **destino exato** do merge!
-2. **Action Box de Confirmação Interativo**:
+1. **Flexible Source & Target Detection**:
+   - **Merge into Base / Main**: If cursor is on the active branch (`@`), target is automatically the configured base branch (`branch.<name>.base` or `main`).
+   - **Merge into Any Other Branch**: Moving cursor to any branch in the list (e.g. `fecavmi`, `staging`, `main`) sets that branch as the **exact target** of the merge!
+2. **Native Action Box Confirmation**:
    ```text
-   🔀  Merge 'feature/wtmm' into 'fecavmi'? >
-   > 🚀 Yes, Merge & Cleanup (Merge feature/wtmm into fecavmi, remove feature/wtmm & switch session)
-     🛡️  No, Cancel
+   [ 🔀 Merge into fecavmi? (Enter/Esc) ]
    ```
-3. **Execução Segura e Transição de Sessões**:
-   - Executa o merge (`wt merge <destino>` ou `git merge`).
-   - **Em caso de Sucesso**:
-     - Remove a pasta da worktree de origem (`wt remove`).
-     - Remove a branch mesclada no Git (`git branch -d`).
-     - Alterna a sessão ativa do Tmux para a branch destino (`sesh connect`).
-     - Encerra a sessão Tmux antiga da feature.
-   - **Em caso de Conflito**:
-     - Mantém ambas as worktrees intactas e emite um alerta claro no terminal para você inspecionar e resolver os arquivos conflitantes.
+3. **Safe Execution and Session Transition**:
+   - Executes merge (`wt merge <target>` or `git merge`).
+   - **On Success**:
+     - Removes source worktree directory (`wt remove`).
+     - Deletes merged branch in Git (`git branch -d`).
+     - Switches active Tmux session to target branch (`sesh connect`).
+     - Terminates old feature Tmux session.
+   - **On Conflict**:
+     - Keeps both worktrees intact and alerts the terminal for safe conflict inspection and resolution.
 
 ---
 
-### F. Clonagem de Repositórios em Modo Bare (`awtc` / `awt clone`)
+### F. Repository Cloning in Bare Mode (`awtc` / `awt clone`)
 
-Função no [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que provisiona novos repositórios na arquitetura de container `.bare` + worktree:
+Zsh function in [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) provisioning new repositories with `.bare` container + worktree architecture:
 
 ```bash
-# Clone a partir do GitHub (user/repo):
+# Clone from GitHub (user/repo):
 awtc fcmiranda/matchmaker
 
-# Ou via subcomando integrado:
+# Or via integrated subcommand:
 awt clone fcmiranda/matchmaker
 
-# Clone a partir de URL completa (HTTPS ou SSH):
+# Clone from full URL (HTTPS or SSH):
 awtc https://github.com/astral-sh/uv.git
 awtc git@github.com:joshmedeski/sesh.git
 ```
 
-#### O que ela executa automaticamente:
-1. Cria a pasta container `~/dev/github/<repo>/`.
-2. Clona o repositório em modo bare dentro de `~/dev/github/<repo>/.bare`.
-3. Ajusta o refspec `remote.origin.fetch` para garantir rastreamento de branches remotas.
-4. Identifica a branch padrão (`main`, `master`, etc.) e cria a worktree primária `~/dev/github/<repo>/<default_branch>`.
-5. Dispara o `sesh connect`, abrindo imediatamente a sessão Tmux com o ambiente de IA pronto.
+#### Automated Steps:
+1. Creates container folder `~/dev/github/<repo>/`.
+2. Clones repository in bare mode to `~/dev/github/<repo>/.bare`.
+3. Sets `remote.origin.fetch` refspec to guarantee remote branch tracking.
+4. Identifies default branch (`main`, `master`, etc.) and creates primary worktree `~/dev/github/<repo>/<default_branch>`.
+5. Dispatches `sesh connect`, launching the Tmux session with AI agent environment ready.
 
 ---
 
-### G. Arquitetura do Action Box Nativo e Roadmap de Possibilidades
+### G. Native Action Box Architecture and Roadmap of Possibilities
 
-Com a introdução da ação nativa **`Confirm(...)`** e a estrutura do widget `ActionBox` na engine do Matchmaker, abre-se um leque de possibilidades ergonômicas para interação inline diretamente na TUI:
+With the introduction of the native **`Confirm(...)`** action and `ActionBox` widget in Matchmaker's engine, rich inline TUI interactions become seamless:
 
-#### 1. Como Funciona a Ação Nativa `Confirm(...)`
+#### 1. How the Native `Confirm(...)` Action Works
 ```toml
 [binds]
-"@minha_acao" = '''Confirm({cor,estilo:ÍCONE} Pergunta de Confirmação? (Enter/Esc) | comando_a_executar "{=placeholder}")'''
+"@my_action" = '''Confirm({color,style:ICON} Confirmation Question? (Enter/Esc) | command_to_execute "{=placeholder}")'''
 ```
-- **Zero Sub-processos**: Desenha o popover diretamente pelo backend Ratatui sobre o canvas da TUI, sem abrir instâncias secundárias do `mm`.
-- **Interpolação Dinâmica**: Os placeholders `{=branch}`, `{=path}`, `{=session}`, `{=base}` são resolvidos em tempo de execução via Attachment Formatter.
-- **Execução Síncrona & Reload Automático**: O comando roda de forma síncrona (`child.wait()`), fechando o popover e disparando o `Reload` da lista ao concluir.
-- **Cancelamento Seguro**: Pressionar `Esc` ou `q` fecha a caixinha instantaneamente sem disparar o comando.
+- **Zero Sub-processes**: Draws popover directly via Ratatui over the active canvas without spawning secondary `mm` instances.
+- **Dynamic Interpolation**: Placeholders `{=branch}`, `{=path}`, `{=session}`, `{=base}` resolve at runtime via Attachment Formatter.
+- **Synchronous Execution & Auto-Reload**: Runs command synchronously (`child.wait()`), closes popover, and triggers `Reload` on completion.
+- **Safe Cancellation**: Pressing `Esc` or `q` closes the box instantly without firing the command.
 
-#### 2. Possibilidades de Extensão Futura (Roadmap):
+#### 2. Future Extension Roadmap:
 
-| Padrão | Atalho Sugerido | Sintaxe / Ideia | Comportamento na TUI |
+| Pattern | Suggested Shortcut | Syntax / Concept | TUI Behavior |
 | :--- | :---: | :--- | :--- |
-| **Criação com Input Nativo** | `c` | `Prompt({yellow:✨} Branch name: feat/ \| awt-new.sh "feat/{input}")` | Digitação do nome da branch diretamente no popover da TUI com substituição de `{input}`. |
-| **Renomear Branch / WT** | `r` | `Prompt({cyan:✏️} Rename branch {=branch} to: \| git branch -m "{=branch}" "{input}")` | Permite renomear branches locais instantaneamente pelo menu. |
-| **Rebase na Branch Base** | `R` *(Shift+R)* | `Confirm({yellow:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) \| git rebase {=base})` | Faz o rebase da branch selecionada na sua base configurada. |
-| **Criar Tag no Commit** | `t` | `Prompt({green:🏷️} Tag name for {=branch}: \| git tag "{input}" "{=branch}")` | Cria uma tag Git no commit da worktree selecionada. |
-| **Push Seguro com Lease** | `P` *(Shift+P)* | `Confirm({red:🚀} Push force-with-lease {=branch}? (Enter/Esc) \| git push --force-with-lease)` | Envia commits para o repositório remoto com proteção contra sobrescrita. |
+| **Native Input Creation** | `c` | `Prompt({yellow:✨} Branch name: feat/ \| awt-new.sh "feat/{input}")` | Branch name input directly in TUI popover with `{input}` substitution. |
+| **Rename Branch / WT** | `r` | `Prompt({cyan:✏️} Rename branch {=branch} to: \| git branch -m "{=branch}" "{input}")` | Renames local branches instantly from the menu. |
+| **Rebase on Base Branch** | `R` *(Shift+R)* | `Confirm({yellow:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) \| git rebase {=base})` | Rebases selected branch onto its configured base. |
+| **Create Git Tag on Commit** | `t` | `Prompt({green:🏷️} Tag name for {=branch}: \| git tag "{input}" "{=branch}")` | Creates a Git tag on the selected worktree's HEAD commit. |
+| **Safe Force Push with Lease** | `P` *(Shift+P)* | `Confirm({red:🚀} Push force-with-lease {=branch}? (Enter/Esc) \| git push --force-with-lease)` | Pushes to remote with lease protection against overwrites. |
 
 ---
 
-## 8. Gestão de Code Reviews com Worktree Dedicada e `gh-dash`
+## 8. Code Review Management with Dedicated Worktrees and `gh-dash`
 
-### A. Por que a Worktree `review/` é Isolada por Repositório?
-Como as Git Worktrees compartilham o banco de dados `.bare/` de cada projeto, cada repositório possui sua própria pasta `review/`:
+### A. Why the `review/` Worktree is Isolated per Repository
+Because Git worktrees share the underlying `.bare/` database, each project maintains its own dedicated `review/` directory:
 
 ```text
-~/dev/github/matchmaker/ (Container do Matchmaker)
+~/dev/github/matchmaker/ (Matchmaker Container)
 ├── .bare/
 ├── main/
 ├── feat-preview/
-└── review/              <── Worktree de review deste repositório
+└── review/              <── Dedicated review worktree for this repo
 ```
 
-### B. O Truque da Branch `_main`
-* **O Problema**: O Git proíbe fazer checkout da mesma branch em duas worktrees simultâneas (`fatal: 'main' is already checked out`).
-* **A Solução**: Dentro da pasta `review/`, crie uma branch de espelho chamada `_main` (`git checkout -b _main origin/main`). Isso permite inspecionar, rebasear ou comparar Pull Requests contra a `main` sem nunca bloquear a worktree `main/` de produção.
+### B. The `_main` Branch Technique
+* **The Problem**: Git forbids checking out the same branch across multiple worktrees simultaneously (`fatal: 'main' is already checked out`).
+* **The Solution**: Inside `review/`, create a mirror branch named `_main` (`git checkout -b _main origin/main`). This allows inspecting, rebasing, or comparing Pull Requests against `main` without locking the live production `main/` worktree.
 
-### C. Configuração no `gh-dash` (`gh/.config/gh-dash/config.yml`)
-O `gh-dash` está integrado com atalhos para `lazygitrs` e `sesh`:
+### C. Configuration in `gh-dash` (`gh/.config/gh-dash/config.yml`)
+`gh-dash` integrates keybindings for `lazygitrs` and `sesh`:
 
 ```yaml
 # gh/.config/gh-dash/config.yml
@@ -430,78 +429,72 @@ repoPaths:
 
 ---
 
-## 9. Guia Rápido de Comandos (Cheat Sheet)
+## 9. Quick Command Reference (Cheat Sheet)
 
-### Atalhos dentro do Dashboard `awt` (`mm -o awt`)
+### Shortcuts Inside the `awt` Dashboard (`mm -o awt`)
 
-| Tecla | Ação | Descrição |
+| Key | Action | Description |
 | :---: | :--- | :--- |
-| **`Enter`** | **Connect Sesh** | Alterna ou cria a sessão Tmux para a worktree selecionada. |
-| **`c`** / **`ctrl-n`** | **New WT Wizard** | Abre o wizard interativo de 4 passos com Conventional Commits. |
-| **`m`** | **Merge WT** | Faz merge da branch atual na branch selecionada (ou na base) e limpa a sessão. |
-| **`d`** / **`ctrl-d`** | **Delete WT** | Deleta a worktree, mata a sessão Tmux e redireciona (`sesh last`). |
-| **`p`** / **`ctrl-p`** | **Switch Preview** | Alterna entre as 3 abas de preview (Status, Diff vs Main, Log Stats). |
-| **`u`** / **`ctrl-u`** | **Fetch Remotes** | Executa `git fetch --all --prune` na worktree selecionada. |
-| **`j`** / **`k`** | **Navegação** | Move o cursor para baixo / cima (Nav Mode). |
-| **`q`** / **`Esc`** | **Quit** | Fecha o picker sem realizar ações. |
+| **`Enter`** | **Connect Sesh** | Switch to or create the Tmux session for the selected worktree. |
+| **`c`** / **`ctrl-n`** | **New WT Wizard** | Open the 4-step interactive Conventional Commits wizard. |
+| **`m`** | **Merge WT** | Merge active branch into selected branch (or base) and clean up session. |
+| **`d`** / **`ctrl-d`** | **Delete WT** | Delete worktree, terminate Tmux session, and redirect (`sesh last`). |
+| **`p`** / **`ctrl-p`** | **Switch Preview** | Cycle through the 3 preview tabs (Status, Diff vs Main, Log Stats). |
+| **`u`** / **`ctrl-u`** | **Fetch Remotes** | Run `git fetch --all --prune` on the selected worktree. |
+| **`j`** / **`k`** | **Navigation** | Move cursor down / up (Nav Mode). |
+| **`q`** / **`Esc`** | **Quit** | Close picker without performing actions. |
 
-### Comandos de Terminal
+### Terminal Commands
 
-| Ação | Comando | Descrição |
+| Action | Command | Description |
 | :--- | :--- | :--- |
-| **Abrir Dashboard Interativo** | `awt` | Abre o picker Matchmaker (`mm -o awt`) com todas as worktrees. |
-| **Wizard de Criação de Worktree** | `awt -c` | Dispara o assistente interativo de Conventional Commits. |
-| **Criar Worktree via CLI Direto** | `awt -c <branch> [base]` | Cria branch e conecta imediatamente à sessão Tmux. |
-| **Conectar / Alternar via CLI** | `awt <branch>` | Pula direto para a sessão Tmux da worktree indicada. |
-| **Clonar repositório no modelo `.bare`** | `awtc <user/repo>` | Clona em modo bare, cria `main/` e abre a sessão com IA ativa. |
-| **Dashboard de PRs / Issues** | `gh dash` | Painel TUI do GitHub. Pressione `g` para abrir o `lazygitrs` ou `s` para `sesh`. |
-| **Alternar entre Sessões Tmux** | `Prefix + s` ou `Alt + s` | Alternador de sessões e projetos via Sesh. |
-| **Validar Symlinks nos Dotfiles** | `./stow.sh -n` | Executa dry-run obrigatório antes de qualquer merge na branch `main`. |
-| **Re-stow de Pacote Atualizado** | `./stow.sh -r <pacote>` | Atualiza os symlinks no `$HOME` após o merge na `main`. |
+| **Open Interactive Dashboard** | `awt` | Open Matchmaker picker (`mm -o awt`) with all worktrees. |
+| **Launch Creation Wizard** | `awt -c` | Launch interactive Conventional Commits wizard. |
+| **Direct CLI Worktree Creation** | `awt -c <branch> [base]` | Create branch and immediately attach to Tmux session. |
+| **Direct CLI Connect / Switch** | `awt <branch>` | Jump directly to the Tmux session for specified worktree. |
+| **Clone repo in `.bare` model** | `awtc <user/repo>` | Clone in bare mode, create `main/`, and open session with AI active. |
+| **PR / Issue Dashboard** | `gh dash` | GitHub TUI dashboard. Press `g` for `lazygitrs` or `s` for `sesh`. |
+| **Switch Tmux Sessions** | `Prefix + s` or `Alt + s` | Fast session and project switcher via Sesh. |
+| **Validate Dotfile Symlinks** | `./stow.sh -n` | Mandatory dry-run check before any merge into `main`. |
+| **Re-stow Updated Package** | `./stow.sh -r <package>` | Refresh symlinks in `$HOME` after merging into `main`. |
 
 ---
 
-## 10. Fluxo de Trabalho Multi-Repositório com IA (Engine + Dotfiles)
+## 10. Multi-Repository Workflow with AI (Engine + Dotfiles)
 
-Quando uma tarefa abrange múltiplos repositórios interdependentes (ex: desenvolver uma nova funcionalidade no código Rust do [`matchmaker`](file:///home/fecavmi/dev/github/matchmaker) e criar ou ajustar presets correspondentes nos [dotfiles](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets)), adota-se o padrão **"Engine First, Config Second"**.
+When a task spans multiple interdependent repositories (e.g. developing a Rust feature in [`matchmaker`](file:///home/fecavmi/dev/github/matchmaker) and creating or updating corresponding presets in [dotfiles](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets)), the **"Engine First, Config Second"** pattern applies.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Dev as Desenvolvedor
-    participant Agent as Agente IA Único (Orquestrador)
+    actor Dev as Developer
+    participant Agent as Single AI Agent (Orchestrator)
     participant Engine as Repo 1: matchmaker (~/dev/github/matchmaker/fecavmi)
     participant Dotfiles as Repo 2: .dotfiles (~/.dotfiles/main)
-    participant Home as Ambiente Live ($HOME)
+    participant Home as Live Environment ($HOME)
 
-    Dev->>Agent: "Implemente split vertical no matchmaker e crie o preset nos dotfiles"
-    Note over Agent: 1. Edita código Rust em matchmaker/src/<br/>2. Cria preset de teste local e roda cargo test
-    Agent->>Engine: cargo build --release (Gera binário target/release/mm)
+    Dev->>Agent: "Implement vertical split in matchmaker and create preset in dotfiles"
+    Note over Agent: 1. Edits Rust code in matchmaker/src/<br/>2. Creates local test preset and runs cargo test
+    Agent->>Engine: cargo build --release (Builds target/release/mm)
     
-    Note over Agent: 3. Com base no Rust recém-criado, gera o preset TOML em dotfiles
-    Agent->>Dotfiles: Escreve matchmaker/.config/matchmaker/presets/wt-split.toml
-    Agent->>Dotfiles: ./target/release/mm -o ~/.dotfiles/main/.../wt-split.toml (Valida TUI)
+    Note over Agent: 3. Using newly built Rust engine, creates TOML preset in dotfiles
+    Agent->>Dotfiles: Writes matchmaker/.config/matchmaker/presets/wt-split.toml
+    Agent->>Dotfiles: ./target/release/mm -o ~/.dotfiles/main/.../wt-split.toml (Validates TUI)
 
-    Note over Agent: 4. Commits atômicos e isolados por repositório
+    Note over Agent: 4. Atomic and isolated commits per repository
     Agent->>Engine: git -C ~/dev/github/matchmaker/fecavmi commit -m "feat(core): add vertical split"
     Agent->>Engine: git -C ~/dev/github/matchmaker/fecavmi push origin fecavmi
 
     Agent->>Dotfiles: git -C ~/.dotfiles/main commit -m "feat(matchmaker): add wt-split preset"
-    Dotfiles->>Home: ./stow.sh -r matchmaker (Atualiza symlinks no $HOME)
+    Dotfiles->>Home: ./stow.sh -r matchmaker (Updates symlinks in $HOME)
 ```
 
-### Regras Operacionais para IA em Tarefas Multi-Repo:
+### Operational Rules for AI in Multi-Repo Tasks:
 
-1. **Uma Única Conversa Coordenadora**: Uma única sessão de IA mantém todo o contexto mental da alteração de baixo nível (Rust/Go/C) e da configuração de alto nível (TOML/Lua/Zsh), eliminando retrabalho de contexto.
-2. **Scoping Explícito de Git (`git -C <caminho>`)**:
-   * A IA nunca assume que comandos Git executam no repositório global; ela direciona explicitamente cada `add`, `commit` e `push` para o diretório correto.
-3. **Padrões de Commit Independentes**:
-   * O repositório da engine segue seu próprio versionamento e PRs.
-   * O repositório de dotfiles segue as regras de [`.commitlintrc.json`](file:///home/fecavmi/.dotfiles/main/.commitlintrc.json) e validação de symlinks via `./stow.sh -n`.
-4. **Deploy Seguro no `$HOME`**: O preset só é stowed para `$HOME` quando o novo binário compilado já estiver validado e disponível no sistema.
-
-
-
-
-
-
+1. **Single Coordinating Conversation**: A single AI session maintains the full context of both low-level implementation (Rust/Go/C) and high-level configuration (TOML/Lua/Zsh), preventing context fragmentation.
+2. **Explicit Git Scoping (`git -C <path>`)**:
+   * AI never assumes Git commands run in the global workspace; it explicitly scopes every `add`, `commit`, and `push` to the intended repository directory.
+3. **Independent Commit Standards**:
+   * The engine repository follows its own versioning and PR requirements.
+   * The dotfiles repository strictly follows [`.commitlintrc.json`](file:///home/fecavmi/.dotfiles/main/.commitlintrc.json) and link validation via `./stow.sh -n`.
+4. **Safe Deployment to `$HOME`**: Presets are only stowed to `$HOME` once the newly compiled binary is verified and available on the system.

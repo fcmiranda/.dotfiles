@@ -20,13 +20,16 @@ row_connection = "Full"
 style.fg = "gray"
 style.modifier = "DIM"
 
-[results]
-reverse = false
+[exit]
+allow_empty = true
 
 [start]
 ansi = true
 mode = "standard"
 output_template = "{=query}"
+
+[start.command]
+command = "echo ''"
 
 [binds]
 "enter" = "Accept"

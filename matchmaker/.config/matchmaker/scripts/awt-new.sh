@@ -27,10 +27,9 @@ while true; do
 
         2)
             # ── Step 2: Worktree Branch Name via Matchmaker Prompt Box (`mm -o awt-prompt`) ──
-            prompt_label="${icon} Branch name: "
             initial_val="${prefix}${slug}"
 
-            branch_input=$(mm -o awt-prompt --query.prompt "$prompt_label" --query.initial "$initial_val")
+            branch_input=$(mm -o awt-prompt initial="$initial_val")
 
             # If user pressed Esc or cancelled -> go back to Step 1
             if [[ -z "$branch_input" ]]; then

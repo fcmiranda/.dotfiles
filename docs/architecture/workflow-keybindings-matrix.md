@@ -103,4 +103,5 @@ This document provides a comprehensive audit and definitive reference of all key
 ## 🔗 Related Documentation
 * [`docs/architecture/terminal-ergonomics-and-ux-manifesto.md`](terminal-ergonomics-and-ux-manifesto.md): Core HCI philosophy and cognitive models.
 * [`docs/tmux/popups-ergonomics-and-golden-ratio.md`](../tmux/popups-ergonomics-and-golden-ratio.md): Golden Ratio geometry and visual semiotics.
+* [`docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md`](../GIT_WORKTREE_AGENTIC_WORKFLOW.md): Agent worktree orchestrator and multi-agent Git workflow.
 * [`docs/shell/completion.md`](../shell/completion.md): Matchmaker completion architecture.

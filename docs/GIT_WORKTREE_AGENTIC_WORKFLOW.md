@@ -226,7 +226,7 @@ Executed by running `awt` without arguments in the terminal:
 #### Dashboard Features:
 1. **Active Nav Mode**: Fast Vim-style navigation (`j`, `k`, `g`, `G`) with clean navigation bar.
 2. **Visual Markers**:
-   - `󰙅 <branch>` (Cyan / Bold): Currently active worktree attached to your terminal.
+   - ` <branch>` (Cyan / Bold): Currently active worktree attached to your terminal.
    - `󰊢 <branch>` (Yellow / Bold): Primary base branch (`main` / `master`).
 3. **Rich Colored Metadata**:
    - `BASE`: Git-configured base branch (`branch.<name>.base`).
@@ -383,10 +383,10 @@ With the introduction of the native **`Confirm(...)`** and **`Prompt(...)`** act
 
 | Shortcut | Action Name | Bind Syntax | Behavior |
 | :---: | :--- | :--- | :--- |
-| **`m`** | **Merge Worktree** | `Confirm({magenta,bold:🔀} Merge into {=branch}? (Enter/Esc) \| awt-merge.sh ...)` | Merges current branch into target, cleans worktree, and switches session. |
-| **`d`** | **Delete Worktree** | `Confirm({red,bold:🗑️} Delete worktree {=branch}? (Enter/Esc) \| awt-delete.sh ...)` | Removes worktree, deletes branch, terminates Tmux session, and reloads. |
-| **`r`** | **Rename Branch** | `Prompt({cyan,bold:✏️} Rename branch to: \| awt-rename.sh "{=branch}" "{=path}" "{input}" \| {=branch})` | Opens popover pre-filled with current name; renames branch, folder, and Tmux session. |
-| **`R`** *(Shift+R)* | **Rebase on Base** | `Confirm({yellow,bold:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) \| awt-rebase.sh ...)` | Safely auto-stashes changes and rebases feature branch onto its configured base branch. |
+| **`m`** | **Merge Worktree** | `Confirm({magenta,bold:} Merge into {=branch}? (Enter/Esc) \| awt-merge.sh ...)` | Merges current branch into target, cleans worktree, and switches session. |
+| **`d`** | **Delete Worktree** | `Confirm({red,bold:󱓌} Delete worktree {=branch}? (Enter/Esc) \| awt-delete.sh ...)` | Removes worktree, deletes branch, terminates Tmux session, and reloads. |
+| **`r`** | **Rename Branch** | `Prompt({cyan,bold:} Rename branch to: \| awt-rename.sh "{=branch}" "{=path}" "{input}" \| {=branch})` | Opens popover pre-filled with current name; renames branch, folder, and Tmux session. |
+| **`R`** *(Shift+R)* | **Rebase on Base** | `Confirm({yellow,bold:󱓎} Rebase {=branch} onto {=base}? (Enter/Esc) \| awt-rebase.sh ...)` | Safely auto-stashes changes and rebases feature branch onto its configured base branch. |
 
 ---
 

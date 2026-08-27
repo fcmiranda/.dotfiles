@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
-# 100% Native Matchmaker & Readline Worktree Creation Wizard (Zero external deps)
+# 100% Native Matchmaker Worktree Creation Wizard with Instant ESC Navigation
 
 trap 'exit 0' INT
-
-# Enable Esc key to abort read -e in Readline
-bind '"\e": abort' 2>/dev/null
 
 selected_raw="$1"
 selected_branch=$(echo "$selected_raw" | sed "s/^[ @^]*//; s/ .*//")
@@ -14,6 +11,58 @@ prefix=""
 slug=""
 branch_name=""
 bbase=""
+OUTPUT_SLUG=""
+
+prompt_for_branch_slug() {
+    local prompt_msg="$1"
+    local initial_val="$2"
+    local buf="$initial_val"
+    local key=""
+    local rest=""
+    OUTPUT_SLUG=""
+
+    printf "%b%s" "$prompt_msg" "$buf" >/dev/tty
+
+    while IFS= read -r -s -n 1 key </dev/tty; do
+        # 1. ESC key pressed
+        if [[ "$key" == $'\e' ]]; then
+            read -r -s -n 2 -t 0.05 rest </dev/tty
+            if [[ -z "$rest" ]]; then
+                echo "" >/dev/tty
+                return 1
+            fi
+            continue
+        fi
+
+        # 2. Enter key pressed (read returns empty string on newline)
+        if [[ -z "$key" ]]; then
+            echo "" >/dev/tty
+            OUTPUT_SLUG="$buf"
+            return 0
+        fi
+
+        # 3. Ctrl-C (0x03) or Ctrl-D (0x04)
+        if [[ "$key" == $'\x03' || "$key" == $'\x04' ]]; then
+            echo "" >/dev/tty
+            exit 0
+        fi
+
+        # 4. Backspace (0x7F / 127 or 0x08 / \b)
+        if [[ "$key" == $'\x7f' || "$key" == $'\b' || "$key" == $'\177' ]]; then
+            if [[ ${#buf} -gt 0 ]]; then
+                buf="${buf%?}"
+                printf "\b \b" >/dev/tty
+            fi
+            continue
+        fi
+
+        # 5. Printable characters
+        if [[ "$key" =~ [[:print:]] ]]; then
+            buf+="$key"
+            printf "%s" "$key" >/dev/tty
+        fi
+    done
+}
 
 while true; do
     case "$step" in
@@ -42,20 +91,23 @@ while true; do
             ;;
 
         2)
-            # ── Step 2: Worktree Branch Slug Input via Readline (Esc/Enter) ──
+            # ── Step 2: Worktree Branch Slug Input with Instant ESC ──
             echo ""
             prompt_header=$(printf "\033[1;36m🏷️  Branch Name (%s<name>)\033[0m \033[2m[Esc / Empty: Back]\033[0m: " "${prefix}")
 
-            read -e -i "$slug" -p "$prompt_header" user_slug </dev/tty
-            read_status=$?
-
-            # If Esc was pressed (read_status != 0) or user gave empty string -> step back to Step 1
-            if [[ $read_status -ne 0 || -z "$user_slug" || "$user_slug" == $'\e'* ]]; then
+            if ! prompt_for_branch_slug "$prompt_header" "$slug"; then
+                # Instant Esc pressed -> go back to Step 1
                 step=1
                 continue
             fi
 
-            slug=$(echo "$user_slug" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+            # If user pressed enter with empty string -> go back to Step 1
+            if [[ -z "$OUTPUT_SLUG" ]]; then
+                step=1
+                continue
+            fi
+
+            slug=$(echo "$OUTPUT_SLUG" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
             branch_name="${prefix}${slug}"
             step=3
             ;;

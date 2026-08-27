@@ -47,7 +47,16 @@ else
     target_session="${repo_parent}/${target_clean}"
 fi
 
-# 4. Execute Merge
+# 4. Auto-stash dirty state in current worktree
+stashed=0
+dirty_count=$(git -C "$current_wt" status --porcelain 2>/dev/null | wc -l)
+if [[ "$dirty_count" -gt 0 ]]; then
+    if git -C "$current_wt" stash push -u -m "awt-merge-autostash: $source_branch" >/dev/null 2>&1; then
+        stashed=1
+    fi
+fi
+
+# 5. Execute Merge
 merge_success=0
 if command -v wt >/dev/null 2>&1; then
     if wt merge "$target_branch" >/dev/null 2>&1; then
@@ -65,6 +74,11 @@ if [[ $merge_success -eq 0 ]]; then
 fi
 
 if [[ $merge_success -eq 1 ]]; then
+    # Trigger post-merge lifecycle hook
+    if [[ -x "$HOME/.config/matchmaker/hooks/post-merge.sh" && -d "$target_wt" ]]; then
+        "$HOME/.config/matchmaker/hooks/post-merge.sh" "$target_wt" "$target_branch" "$source_branch" 2>/dev/null || true
+    fi
+
     # Cleanup source worktree & branch
     if command -v wt >/dev/null 2>&1; then
         wt remove "$current_wt" >/dev/null 2>&1 || git worktree remove -f "$current_wt" >/dev/null 2>&1
@@ -88,6 +102,10 @@ if [[ $merge_success -eq 1 ]]; then
     fi
     exit 0
 else
+    # Restore stash if merge failed
+    if [[ $stashed -eq 1 ]]; then
+        git -C "$current_wt" stash pop >/dev/null 2>&1 || true
+    fi
     printf "\n\033[1;31m✖ Merge failed or has conflicts! Worktree kept intact for resolution.\033[0m\n" >/dev/tty
     sleep 2
     exit 1

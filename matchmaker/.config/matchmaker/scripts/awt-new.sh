@@ -135,6 +135,11 @@ while true; do
             fi
             git -C "$target_dir" config "branch.${branch_name}.base" "$bbase" 2>/dev/null || true
 
+            # Run post-create hook if present
+            if [[ -x "$HOME/.config/matchmaker/hooks/post-create.sh" ]]; then
+                "$HOME/.config/matchmaker/hooks/post-create.sh" "$target_dir" "$branch_name" "$bbase" 2>/dev/null || true
+            fi
+
             if command -v sesh >/dev/null 2>&1; then
                 sesh connect "$target_dir"
             fi

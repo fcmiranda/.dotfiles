@@ -26,7 +26,7 @@ style.fg = "Cyan"
 style.modifier = "BOLD"
 
 [footer]
-content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {yellow,bold:[c]} {darkgray:New}  •  {magenta,bold:[m]} {darkgray:Merge}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
+content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {yellow,bold:[c]} {darkgray:New}  •  {magenta,bold:[m]} {darkgray:Merge}  •  {yellow,bold:[R]} {darkgray:Rebase}  •  {cyan,bold:[r]} {darkgray:Rename}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
 row_connection = "Full"
 match_indent = false
 style.fg = "gray"
@@ -220,6 +220,8 @@ output_template = "{=session}\t{=path}"
     "Reload",
 ]
 "@merge_worktree" = '''Confirm({magenta,bold:🔀} Merge into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=branch}" "{=path}" "{=session}" "{=base}")'''
+"@rebase_worktree" = '''Confirm({yellow,bold:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-rebase.sh "{=branch}" "{=path}" "{=base}")'''
+"@rename_worktree" = '''Prompt({cyan,bold:✏️} Rename branch to: | ~/.config/matchmaker/scripts/awt-rename.sh "{=branch}" "{=path}" "{input}" | {=branch})'''
 "@fetch_remotes" = [
     '''Execute(
         echo "Fetching remotes for {=branch}..."
@@ -234,6 +236,7 @@ output_template = "{=session}\t{=path}"
 "ctrl-p" = "SwitchPreview"
 "ctrl-n" = "@new_worktree"
 "ctrl-d" = "@delete_worktree"
+"ctrl-r" = "@rename_worktree"
 "ctrl-u" = "@fetch_remotes"
 
 # Nav Mode Binds (active when mode = "nav")
@@ -249,5 +252,7 @@ output_template = "{=session}\t{=path}"
 "nav^^G" = "Pos(-1)"
 "nav^^c" = "@new_worktree"
 "nav^^m" = "@merge_worktree"
+"nav^^R" = "@rebase_worktree"
+"nav^^r" = "@rename_worktree"
 "nav^^d" = "@delete_worktree"
 "nav^^u" = "@fetch_remotes"

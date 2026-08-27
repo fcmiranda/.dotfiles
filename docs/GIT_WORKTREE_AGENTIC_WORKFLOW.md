@@ -361,29 +361,53 @@ awtc git@github.com:joshmedeski/sesh.git
 
 ---
 
-### G. Native Action Box Architecture and Roadmap of Possibilities
+### G. Native Action Box & Interactive Prompt System
 
-With the introduction of the native **`Confirm(...)`** action and `ActionBox` widget in Matchmaker's engine, rich inline TUI interactions become seamless:
+With the introduction of the native **`Confirm(...)`** and **`Prompt(...)`** actions in Matchmaker's engine, rich inline TUI interactions operate without subprocess overhead:
 
-#### 1. How the Native `Confirm(...)` Action Works
+#### 1. Native `Confirm(...)` & `Prompt(...)` Syntax
 ```toml
 [binds]
-"@my_action" = '''Confirm({color,style:ICON} Confirmation Question? (Enter/Esc) | command_to_execute "{=placeholder}")'''
+# Binary confirmation (Enter/Esc)
+"@confirm_action" = '''Confirm({color,style:ICON} Confirmation Question? (Enter/Esc) | command_to_execute "{=placeholder}")'''
+
+# Interactive text input with initial value and {input} replacement
+"@prompt_action" = '''Prompt({color,style:ICON} Input Label: | command_to_execute "{input}" "{=placeholder}" | {=initial_value})'''
 ```
-- **Zero Sub-processes**: Draws popover directly via Ratatui over the active canvas without spawning secondary `mm` instances.
-- **Dynamic Interpolation**: Placeholders `{=branch}`, `{=path}`, `{=session}`, `{=base}` resolve at runtime via Attachment Formatter.
-- **Synchronous Execution & Auto-Reload**: Runs command synchronously (`child.wait()`), closes popover, and triggers `Reload` on completion.
+- **Zero Sub-processes**: Draws popover widgets directly via Ratatui over the active canvas.
+- **Dynamic Pre-fill**: Supports initial input buffers (e.g. pre-filling `{=branch}` when renaming).
+- **`{input}` Substitution**: Automatically replaces `{input}` with the trimmed user-entered text upon pressing `Enter`.
 - **Safe Cancellation**: Pressing `Esc` or `q` closes the box instantly without firing the command.
 
-#### 2. Future Extension Roadmap:
+#### 2. Native Interactive Worktree Actions:
 
-| Pattern | Suggested Shortcut | Syntax / Concept | TUI Behavior |
-| :--- | :---: | :--- | :--- |
-| **Native Input Creation** | `c` | `Prompt({yellow:✨} Branch name: feat/ \| awt-new.sh "feat/{input}")` | Branch name input directly in TUI popover with `{input}` substitution. |
-| **Rename Branch / WT** | `r` | `Prompt({cyan:✏️} Rename branch {=branch} to: \| git branch -m "{=branch}" "{input}")` | Renames local branches instantly from the menu. |
-| **Rebase on Base Branch** | `R` *(Shift+R)* | `Confirm({yellow:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) \| git rebase {=base})` | Rebases selected branch onto its configured base. |
-| **Create Git Tag on Commit** | `t` | `Prompt({green:🏷️} Tag name for {=branch}: \| git tag "{input}" "{=branch}")` | Creates a Git tag on the selected worktree's HEAD commit. |
-| **Safe Force Push with Lease** | `P` *(Shift+P)* | `Confirm({red:🚀} Push force-with-lease {=branch}? (Enter/Esc) \| git push --force-with-lease)` | Pushes to remote with lease protection against overwrites. |
+| Shortcut | Action Name | Bind Syntax | Behavior |
+| :---: | :--- | :--- | :--- |
+| **`m`** | **Merge Worktree** | `Confirm({magenta,bold:🔀} Merge into {=branch}? (Enter/Esc) \| awt-merge.sh ...)` | Merges current branch into target, cleans worktree, and switches session. |
+| **`d`** | **Delete Worktree** | `Confirm({red,bold:🗑️} Delete worktree {=branch}? (Enter/Esc) \| awt-delete.sh ...)` | Removes worktree, deletes branch, terminates Tmux session, and reloads. |
+| **`r`** | **Rename Branch** | `Prompt({cyan,bold:✏️} Rename branch to: \| awt-rename.sh "{=branch}" "{=path}" "{input}" \| {=branch})` | Opens popover pre-filled with current name; renames branch, folder, and Tmux session. |
+| **`R`** *(Shift+R)* | **Rebase on Base** | `Confirm({yellow,bold:♻️} Rebase {=branch} onto {=base}? (Enter/Esc) \| awt-rebase.sh ...)` | Safely auto-stashes changes and rebases feature branch onto its configured base branch. |
+
+---
+
+### H. Worktree Lifecycle Hooks Architecture (`post-create` and `post-merge`)
+
+The `awt` ecosystem provides automated lifecycle hooks located in `~/.config/matchmaker/hooks/`:
+
+1. **`post-create.sh` (`<worktree_path> <branch_name> <base_branch>`)**:
+   - Automatically copies `.env.example` (or `.env` from sibling worktree) to the newly created worktree.
+   - Executes repository-level hooks (`<worktree>/.hooks/post-create` or `.git/hooks/post-worktree-create`) if present.
+2. **`post-merge.sh` (`<target_worktree_path> <target_branch> <source_branch>`)**:
+   - Automatically runs `./stow.sh -r` when merging changes into dotfiles `main`.
+   - Executes repository-level hooks (`<target_worktree>/.hooks/post-merge` or `.git/hooks/post-worktree-merge`) if present.
+
+---
+
+### I. Automatic Stash & Dirty State Protection
+
+To prevent accidental data loss during branch operations:
+- **During Merge (`m`)**: If the current worktree has uncommitted files (`git status --porcelain`), an automatic safety stash (`awt-merge-autostash: <branch>`) is created before running the merge. If merge encounters conflicts, the worktree and stash are preserved for manual inspection.
+- **During Rebase (`R`)**: Uncommitted changes are automatically stashed before rebasing and cleanly popped upon successful rebase.
 
 ---
 
@@ -437,7 +461,9 @@ repoPaths:
 | :---: | :--- | :--- |
 | **`Enter`** | **Connect Sesh** | Switch to or create the Tmux session for the selected worktree. |
 | **`c`** / **`ctrl-n`** | **New WT Wizard** | Open the 4-step interactive Conventional Commits wizard. |
-| **`m`** | **Merge WT** | Merge active branch into selected branch (or base) and clean up session. |
+| **`m`** | **Merge WT** | Merge active branch into selected branch (or base), run hooks, and clean up session. |
+| **`R`** *(Shift+R)* | **Rebase WT** | Safely auto-stash and rebase feature branch onto its configured base branch. |
+| **`r`** / **`ctrl-r`** | **Rename WT** | Prompt popover to rename branch in Git, sibling directory, and Tmux session. |
 | **`d`** / **`ctrl-d`** | **Delete WT** | Delete worktree, terminate Tmux session, and redirect (`sesh last`). |
 | **`p`** / **`ctrl-p`** | **Switch Preview** | Cycle through the 3 preview tabs (Status, Diff vs Main, Log Stats). |
 | **`u`** / **`ctrl-u`** | **Fetch Remotes** | Run `git fetch --all --prune` on the selected worktree. |

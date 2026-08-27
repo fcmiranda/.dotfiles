@@ -192,59 +192,124 @@ graph TD
 
 ---
 
-## 7. Automações Implementadas: Worktrunk Global e `awt` com Matchmaker
+## 7. O Ecossistema `awt` (Agent Worktree) com Matchmaker & Sesh
 
-### A. Configuração Global do Worktrunk (`worktrunk/.config/worktrunk/config.toml`)
-O `worktrunk` (`wt`) suporta configuração global de `worktree-path` no nível raiz do TOML. Isso significa que **não é necessário cadastrar repositórios 1 por 1**:
+O `awt` é o orquestrador unificado de worktrees e agentes de IA, construído inteiramente sobre o **Matchmaker (`mm`)**, **Sesh**, **Tmux** e **Worktrunk (`wt`)**.
 
-```toml
-# ~/.dotfiles/main/worktrunk/.config/worktrunk/config.toml
+```mermaid
+graph LR
+    A["awt"] -->|Sem argumentos| B["Matchmaker Dashboard (mm -o awt)"]
+    A -->|c ou awt -c| C["Wizard Interativo de Criação (awt-new.sh)"]
+    A -->|d| D["Handler de Deleção & Tmux (awt-delete.sh)"]
+    A -->|clone| E["awtc (Bare Clone Provisioner)"]
 
-# Configuração global (aplica automaticamente a TODOS os repositórios Git)
-skip-commit-generation-prompt = true
-worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+    B -->|Enter| SESH["Sesh Connect (Tmux Session)"]
+    C -->|Conclui| SESH
 ```
 
-#### Racional Detalhado de Cada Opção:
+---
 
-1. **`worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"` (Sinergia com o modelo `.bare`)**:
-   * **Anatomia do Template**:
-     * `{{ repo_path }}`: Caminho da worktree atual (ex: `~/.dotfiles/main` ou `~/dev/github/matchmaker/main`).
-     * `/..`: Sobe 1 nível para a raiz do container do projeto (`~/.dotfiles/` ou `~/dev/github/matchmaker/`).
-     * `{{ branch | sanitize }}`: Cria a nova pasta irmã (ex: `~/.dotfiles/feat-zsh-perf`).
-   * **Por que é superior ao padrão do Git**: No Git tradicional, worktrees criadas manualmente exigem especificar caminhos absolutos ou relativos complexos. Com este template global, qualquer comando `wt add <branch>` instancia a pasta irmã perfeitamente alinhada ao lado de `.bare/` e `main/`.
-   * **Sanitização Automática**: Substitui barras e caracteres inválidos (`feat/nova-ui` → `feat-nova-ui`), impedindo a criação acidental de subdiretórios aninhados.
+### A. Dashboard Interativo do Matchmaker (`awt.toml` / `mm -o awt`)
 
-2. **`skip-commit-generation-prompt = true`**:
-   * **Fluxo Ágil e Não-Bloqueante**: O `worktrunk` possui um assistente que sugere mensagens de commit via prompt. Em um fluxo de trabalho com múltiplos agentes de IA e multiplexação rápida via Tmux/Sesh, prompts interativos adicionam atrito desnecessário.
-   * **Previsibilidade**: Permite que scripts de automação (como a função `awt`) executem a criação e alternância de worktrees instantaneamente em < 10ms.
+Executado ao digitar `awt` sem argumentos no terminal:
 
-
-### B. Função `awt` (Zsh Helper com TUI Matchmaker)
-Função integrada ao [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que oferece dois modos de operação (Interativo TUI vs. Direto CLI):
-
-#### 1. Modo Interativo TUI (Sem argumentos):
-```bash
-awt
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│ BRANCH            BASE    STATUS    MAIN ↕   REMOTE ⇅   AGE     COMMIT   SESSION         │
+│ @ feature/wtmm    main    ✔         Synced   Synced     2h      a011829  matchmaker/...  │
+│ ^ main            -       ✔         Synced   Synced     1d      61026ee  matchmaker/main │
+│   feat/oauth2     main    ? ✗ (+2)  ↑1       ⇣2         45m     f492ac1  matchmaker/...  │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
-* Abre o picker fuzzy do [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt.toml) (`mm -o awt`) com preview ao vivo de `git status` e histórico de commits.
-* Ao selecionar qualquer worktree existente e pressionar `Enter`, o `sesh` conecta você instantaneamente à sessão Tmux correspondente.
 
-#### 2. Modo Direto CLI (Com nome da branch ou criação):
-```bash
-# Alternar / Conectar
-awt feat-prompt-fast
+#### Recursos do Dashboard:
+1. **Nav Mode Ativo**: Navegação rápida estilo Vim (`j`, `k`, `g`, `G`) com barra de navegação limpa.
+2. **Marcadores Visuais**:
+   - `@ <branch>` (Ciano / Bold): Worktree ativa no terminal atual.
+   - `^ <branch>` (Amarelo / Bold): Branch base principal (`main` / `master`).
+3. **Metadados Ricos e Coloridos**:
+   - `BASE`: Branch de origem configurada no Git (`branch.<name>.base`).
+   - `STATUS`: Limpo (`✔` verde) ou Modificado com contagem (`? ✗ (+N)` amarelo/vermelho).
+   - `MAIN ↕`: Divergência em relação à branch `main` (`↑N` ahead verde, `↓N` behind vermelho).
+   - `REMOTE ⇅`: Divergência em relação ao upstream remoto (`⇡N` unpushed, `⇣N` unpulled).
+   - `AGE` & `COMMIT`: Tempo relativo do último commit e hash abreviado.
+4. **Previsões Multi-Layout em Tempo Real (`p` / `ctrl-p`)**:
+   - **Aba 1**: `Git Status & Local Changes` + Gráfico de Commits (`git log --graph`).
+   - **Aba 2**: `Diff vs Main` (Merge Base comparativo).
+   - **Aba 3**: `Commit History & Stats` (Estatísticas de arquivos alterados).
 
-# Criar nova worktree de agente
-awt -c feat-nvim-perf
+---
+
+### B. Wizard Interativo de Criação de Branches (`c` / `ctrl-n` / `awt-new.sh`)
+
+Acionado ao pressionar **`c`** dentro do Matchmaker ou ao executar **`awt -c`**:
+
+```text
+[Passo 1: Tipo no mm]  ◄──(Esc)──  [Passo 2: Nome da Branch]  ◄──(Esc)──  [Passo 3: Base no mm]
+         │                                  │                                    │
+         └──(Enter)─────────────────────────┴──(Enter)───────────────────────────┴──(Enter)──► 🚀 Sesh
 ```
-* Cria a branch e a pasta da worktree imediatamente via `worktrunk` (`wt switch --create`) ou `git worktree add`.
-* Conecta via `sesh connect`, criando a sessão Tmux com o agente de IA (`agy`) pronto para uso em < 100ms.
 
-### C. Função `awtc` (Clone Automático no Modelo `.bare`)
-Função integrada ao [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que automatiza o provisionamento completo de novos repositórios na arquitetura de container `.bare` + worktree:
+#### Arquitetura dos 4 Passos:
 
-#### Uso:
+1. **Passo 1: Seleção do Tipo Convencional (`mm -o awt-type`)**:
+   - Utiliza o preset modular [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-type.toml).
+   - Apresenta os tipos convencionais com ícones e descrições:
+     `✨ feat`, `🐛 fix`, `♻️ refactor`, `⚡ perf`, `🔧 chore`, `📝 docs`, `🧪 test`, `📦 build`, `🏷️ custom`.
+   - `Esc`: Aborta e retorna diretamente para o dashboard do `awt`.
+
+2. **Passo 2: Digitação do Nome com GNU Readline & Event Loop (`awt-new.sh`)**:
+   - Prompt customizado com o ícone do tipo:
+     ```text
+     ✨ Branch Name (feat/<name>): auth-oauth2
+
+      [Enter] Confirm  •  [Esc / Empty] Back
+     ```
+   - **Zero Poluição de Tela**: Limpa o terminal (`clear >/dev/tty`) antes de desenhar, evitando textos fantasmas de passos anteriores.
+   - **`Esc` Instantâneo**: Interceptação em baixo nível no `/dev/tty` (`read -r -s -n 1`), retornando imediatamente para o Passo 1.
+   - **`Enter` Instantâneo**: Submete a branch para o Passo 3.
+   - **Memória de Estado**: Se você voltar do Passo 3, o nome anterior é preservado no buffer.
+
+3. **Passo 3: Seleção da Branch Base (`mm -o awt-base`)**:
+   - Utiliza o preset modular [`awt-base.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-base.toml).
+   - Lista dinamicamente `main (default base)`, a branch selecionada no cursor e todas as branches locais do repositório com respectivos commits e papéis.
+   - `Esc`: Volta para o Passo 2 com o nome da branch preenchido.
+
+4. **Passo 4: Provisionamento e Conexão Automática**:
+   - Cria a worktree irmã via `wt switch --create "$branch" --base "$base"` ou `git worktree add`.
+   - Salva a branch base no Git config: `git config branch.<name>.base "$base"`.
+   - Conecta instantaneamente via `sesh connect`, abrindo o **`agy`** (Antigravity CLI) na nova sessão.
+
+---
+
+### C. Conexão Inteligente de Sessões Tmux (Sem re-execução de prompts)
+
+Para evitar que o Sesh execute o `startup_command = "agy"` em sessões que já existem ou onde o usuário já está trabalhando, a função [`awt`](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh#L433) implementa **resolução direta de sessões**:
+
+1. **Preset Entrega Nome e Caminho**: O `awt.toml` cospe `{=session}\t{=path}` (ex: `matchmaker/feature-wtmm\t/home/fecavmi/...`).
+2. **Já na Sessão Ativa**: Se a sessão selecionada for a mesma onde o terminal já está focado, o Matchmaker fecha sem mexer no buffer ou histórico de IA.
+3. **Sessão Aberta em Background**: O Sesh conecta diretamente pelo **nome da sessão** (`sesh connect "matchmaker/feature-wtmm"`), alternando visualmente sem re-injetar o comando `agy`.
+4. **Worktree Nova**: O Sesh recebe o caminho absoluto e cria a sessão Tmux com o `agy` inicializado do zero.
+
+---
+
+### D. Handler de Deleção Segura e Limpeza de Tmux (`d` / `ctrl-d` / `awt-delete.sh`)
+
+Ao pressionar **`d`** em qualquer linha do `awt`:
+
+1. **Proteção de Base**: Bloqueia a exclusão acidental da branch `main` ou `master`.
+2. **Confirmação Visual**: Solicita confirmação no terminal (`🗑️ Remove worktree <branch>? [y/N]`).
+3. **Limpeza Completa no Git**: Executa `wt remove` / `git worktree remove -f` e deleta a branch (`git branch -D`).
+4. **Redirecionamento e Fechamento de Sessão Tmux**:
+   - **Se for a sessão atual**: Executa `sesh last` (ou `tmux switch-client -l`) para redirecionar você para a sessão anterior e, em seguida, mata a sessão excluída (`tmux kill-session`).
+   - **Se for uma sessão em background**: Mata a sessão no Tmux e executa o macro **`Reload`** do Matchmaker, removendo a linha da lista instantaneamente sem fechar o menu!
+
+---
+
+### E. Clonagem de Repositórios em Modo Bare (`awtc` / `awt clone`)
+
+Função no [functions.zsh](file:///home/fecavmi/.dotfiles/main/zsh/.zsh/utils/functions.zsh) que provisiona novos repositórios na arquitetura de container `.bare` + worktree:
+
 ```bash
 # Clone a partir do GitHub (user/repo):
 awtc fcmiranda/matchmaker
@@ -271,16 +336,11 @@ awtc git@github.com:joshmedeski/sesh.git
 ### A. Por que a Worktree `review/` é Isolada por Repositório?
 Como as Git Worktrees compartilham o banco de dados `.bare/` de cada projeto, cada repositório possui sua própria pasta `review/`:
 
-```
+```text
 ~/dev/github/matchmaker/ (Container do Matchmaker)
 ├── .bare/
 ├── main/
 ├── feat-preview/
-└── review/              <── Worktree de review deste repositório
-
-~/dev/github/lazygitrs/  (Container do Lazygitrs)
-├── .bare/
-├── main/
 └── review/              <── Worktree de review deste repositório
 ```
 
@@ -289,7 +349,7 @@ Como as Git Worktrees compartilham o banco de dados `.bare/` de cada projeto, ca
 * **A Solução**: Dentro da pasta `review/`, crie uma branch de espelho chamada `_main` (`git checkout -b _main origin/main`). Isso permite inspecionar, rebasear ou comparar Pull Requests contra a `main` sem nunca bloquear a worktree `main/` de produção.
 
 ### C. Configuração no `gh-dash` (`gh/.config/gh-dash/config.yml`)
-O `gh-dash` está integrado ao GNU Stow no pacote `gh` e configurado com **wildcards globais** e atalhos dedicados para `lazygitrs`:
+O `gh-dash` está integrado com atalhos para `lazygitrs` e `sesh`:
 
 ```yaml
 # gh/.config/gh-dash/config.yml
@@ -311,26 +371,35 @@ repoPaths:
   */*: ~/dev/github/*/review
 ```
 
-#### Como funciona no fluxo diário:
-1. Você abre o `gh-dash` no terminal: `gh dash`.
-2. Navega até qualquer **Pull Request** ou **Issue**.
-3. Pressione **`g`**: O `gh-dash` abre o [lazygitrs](file:///home/fecavmi/.cargo/bin/lazygitrs) imediatamente na pasta `review/` correspondente.
-4. Pressione **`s`**: Cria e conecta uma sessão Tmux no `sesh` focada na revisão.
-
 ---
 
 ## 9. Guia Rápido de Comandos (Cheat Sheet)
 
+### Atalhos dentro do Dashboard `awt` (`mm -o awt`)
+
+| Tecla | Ação | Descrição |
+| :---: | :--- | :--- |
+| **`Enter`** | **Connect Sesh** | Alterna ou cria a sessão Tmux para a worktree selecionada. |
+| **`c`** / **`ctrl-n`** | **New WT Wizard** | Abre o wizard interativo de 4 passos com Conventional Commits. |
+| **`d`** / **`ctrl-d`** | **Delete WT** | Deleta a worktree, mata a sessão Tmux e redireciona (`sesh last`). |
+| **`p`** / **`ctrl-p`** | **Switch Preview** | Alterna entre as 3 abas de preview (Status, Diff vs Main, Log Stats). |
+| **`u`** / **`ctrl-u`** | **Fetch Remotes** | Executa `git fetch --all --prune` na worktree selecionada. |
+| **`j`** / **`k`** | **Navegação** | Move o cursor para baixo / cima (Nav Mode). |
+| **`q`** / **`Esc`** | **Quit** | Fecha o picker sem realizar ações. |
+
+### Comandos de Terminal
+
 | Ação | Comando | Descrição |
 | :--- | :--- | :--- |
-| **Clonar repositório no modelo `.bare`** | `awtc <user/repo>` | Clona em modo bare, cria `main/` e conecta ao Tmux com a IA ativa. |
-| **Criar worktree isolada para IA** | `awt -c <branch> [base]` | Cria branch irmã (ex: `~/.dotfiles/feat-x`) e abre prompt da IA no Tmux. |
-| **Explorar/Alternar Worktrees (TUI)** | `awt` | Abre o picker [Matchmaker](file:///home/fecavmi/.dotfiles/main/matchmaker) (`mm -o awt`) com preview de status e commits. |
+| **Abrir Dashboard Interativo** | `awt` | Abre o picker Matchmaker (`mm -o awt`) com todas as worktrees. |
+| **Wizard de Criação de Worktree** | `awt -c` | Dispara o assistente interativo de Conventional Commits. |
+| **Criar Worktree via CLI Direto** | `awt -c <branch> [base]` | Cria branch e conecta imediatamente à sessão Tmux. |
+| **Conectar / Alternar via CLI** | `awt <branch>` | Pula direto para a sessão Tmux da worktree indicada. |
+| **Clonar repositório no modelo `.bare`** | `awtc <user/repo>` | Clona em modo bare, cria `main/` e abre a sessão com IA ativa. |
 | **Dashboard de PRs / Issues** | `gh dash` | Painel TUI do GitHub. Pressione `g` para abrir o `lazygitrs` ou `s` para `sesh`. |
-| **Alternar entre Sessões do Tmux** | `Prefix + s` ou `Alt + s` | Alterna instantaneamente entre worktrees e projetos via Sesh. |
+| **Alternar entre Sessões Tmux** | `Prefix + s` ou `Alt + s` | Alternador de sessões e projetos via Sesh. |
 | **Validar Symlinks nos Dotfiles** | `./stow.sh -n` | Executa dry-run obrigatório antes de qualquer merge na branch `main`. |
 | **Re-stow de Pacote Atualizado** | `./stow.sh -r <pacote>` | Atualiza os symlinks no `$HOME` após o merge na `main`. |
-| **Remover Worktree Concluída** | `wt remove <branch>` | Exclui a worktree irmã e mantém o `.bare/` e a `main/` limpos. |
 
 ---
 

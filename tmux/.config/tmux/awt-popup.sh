@@ -40,7 +40,7 @@ if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
       -d "$PROJECT_DIR" \
       -E \
       -w 85% -h 75% \
-      "$MM_BIN -o awt || true"
+      "TMUX_POPUP=1 $MM_BIN -o awt tui.percentage=100 tui.max=9999 || true"
 
     tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
     tmux set-option -w -t "$CURRENT_PANE" automatic-rename on 2>/dev/null || true
@@ -57,7 +57,7 @@ else
       -d "$PROJECT_DIR" \
       -E \
       -w 85% -h 75% \
-      "$MM_BIN -o awt || true" || true
+      "TMUX_POPUP=1 $MM_BIN -o awt tui.percentage=100 tui.max=9999 || true" || true
 fi
 
 exit 0

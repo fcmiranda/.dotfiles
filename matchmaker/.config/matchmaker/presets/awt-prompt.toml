@@ -1,9 +1,9 @@
 # Matchmaker Agent Worktree Prompt Input Preset (mm -o awt-prompt)
 
 [tui]
-percentage = 15
-min = 3
-max = 4
+percentage = 45
+min = 10
+max = 30
 
 [ui]
 nav_mode = false

@@ -10,11 +10,16 @@ slug=""
 branch_name=""
 bbase=""
 
+MM_TUI_ARGS=()
+if [ "$TMUX_POPUP" = "1" ] || [ -n "$TMUX" ]; then
+    MM_TUI_ARGS=("tui.percentage=100" "tui.max=9999")
+fi
+
 while true; do
     case "$step" in
         1)
             # ── Step 1: Conventional Type Selection via Matchmaker Preset (`mm -o awt-type`) ──
-            type_output=$(mm -o awt-type)
+            type_output=$(mm -o awt-type "${MM_TUI_ARGS[@]}")
 
             # If Esc / canceled in Step 1 -> exit completely back to main awt list
             if [[ -z "$type_output" ]]; then
@@ -30,7 +35,7 @@ while true; do
             initial_val="${prefix}${slug}"
             prompt_str="${icon} Branch name: "
 
-            branch_input=$(mm -o awt-prompt prompt="$prompt_str" initial="$initial_val")
+            branch_input=$(mm -o awt-prompt prompt="$prompt_str" initial="$initial_val" "${MM_TUI_ARGS[@]}")
 
             # If user pressed Esc or cancelled -> go back to Step 1
             if [[ -z "$branch_input" ]]; then
@@ -45,7 +50,7 @@ while true; do
 
         3)
             # ── Step 3: Base Branch Selection via Matchmaker Preset (`mm -o awt-base`) ──
-            bbase=$(mm -o awt-base)
+            bbase=$(mm -o awt-base "${MM_TUI_ARGS[@]}")
 
             # If Esc was pressed in Step 3 -> step back to Step 2 with previous slug preserved!
             if [[ -z "$bbase" ]]; then

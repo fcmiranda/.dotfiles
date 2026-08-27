@@ -1,9 +1,9 @@
 # Matchmaker Agent Worktree Base Branch Preset (`mm -o awt-base`)
 
 [tui]
-percentage = 100
+percentage = 45
 min = 15
-max = 9999
+max = 30
 
 [ui]
 nav_mode = true

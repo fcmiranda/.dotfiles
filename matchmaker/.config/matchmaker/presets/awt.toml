@@ -16,7 +16,7 @@ enabled = false
 
 [query]
 status_inline = true
-prompt = ">"
+prompt = "> "
 prompt_style.fg = "white"
 prompt_style.modifier = "BOLD"
 
@@ -42,12 +42,12 @@ column_spacing = 2
 symlink_target = false
 
 [results.current_style]
-fg = "black"
-bg = "lightblue"
+bg = "darkgray"
 modifier = "BOLD"
 
 [results.current_nav_bar_style]
-fg = "lightblue"
+fg = "cyan"
+modifier = "BOLD"
 
 [columns]
 split = "\t"

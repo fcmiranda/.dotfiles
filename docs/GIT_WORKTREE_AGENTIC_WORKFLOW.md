@@ -453,6 +453,22 @@ repoPaths:
 
 ---
 
+## 8. Architectural Comparison: `awt` vs `wt`
+
+While low-level CLI utilities like `wt` (Worktree CLI) provide direct Git commands, **`awt` (Agent Worktree Manager)** is an end-to-end orchestration platform designed specifically for multi-agent developer workflows:
+
+| Dimension | `wt` (Worktree CLI) | `awt` (Agent Worktree Manager) |
+| :--- | :--- | :--- |
+| **Primary Interface** | Pure text CLI flags (`wt switch -c feat/foo`). | **Golden Ratio Matchmaker TUI** (`mm -o awt`) + **Zero-Prefix Floating Popup** (`Ctrl+Shift+G`). |
+| **Multiplexer & Sesh** | None (only changes shell directory). | **Native Session Lifecycle**: creates named Tmux sessions, connects via Sesh, and isolates agent buffers. |
+| **Branch Creation** | Manual argument typing. | **4-Step Wizard**: Conventional Commits types (``, ``, `󰣪`), prompt box with memory, and base selector. |
+| **Live Previews** | None. | **3 Real-time Preview Tabs** (`p`): Git status/graph, Diff vs Main, and commit statistics. |
+| **Lifecycle Hooks** | None. | **Automated Lifecycle Hooks** (`post-create.sh`, `post-merge.sh`) for `.env` replication, build & stow. |
+| **Dirty State Safety** | Fails or errors on uncommitted changes. | **Smart Auto-Stash**: automatically stashes dirty worktree files before merge/rebase and pops upon completion. |
+| **Ergonomic Aliases** | Basic commands. | **Fast Shell Routing**: `awt new`, `awt switch`, `awt rm`, `awt merge`, `awt rebase`, `awt popup`, `awc`, `awp`. |
+
+---
+
 ## 9. Quick Command Reference (Cheat Sheet)
 
 ### Shortcuts Inside the `awt` Dashboard (`mm -o awt`)
@@ -470,15 +486,18 @@ repoPaths:
 | **`j`** / **`k`** | **Navigation** | Move cursor down / up (Nav Mode). |
 | **`q`** / **`Esc`** | **Quit** | Close picker without performing actions. |
 
-### Terminal Commands
+### Terminal Commands & Subcommands
 
 | Action | Command / Shortcut | Description |
 | :--- | :--- | :--- |
-| **Floating Worktree Modal** | **`Ctrl + Shift + G`** | Open floating AWT modal (`85% × 75%`) with live previews from anywhere in Tmux. |
+| **Floating Worktree Modal** | **`Ctrl + Shift + G`** / `awp` | Open floating AWT modal (`85% × 75%`) with live previews from anywhere in Tmux. |
 | **Open Interactive Dashboard** | `awt` | Open Matchmaker picker (`mm -o awt`) in current pane. |
-| **Launch Creation Wizard** | `awt -c` | Launch interactive Conventional Commits wizard. |
+| **Launch Creation Wizard** | `awt -c` / `awt new` / `awc` | Launch interactive Conventional Commits creation wizard. |
 | **Direct CLI Worktree Creation** | `awt -c <branch> [base]` | Create branch and immediately attach to Tmux session. |
-| **Direct CLI Connect / Switch** | `awt <branch>` | Jump directly to the Tmux session for specified worktree. |
+| **Direct CLI Connect / Switch** | `awt <branch>` / `awt switch <branch>` | Jump directly to the Tmux session for specified worktree. |
+| **Direct CLI Delete Worktree** | `awt rm <branch>` | Delete worktree directory, Git branch, and kill Tmux session. |
+| **Direct CLI Rebase** | `awt rebase [base]` | Rebase active worktree onto base branch with auto-stash. |
+| **Direct CLI Merge** | `awt merge [branch]` | Merge active worktree into base branch with lifecycle hooks. |
 | **PR / Issue Dashboard** | `gh dash` | GitHub TUI dashboard. Press `g` for `lazygitrs` or `s` for `sesh`. |
 | **Switch Tmux Sessions** | `Prefix + t` / `Prefix + s` | Fast session and window switcher via Sesh & Matchmaker. |
 | **Validate Dotfile Symlinks** | `./stow.sh -n` | Mandatory dry-run check before any merge into `main`. |

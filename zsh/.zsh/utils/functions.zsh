@@ -412,15 +412,63 @@ moveto() {
 # awt - Agent Worktree Manager (Interactive TUI with Matchmaker, Smart Switch & Create)
 # Usage:
 #   awt                      -> Opens Matchmaker interactive TUI picker
-#   awt <branch>             -> Switch / connect to existing worktree or branch
-#   awt -c <branch> [base]   -> Create new agent worktree from base (default: HEAD)
-#   awt -c                   -> Launch interactive conventional worktree wizard
+# awt - Agent Worktree Manager & Interactive TUI
+# Usage:
+#   awt                      -> Interactive Matchmaker TUI dashboard
+#   awt -c | new | add       -> Launch interactive conventional worktree wizard
+#   awt -c <branch> [base]   -> Create new agent worktree and connect session
+#   awt <branch> | switch <branch> -> Switch/connect to existing worktree
+#   awt popup                -> Open floating popup modal in Tmux
 #   awt clone <repo> [dir]   -> Delegate to awtc
+#   awt rm | remove <branch> -> Delete worktree and kill Tmux session
+#   awt merge [branch]       -> Merge worktree into base branch
+#   awt rebase [base]        -> Rebase worktree onto base branch
 awt() {
     if [[ "$1" == "clone" ]]; then
         shift
         awtc "$@"
         return $?
+    elif [[ "$1" == "popup" ]]; then
+        if [[ -x "$HOME/.config/tmux/awt-popup.sh" ]]; then
+            "$HOME/.config/tmux/awt-popup.sh" "$PWD"
+            return $?
+        fi
+    elif [[ "$1" == "rm" || "$1" == "remove" || "$1" == "del" || "$1" == "delete" ]]; then
+        shift
+        local branch="$1"
+        [[ -z "$branch" ]] && { echo "Usage: awt rm <branch>"; return 1; }
+        local repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        local branch_folder="${branch//\//-}"
+        local target_dir="$repo_root/../$branch_folder"
+        local repo_parent="$(basename "$(dirname "$repo_root")")"
+        local session_name="${repo_parent}/${branch_folder}"
+        [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$branch_folder"
+        if [[ -x "$HOME/.config/matchmaker/scripts/awt-delete.sh" ]]; then
+            "$HOME/.config/matchmaker/scripts/awt-delete.sh" "$session_name" "$target_dir" "$branch"
+            return $?
+        fi
+    elif [[ "$1" == "rebase" ]]; then
+        shift
+        local base="${1:-}"
+        local repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        local cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+        if [[ -x "$HOME/.config/matchmaker/scripts/awt-rebase.sh" ]]; then
+            "$HOME/.config/matchmaker/scripts/awt-rebase.sh" "$cur_branch" "$repo_root" "$base"
+            return $?
+        fi
+    elif [[ "$1" == "merge" ]]; then
+        shift
+        local target="${1:-}"
+        local repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        local cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+        local repo_parent="$(basename "$(dirname "$repo_root")")"
+        local cur_folder="$(basename "$repo_root")"
+        local session_name="${repo_parent}/${cur_folder}"
+        [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$cur_folder"
+        if [[ -x "$HOME/.config/matchmaker/scripts/awt-merge.sh" ]]; then
+            "$HOME/.config/matchmaker/scripts/awt-merge.sh" "$target" "$repo_root" "$session_name" ""
+            return $?
+        fi
     fi
 
     # Interactive TUI mode: open Matchmaker picker when called with no arguments
@@ -466,6 +514,12 @@ awt() {
     # Parse arguments and flags
     local create=0 branch="" base="HEAD"
     case "$1" in
+        new|create|add)
+            shift
+            create=1
+            branch="$1"
+            base="${2:-HEAD}"
+            ;;
         switch)
             shift
             if [[ "$1" == "-c" || "$1" == "--create" ]]; then
@@ -481,7 +535,7 @@ awt() {
             ;;
     esac
 
-    # Interactive Matchmaker wizard when called as `awt -c` without a branch name
+    # Interactive Matchmaker wizard when called as `awt -c` or `awt new` without a branch name
     if [[ "$create" -eq 1 && -z "$branch" ]]; then
         if [[ -x "$HOME/.config/matchmaker/scripts/awt-new.sh" ]]; then
             "$HOME/.config/matchmaker/scripts/awt-new.sh"

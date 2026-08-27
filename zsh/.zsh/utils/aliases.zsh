@@ -26,3 +26,7 @@ alias acpd-logs='journalctl --user -u acpd.service -f'
 # Zero-Friction File Transfer helpers
 alias pt='pasteto'
 alias mt='moveto'
+
+# Agent Worktree (AWT) Ergonomic Aliases
+alias awc='awt -c'
+alias awp='awt popup'

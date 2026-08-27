@@ -20,6 +20,7 @@ This document provides a comprehensive audit and definitive reference of all key
 | Keybinding | Scope | Action | Biomechanical Mechanics | KLM Timing ($T$) |
 | :--- | :---: | :--- | :--- | :---: |
 | **`Ctrl + G`** | Global / Shell | **Lazygitrs Floating Popup (`90% × 88%`)** | Inward roll: CapsLock (Pinky) + G (Index) | $130\text{ ms}$ |
+| **`Ctrl + Shift + G`** | Global / Tmux | **AWT Worktree Manager Popup (`85% × 75%`)** | Inward chord: CapsLock (Pinky) + Shift + G | $140\text{ ms}$ |
 | **`Alt + o`** (`M-o`) | Global / Tmux | **OpenCode AI Floating Popup (`85% × 85%`)** | Left Thumb (Alt) + Right Ring (O) | $140\text{ ms}$ |
 | **`Alt + a`** (`M-a`) | Global / Tmux | **Jump to / Create dedicated AI Window** | Left Thumb (Alt) + Left Pinky (A) | $130\text{ ms}$ |
 | **`Ctrl + 0..9`** | Tmux | **Direct Window Select (Windows 0 to 9)** | CapsLock (Pinky) + Number Key | $130\text{ ms}$ |

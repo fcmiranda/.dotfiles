@@ -472,15 +472,15 @@ repoPaths:
 
 ### Terminal Commands
 
-| Action | Command | Description |
+| Action | Command / Shortcut | Description |
 | :--- | :--- | :--- |
-| **Open Interactive Dashboard** | `awt` | Open Matchmaker picker (`mm -o awt`) with all worktrees. |
+| **Floating Worktree Modal** | **`Ctrl + Shift + G`** | Open floating AWT modal (`85% × 75%`) with live previews from anywhere in Tmux. |
+| **Open Interactive Dashboard** | `awt` | Open Matchmaker picker (`mm -o awt`) in current pane. |
 | **Launch Creation Wizard** | `awt -c` | Launch interactive Conventional Commits wizard. |
 | **Direct CLI Worktree Creation** | `awt -c <branch> [base]` | Create branch and immediately attach to Tmux session. |
 | **Direct CLI Connect / Switch** | `awt <branch>` | Jump directly to the Tmux session for specified worktree. |
-| **Clone repo in `.bare` model** | `awtc <user/repo>` | Clone in bare mode, create `main/`, and open session with AI active. |
 | **PR / Issue Dashboard** | `gh dash` | GitHub TUI dashboard. Press `g` for `lazygitrs` or `s` for `sesh`. |
-| **Switch Tmux Sessions** | `Prefix + s` or `Alt + s` | Fast session and project switcher via Sesh. |
+| **Switch Tmux Sessions** | `Prefix + t` / `Prefix + s` | Fast session and window switcher via Sesh & Matchmaker. |
 | **Validate Dotfile Symlinks** | `./stow.sh -n` | Mandatory dry-run check before any merge into `main`. |
 | **Re-stow Updated Package** | `./stow.sh -r <package>` | Refresh symlinks in `$HOME` after merging into `main`. |
 

@@ -85,6 +85,9 @@ while true; do
             if command -v sesh >/dev/null 2>&1; then
                 sesh connect "$target_dir"
             fi
+
+            # Dismiss popup modal completely upon completion
+            tmux display-popup -C 2>/dev/null || true
             exit 0
             ;;
     esac

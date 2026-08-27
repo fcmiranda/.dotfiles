@@ -256,13 +256,13 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
 1. **Step 1: Conventional Type Selection (`mm -o awt-type`)**:
    - Uses the modular preset [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-type.toml).
    - Presents conventional types with Nerd Font icons and descriptions:
-     ` feat`, ` fix`, `󰑮 refactor`, ` perf`, `󰒓 chore`, `󰈙 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
+     ` feat`, ` fix`, `󰣩 refactor`, `󰓅 perf`, ` ci`, `󰒓 chore`, `󰈚 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
    - `Esc`: Aborts and returns directly to the main `awt` dashboard.
 
 2. **Step 2: Branch Name via Native Matchmaker Prompt (`mm -o awt-prompt`)**:
    - Opens a dedicated, sleek Matchmaker prompt with the selected type icon and prefix pre-filled:
      ```text
-      Branch name: feat/auth-oauth2_
+      Branch name: feat/auth-oauth2_
 
       [Enter] Confirm  •  [Esc] Back
      ```

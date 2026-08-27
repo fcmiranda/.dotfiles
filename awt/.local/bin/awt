@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+# awt - Agent Worktree Manager & Multi-Agent Git Orchestrator
+# Global executable installed to ~/.local/bin/awt
+
+set -e
+
+show_help() {
+    cat << 'HELP'
+awt - Agent Worktree Manager & Multi-Agent Git Orchestrator
+
+USAGE:
+    awt                             Open interactive Matchmaker TUI dashboard
+    awt -c | new | add              Launch interactive Conventional Commits wizard
+    awt -c <branch> [base]          Create new worktree from base and connect session
+    awt <branch> | switch <branch>  Switch/connect to existing worktree Tmux session
+    awt popup                       Open floating AWT modal in Tmux (85% × 75%)
+    awt clone <repo> [dir]          Clone repository into .bare container layout
+    awt rm | remove <branch>        Delete worktree, Git branch, and kill Tmux session
+    awt rebase [base]               Rebase active worktree onto base branch
+    awt merge [branch]              Merge active worktree into base branch with hooks
+    awt help | -h | --help          Show this help message
+
+SHORTCUTS & ALIASES:
+    Ctrl + Shift + G                Global Tmux floating popup
+    awc                             Shortcut for 'awt -c'
+    awp                             Shortcut for 'awt popup'
+HELP
+    exit 0
+}
+
+# 1. Subcommands routing
+case "$1" in
+    -h|--help|help)
+        show_help
+        ;;
+    popup)
+        if [[ -x "$HOME/.config/tmux/awt-popup.sh" ]]; then
+            exec "$HOME/.config/tmux/awt-popup.sh" "$PWD"
+        elif [[ -x "$(dirname "$0")/../../.config/tmux/awt-popup.sh" ]]; then
+            exec "$(dirname "$0")/../../.config/tmux/awt-popup.sh" "$PWD"
+        fi
+        exit 0
+        ;;
+    clone)
+        shift
+        if command -v awtc >/dev/null 2>&1; then
+            exec awtc "$@"
+        else
+            echo "awt: awtc clone utility not found in PATH."
+            exit 1
+        fi
+        ;;
+    rm|remove|del|delete)
+        shift
+        branch="$1"
+        [[ -z "$branch" ]] && { echo "Usage: awt rm <branch>"; exit 1; }
+        repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        branch_folder="${branch//\//-}"
+        target_dir="$repo_root/../$branch_folder"
+        repo_parent="$(basename "$(dirname "$repo_root")")"
+        session_name="${repo_parent}/${branch_folder}"
+        [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$branch_folder"
+        delete_script="$HOME/.config/matchmaker/scripts/awt-delete.sh"
+        if [[ -x "$delete_script" ]]; then
+            exec "$delete_script" "$session_name" "$target_dir" "$branch"
+        fi
+        exit 0
+        ;;
+    rebase)
+        shift
+        base="${1:-}"
+        repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+        rebase_script="$HOME/.config/matchmaker/scripts/awt-rebase.sh"
+        if [[ -x "$rebase_script" ]]; then
+            exec "$rebase_script" "$cur_branch" "$repo_root" "$base"
+        fi
+        exit 0
+        ;;
+    merge)
+        shift
+        target="${1:-}"
+        repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+        repo_parent="$(basename "$(dirname "$repo_root")")"
+        cur_folder="$(basename "$repo_root")"
+        session_name="${repo_parent}/${cur_folder}"
+        [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$cur_folder"
+        merge_script="$HOME/.config/matchmaker/scripts/awt-merge.sh"
+        if [[ -x "$merge_script" ]]; then
+            exec "$merge_script" "$target" "$repo_root" "$session_name" ""
+        fi
+        exit 0
+        ;;
+esac
+
+# 2. Interactive TUI Mode (called with 0 arguments)
+if [[ $# -eq 0 ]]; then
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! git rev-parse --is-bare-repository >/dev/null 2>&1; then
+        echo "awt: Not inside a Git repository."
+        exit 1
+    fi
+
+    if command -v mm >/dev/null 2>&1; then
+        output=$(mm -o awt)
+        [[ -z "$output" ]] && exit 0
+
+        IFS=$'\t' read -r session target <<< "$output"
+        cur_session=$(tmux display-message -p '#{session_name}' 2>/dev/null || echo "")
+
+        # If already attached to this exact session, do nothing!
+        [[ -n "$cur_session" && "$cur_session" == "$session" ]] && exit 0
+
+        # If session exists in Tmux, switch by name; otherwise connect to path
+        if command -v sesh >/dev/null 2>&1; then
+            if tmux has-session -t "$session" 2>/dev/null; then
+                exec sesh connect "$session"
+            else
+                exec sesh connect "$target"
+            fi
+        else
+            cd "$target"
+        fi
+        exit 0
+    else
+        echo "Usage: awt [-c <branch> [base]] | [branch] | [clone <repo>]"
+        exit 1
+    fi
+fi
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! git rev-parse --is-bare-repository >/dev/null 2>&1; then
+    echo "awt: Not inside a Git repository."
+    exit 1
+fi
+
+# 3. Parse arguments and flags
+create=0
+branch=""
+base="HEAD"
+
+case "$1" in
+    new|create|add)
+        shift
+        create=1
+        branch="$1"
+        base="${2:-HEAD}"
+        ;;
+    switch)
+        shift
+        if [[ "$1" == "-c" || "$1" == "--create" ]]; then
+            create=1
+            shift
+        fi
+        branch="$1"
+        base="${2:-HEAD}"
+        ;;
+    -c|--create)
+        create=1
+        branch="$2"
+        base="${3:-HEAD}"
+        ;;
+    *)
+        branch="$1"
+        base="${2:-HEAD}"
+        ;;
+esac
+
+# 4. Interactive Matchmaker wizard when called as `awt -c` or `awt new` without branch name
+if [[ "$create" -eq 1 && -z "$branch" ]]; then
+    new_script="$HOME/.config/matchmaker/scripts/awt-new.sh"
+    if [[ -x "$new_script" ]]; then
+        exec "$new_script"
+    fi
+    exit 0
+fi
+
+[[ -z "$branch" ]] && { echo "awt: branch name required. Usage: awt [-c <branch> [base]]"; exit 1; }
+
+# 5. Direct Connection or Creation
+branch_clean="${branch//\//-}"
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+target_dir="$repo_root/../$branch_clean"
+target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
+
+# If the worktree directory already exists, connect directly
+if [[ -d "$target_dir" ]]; then
+    if command -v sesh >/dev/null 2>&1; then
+        repo_name="$(basename "$repo_root")"
+        sess="${repo_name}/${branch_clean}"
+        sess="${sess#.}"
+        if tmux has-session -t "$sess" 2>/dev/null; then
+            exec sesh connect "$sess"
+        else
+            exec sesh connect "$target_dir"
+        fi
+    else
+        cd "$target_dir"
+    fi
+    exit 0
+fi
+
+# Create worktree via worktrunk or native git
+if command -v wt >/dev/null 2>&1; then
+    wt switch "$branch" >/dev/null 2>&1 || wt switch --create "$branch" --base "$base" >/dev/null 2>&1
+fi
+
+if [[ ! -d "$target_dir" ]]; then
+    git worktree add "$target_dir" -b "$branch" "$base" 2>/dev/null || \
+    git worktree add "$target_dir" "$branch" 2>/dev/null || {
+        echo "awt: Failed to create worktree at $target_dir"
+        exit 1
+    }
+fi
+
+echo "✓ Worktree ready at $target_dir"
+
+if command -v sesh >/dev/null 2>&1; then
+    exec sesh connect "$target_dir"
+else
+    cd "$target_dir"
+fi

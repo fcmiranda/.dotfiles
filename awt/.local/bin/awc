@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# awc - Fast shortcut for 'awt -c' (Conventional Creation Wizard)
+exec awt -c "$@"

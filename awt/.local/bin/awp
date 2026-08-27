@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# awp - Fast shortcut for 'awt popup' (Floating Modal in Tmux)
+exec awt popup "$@"

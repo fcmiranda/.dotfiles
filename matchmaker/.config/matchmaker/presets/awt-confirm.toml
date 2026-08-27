@@ -1,0 +1,78 @@
+# Matchmaker Worktree Confirmation Preset (`mm -o awt-confirm`)
+
+[tui]
+percentage = 22
+min = 8
+max = 30
+
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "white"
+
+[ui.parent_peek]
+enabled = false
+
+[query]
+status_inline = true
+prompt = "Confirm > "
+prompt_style.fg = "white"
+prompt_style.modifier = "BOLD"
+
+[header]
+header_lines = 1
+style.fg = "Cyan"
+style.modifier = "BOLD"
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Select}  •  {darkgray,bold:[Esc/q]} {darkgray:Cancel}"
+row_connection = "Full"
+match_indent = false
+style.fg = "gray"
+style.modifier = "DIM"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+column_spacing = 2
+symlink_target = false
+
+[results.current_style]
+fg = "black"
+bg = "lightblue"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "lightblue"
+
+[columns]
+split = "\t"
+default = "label"
+names = [
+    { name = "action", hidden = true },
+    { name = "label" },
+]
+
+[preview]
+show = false
+
+[start]
+ansi = true
+mode = "nav"
+output_template = "{=action}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^down" = "Down"
+"nav^^up" = "Up"
+"nav^^enter" = "Accept"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"

@@ -31,10 +31,10 @@ if [[ "$source_branch" == "$target_branch" ]]; then
     exit 0
 fi
 
-# 3. Action Box Confirmation via Matchmaker
-confirm_choice=$(printf "merge\t🚀 Yes, Merge & Cleanup (Merge %s into %s, remove %s & switch session)\ncancel\t🛡️  No, Cancel\n" \
-    "$source_branch" "$target_branch" "$source_branch" | \
-    mm columns.split="\t" start.output_template="{1}" query.prompt="🔀  Merge '${source_branch}' into '${target_branch}'? > " tui.percentage=20 results.icons=false --status-inline)
+# 3. Action Box Confirmation via Matchmaker awt-confirm preset
+confirm_cmd=$(printf "ACTION\tLABEL\nmerge\t🚀 Yes, Merge '%s' into '%s' (clean up worktree & switch session)\ncancel\t🛡️  No, Cancel\n" "$source_branch" "$target_branch")
+
+confirm_choice=$(mm -o awt-confirm query.prompt="🔀 Merge '${source_branch}' into '${target_branch}'? > " start.command.command="$confirm_cmd")
 
 if [[ "$confirm_choice" != "merge" ]]; then
     exit 0

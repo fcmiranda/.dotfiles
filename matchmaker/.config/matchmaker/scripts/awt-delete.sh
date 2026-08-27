@@ -5,11 +5,11 @@ session_name="$1"
 wt_path="$2"
 branch_raw="$3"
 
-branch_clean=$(echo "$branch_raw" | sed "s/^[ @^]*//; s/ .*//")
+branch_clean=$(echo "$branch_raw" | sed -E 's/^[^a-zA-Z0-9._/-]+//; s/[[:space:]].*//')
 
 # 1. Validation: Prevent deleting main branch / root repository
 if [[ "$branch_clean" == "main" || "$branch_clean" == "master" ]]; then
-    printf "\n\033[1;31m✖ Cannot delete default base branch '%s'!\033[0m\n" "$branch_clean" >/dev/tty
+    printf "\n\033[1;31m󰅖 Cannot delete default base branch '%s'!\033[0m\n" "$branch_clean" >/dev/tty
     sleep 1.2
     exit 0
 fi

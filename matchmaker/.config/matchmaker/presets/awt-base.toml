@@ -53,6 +53,7 @@ modifier = "BOLD"
 split = "\t"
 default = "branch"
 names = [
+    { name = "icon" },
     { name = "branch" },
     { name = "role" },
     { name = "commit" },
@@ -63,12 +64,12 @@ show = false
 
 [start.command]
 command = '''
-printf "BRANCH\tROLE\tCOMMIT\n"
-printf "\033[1;33mmain\033[0m\t\033[32mdefault base\033[0m\t%s\n" "$(git rev-parse --short main 2>/dev/null)"
+printf "ICON\tBRANCH\tROLE\tCOMMIT\n"
+printf "󰊢\t\033[1;33mmain\033[0m\t\033[32mdefault base\033[0m\t%s\n" "$(git rev-parse --short main 2>/dev/null)"
 git branch --format='%(refname:short)' 2>/dev/null | grep -vE '^(main|master)$' | while read -r b; do
     [ -n "$b" ] || continue
     sha=$(git rev-parse --short "$b" 2>/dev/null)
-    printf "%s\t\033[2mlocal branch\033[0m\t\033[33m%s\033[0m\n" "$b" "$sha"
+    printf "\t%s\t\033[2mlocal branch\033[0m\t\033[33m%s\033[0m\n" "$b" "$sha"
 done
 '''
 

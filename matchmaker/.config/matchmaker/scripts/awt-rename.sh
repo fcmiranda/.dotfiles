@@ -6,8 +6,8 @@ old_branch_raw="$1"
 wt_path="$2"
 new_branch_raw="$3"
 
-old_branch=$(echo "$old_branch_raw" | sed "s/^[ @^]*//; s/ .*//")
-new_branch=$(echo "$new_branch_raw" | sed "s/^[ @^]*//; s/ .*//")
+old_branch=$(echo "$old_branch_raw" | sed -E 's/^[^a-zA-Z0-9._/-]+//; s/[[:space:]].*//')
+new_branch=$(echo "$new_branch_raw" | sed -E 's/^[^a-zA-Z0-9._/-]+//; s/[[:space:]].*//')
 
 # 1. Validation
 if [[ -z "$new_branch" || "$new_branch" == "$old_branch" ]]; then
@@ -15,14 +15,14 @@ if [[ -z "$new_branch" || "$new_branch" == "$old_branch" ]]; then
 fi
 
 if [[ "$old_branch" == "main" || "$old_branch" == "master" ]]; then
-    printf "\n\033[1;31m✖ Cannot rename default base branch '%s'!\033[0m\n" "$old_branch" >/dev/tty
+    printf "\n\033[1;31m󰅖 Cannot rename default base branch '%s'!\033[0m\n" "$old_branch" >/dev/tty
     sleep 1.2
     exit 0
 fi
 
 # 2. Rename branch in Git
 if ! git -C "$wt_path" branch -m "$old_branch" "$new_branch" 2>/dev/null; then
-    printf "\n\033[1;31m✖ Failed to rename branch '%s' to '%s'!\033[0m\n" "$old_branch" "$new_branch" >/dev/tty
+    printf "\n\033[1;31m󰅖 Failed to rename branch '%s' to '%s'!\033[0m\n" "$old_branch" "$new_branch" >/dev/tty
     sleep 1.2
     exit 1
 fi

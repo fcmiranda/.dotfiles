@@ -226,13 +226,13 @@ Executed by running `awt` without arguments in the terminal:
 #### Dashboard Features:
 1. **Active Nav Mode**: Fast Vim-style navigation (`j`, `k`, `g`, `G`) with clean navigation bar.
 2. **Visual Markers**:
-   - `@ <branch>` (Cyan / Bold): Active worktree in the current terminal.
-   - `^ <branch>` (Yellow / Bold): Primary base branch (`main` / `master`).
+   - `󰙅 <branch>` (Cyan / Bold): Currently active worktree attached to your terminal.
+   - `󰊢 <branch>` (Yellow / Bold): Primary base branch (`main` / `master`).
 3. **Rich Colored Metadata**:
    - `BASE`: Git-configured base branch (`branch.<name>.base`).
-   - `STATUS`: Clean (`✔` green) or Modified with change count (`? ✗ (+N)` yellow/red).
-   - `MAIN ↕`: Divergence relative to `main` (`↑N` ahead green, `↓N` behind red).
-   - `REMOTE ⇅`: Divergence relative to remote upstream (`⇡N` unpushed, `⇣N` unpulled).
+   - `STATUS`: Clean (`󰄬` green) or Modified with change count (`󰅖 (+N)` red).
+   - `MAIN ↕`: Divergence relative to `main` (`󰞕N` ahead green, `󰞒N` behind red).
+   - `REMOTE ⇅`: Divergence relative to remote upstream (`󰞕N` unpushed, `󰞒N` unpulled).
    - `AGE` & `COMMIT`: Relative time since last commit and abbreviated hash.
 4. **Multi-Layout Real-Time Previews (`p` / `ctrl-p`)**:
    - **Tab 1**: `Git Status & Local Changes` + Commit Graph (`git log --graph`).
@@ -255,14 +255,14 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
 
 1. **Step 1: Conventional Type Selection (`mm -o awt-type`)**:
    - Uses the modular preset [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-type.toml).
-   - Presents conventional types with icons and descriptions:
-     `✨ feat`, `🐛 fix`, `♻️ refactor`, `⚡ perf`, `🔧 chore`, `📝 docs`, `🧪 test`, `📦 build`, `🏷️ custom`.
+   - Presents conventional types with Nerd Font icons and descriptions:
+     ` feat`, ` fix`, `󰑮 refactor`, ` perf`, `󰒓 chore`, `󰈙 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
    - `Esc`: Aborts and returns directly to the main `awt` dashboard.
 
 2. **Step 2: Branch Name via Native Matchmaker Prompt (`mm -o awt-prompt`)**:
-   - Opens a dedicated, sleek 3-line Matchmaker prompt popup with the selected type icon and prefix pre-filled:
+   - Opens a dedicated, sleek Matchmaker prompt with the selected type icon and prefix pre-filled:
      ```text
-     ✨ Branch name: feat/auth-oauth2_
+      Branch name: feat/auth-oauth2_
 
       [Enter] Confirm  •  [Esc] Back
      ```

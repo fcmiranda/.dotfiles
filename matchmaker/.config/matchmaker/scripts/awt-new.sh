@@ -4,7 +4,7 @@
 trap 'exit 0' INT
 
 step=1
-icon="🏷️"
+icon="󰓹"
 prefix=""
 slug=""
 branch_name=""
@@ -67,7 +67,7 @@ while true; do
             branch_folder="${branch_name//\//-}"
             target_dir="$repo_root/../$branch_folder"
 
-            printf "\n\033[1;32m✓ Creating worktree '%s' (base: %s)...\033[0m\n" "$branch_name" "$bbase"
+            printf "\n\033[1;32m󰄬 Creating worktree '%s' (base: %s)...\033[0m\n" "$branch_name" "$bbase"
 
             if command -v wt >/dev/null 2>&1; then
                 wt switch --create "$branch_name" --base "$bbase"

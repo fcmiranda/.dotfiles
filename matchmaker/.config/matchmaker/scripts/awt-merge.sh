@@ -11,7 +11,7 @@ current_wt=$(git rev-parse --show-toplevel 2>/dev/null)
 current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 current_session=$(tmux display-message -p '#{session_name}' 2>/dev/null)
 
-selected_branch=$(echo "$selected_raw" | sed "s/^[ @^]*//; s/ .*//")
+selected_branch=$(echo "$selected_raw" | sed -E 's/^[^a-zA-Z0-9._/-]+//; s/[[:space:]].*//')
 
 # 2. Determine Source and Target branches
 if [[ "$selected_branch" == "$current_branch" || -z "$selected_branch" ]]; then
@@ -24,7 +24,7 @@ source_branch="$current_branch"
 
 # Validation: cannot merge a branch into itself
 if [[ "$source_branch" == "$target_branch" ]]; then
-    printf "\n\033[1;31m✖ Cannot merge '%s' into itself!\033[0m\n" "$source_branch" >/dev/tty
+    printf "\n\033[1;31m󰅖 Cannot merge '%s' into itself!\033[0m\n" "$source_branch" >/dev/tty
     sleep 1.2
     exit 0
 fi
@@ -106,7 +106,7 @@ else
     if [[ $stashed -eq 1 ]]; then
         git -C "$current_wt" stash pop >/dev/null 2>&1 || true
     fi
-    printf "\n\033[1;31m✖ Merge failed or has conflicts! Worktree kept intact for resolution.\033[0m\n" >/dev/tty
+    printf "\n\033[1;31m󰅖 Merge failed or has conflicts! Worktree kept intact for resolution.\033[0m\n" >/dev/tty
     sleep 2
     exit 1
 fi

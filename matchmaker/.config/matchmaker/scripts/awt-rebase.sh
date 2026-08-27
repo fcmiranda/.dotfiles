@@ -6,8 +6,8 @@ branch_raw="$1"
 wt_path="$2"
 base_raw="$3"
 
-branch=$(echo "$branch_raw" | sed "s/^[ @^]*//; s/ .*//")
-base=$(echo "$base_raw" | sed "s/^[ @^]*//; s/ .*//")
+branch=$(echo "$branch_raw" | sed -E 's/^[^a-zA-Z0-9._/-]+//; s/[[:space:]].*//')
+base=$(echo "$base_raw" | sed -E 's/^[^a-zA-Z0-9._/-]+//; s/[[:space:]].*//')
 
 base="${base:--}"
 if [[ "$base" == "-" || -z "$base" ]]; then
@@ -17,13 +17,13 @@ fi
 
 # 1. Validation
 if [[ "$branch" == "$base" ]]; then
-    printf "\n\033[1;31m✖ Cannot rebase '%s' onto itself!\033[0m\n" "$branch" >/dev/tty
+    printf "\n\033[1;31m󰅖 Cannot rebase '%s' onto itself!\033[0m\n" "$branch" >/dev/tty
     sleep 1.2
     exit 0
 fi
 
 if [[ "$branch" == "main" || "$branch" == "master" ]]; then
-    printf "\n\033[1;31m✖ Cannot rebase default base branch '%s'!\033[0m\n" "$branch" >/dev/tty
+    printf "\n\033[1;31m󰅖 Cannot rebase default base branch '%s'!\033[0m\n" "$branch" >/dev/tty
     sleep 1.2
     exit 0
 fi
@@ -46,7 +46,7 @@ if git -C "$wt_path" rebase "$base" >/dev/null 2>&1; then
     fi
     exit 0
 else
-    printf "\n\033[1;33m⚠️ Rebase stopped with conflicts in '%s'. Inspect and run 'git rebase --continue'.\033[0m\n" "$branch" >/dev/tty
+    printf "\n\033[1;33m󰀪 Rebase stopped with conflicts in '%s'. Inspect and run 'git rebase --continue'.\033[0m\n" "$branch" >/dev/tty
     sleep 2.5
     exit 1
 fi

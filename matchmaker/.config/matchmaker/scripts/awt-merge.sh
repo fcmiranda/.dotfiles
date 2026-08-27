@@ -14,12 +14,10 @@ current_session=$(tmux display-message -p '#{session_name}' 2>/dev/null)
 selected_branch=$(echo "$selected_raw" | sed "s/^[ @^]*//; s/ .*//")
 
 # 2. Determine Source and Target branches
-# If the user selected the CURRENT branch, the target is its configured BASE branch (or main)
 if [[ "$selected_branch" == "$current_branch" || -z "$selected_branch" ]]; then
     target_branch=$(git -C "$current_wt" config "branch.${current_branch}.base" 2>/dev/null)
     target_branch="${target_branch:-main}"
 else
-    # The user explicitly highlighted the TARGET branch in the list!
     target_branch="$selected_branch"
 fi
 source_branch="$current_branch"
@@ -27,20 +25,11 @@ source_branch="$current_branch"
 # Validation: cannot merge a branch into itself
 if [[ "$source_branch" == "$target_branch" ]]; then
     printf "\n\033[1;31m✖ Cannot merge '%s' into itself!\033[0m\n" "$source_branch" >/dev/tty
-    sleep 1.5
+    sleep 1.2
     exit 0
 fi
 
-# 3. Action Box Confirmation via Matchmaker awt-confirm preset
-export MM_CONFIRM_ITEMS=$(printf "ACTION\tLABEL\nmerge\t🚀 Yes, Merge '%s' into '%s' (clean up worktree & switch session)\ncancel\t🛡️  No, Cancel\n" "$source_branch" "$target_branch")
-
-confirm_choice=$(mm -o awt-confirm)
-
-if [[ "$confirm_choice" != "merge" ]]; then
-    exit 0
-fi
-
-# 4. Resolve Target Worktree Directory & Session
+# 3. Resolve Target Worktree Directory & Session
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 repo_parent=$(basename "$(dirname "$current_wt")")
 target_clean="${target_branch//\//-}"
@@ -58,9 +47,7 @@ else
     target_session="${repo_parent}/${target_clean}"
 fi
 
-# 5. Execute Merge
-printf "\n\033[1;36m🔀 Merging '%s' into '%s'...\033[0m\n" "$source_branch" "$target_branch" >/dev/tty
-
+# 4. Execute Merge
 merge_success=0
 if command -v wt >/dev/null 2>&1; then
     if wt merge "$target_branch" >/dev/null 2>&1; then
@@ -78,9 +65,7 @@ if [[ $merge_success -eq 0 ]]; then
 fi
 
 if [[ $merge_success -eq 1 ]]; then
-    printf "\033[1;32m✓ Merge successful!\033[0m\n" >/dev/tty
-
-    # Cleanup source worktree
+    # Cleanup source worktree & branch
     if command -v wt >/dev/null 2>&1; then
         wt remove "$current_wt" >/dev/null 2>&1 || git worktree remove -f "$current_wt" >/dev/null 2>&1
     else

@@ -222,10 +222,7 @@ output_template = "{=session}\t{=path}"
     '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")''',
     "Reload",
 ]
-"@merge_worktree" = [
-    '''Execute(~/.config/matchmaker/scripts/awt-merge.sh "{=branch}" "{=path}" "{=session}" "{=base}")''',
-    "Reload",
-]
+"@merge_worktree" = '''Confirm({magenta,bold:🔀} Merge into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=branch}" "{=path}" "{=session}" "{=base}")'''
 "@fetch_remotes" = [
     '''Execute(
         echo "Fetching remotes for {=branch}..."

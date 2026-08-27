@@ -81,6 +81,11 @@ while true; do
                 "$HOME/.config/matchmaker/hooks/post-create.sh" "$target_dir" "$branch_name" "$bbase" 2>/dev/null || true
             fi
 
+            # Close Tmux popup if open
+            if [ -n "$TMUX" ]; then
+                tmux display-popup -C 2>/dev/null || true
+            fi
+
             if command -v sesh >/dev/null 2>&1; then
                 sesh connect "$target_dir"
             fi

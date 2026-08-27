@@ -10,10 +10,13 @@ nav_bar = "Plain"
 nav_color = "white"
 
 [query]
-status_inline = true
+status_inline = false
 prompt = "> "
 prompt_style.fg = "cyan"
 prompt_style.modifier = "BOLD"
+
+[status]
+show = false
 
 [footer]
 content = " {cyan,bold:[Enter]} {darkgray:Confirm}  •  {yellow,bold:[Esc]} {darkgray:Back}"

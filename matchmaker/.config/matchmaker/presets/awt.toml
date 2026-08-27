@@ -2,7 +2,7 @@
 # Interactive worktree switcher with Nav Mode, BASE branch column, ANSI colors, and multi-tab previews.
 
 [tui]
-percentage = 80
+percentage = 40
 min = 15
 max = 90
 

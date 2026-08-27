@@ -37,7 +37,7 @@ typo_tolerance = true
 
 [results]
 reverse = false
-column_spacing = 3
+column_spacing = 2
 symlink_target = false
 
 [results.current_style]
@@ -52,7 +52,9 @@ fg = "lightblue"
 split = "\t"
 default = "type"
 names = [
+    { name = "icon" },
     { name = "type" },
+    { name = "prefix", hidden = true },
     { name = "description" },
 ]
 
@@ -61,13 +63,22 @@ show = false
 
 [start.command]
 command = '''
-printf "TYPE\tDESCRIPTION\n\033[1;36m✨ feat\033[0m\tNew feature\n\033[1;31m🐛 fix\033[0m\tBug fix\n\033[1;33m♻️  refactor\033[0m\tCode restructuring\n\033[1;35m⚡ perf\033[0m\tPerformance optimization\n\033[1;34m🔧 chore\033[0m\tMaintenance / config\n\033[1;32m📝 docs\033[0m\tDocumentation\n\033[1;36m🧪 test\033[0m\tTest suites\n\033[1;33m📦 build\033[0m\tDependencies / build\n\033[2m🏷️  custom\033[0m\tNo prefix / freeform\n"
+printf "ICON\tTYPE\tPREFIX\tDESCRIPTION\n\
+✨\t\033[1;36mfeat\033[0m\tfeat/\tNew feature\n\
+🐛\t\033[1;31mfix\033[0m\tfix/\tBug fix\n\
+♻️\t\033[1;33mrefactor\033[0m\trefactor/\tCode restructuring\n\
+⚡\t\033[1;35mperf\033[0m\tperf/\tPerformance optimization\n\
+🔧\t\033[1;34mchore\033[0m\tchore/\tMaintenance / config\n\
+📝\t\033[1;32mdocs\033[0m\tdocs/\tDocumentation\n\
+🧪\t\033[1;36mtest\033[0m\ttest/\tTest suites\n\
+📦\t\033[1;33mbuild\033[0m\tbuild/\tDependencies / build\n\
+🏷️\t\033[2mcustom\033[0m\t\tNo prefix / freeform\n"
 '''
 
 [start]
 ansi = true
 mode = "nav"
-output_template = "{=type}"
+output_template = "{=icon}\t{=prefix}"
 
 [binds]
 "ctrl-j" = "Down"

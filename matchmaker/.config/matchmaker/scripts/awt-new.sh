@@ -3,12 +3,9 @@
 
 trap 'exit 0' INT
 
-selected_raw="$1"
-selected_branch=$(echo "$selected_raw" | sed "s/^[ @^]*//; s/ .*//")
-
 step=1
+icon="🏷️"
 prefix=""
-icon="🏷️ "
 slug=""
 branch_name=""
 bbase=""
@@ -74,24 +71,14 @@ while true; do
     case "$step" in
         1)
             # ── Step 1: Conventional Type Selection via Matchmaker Preset (`mm -o awt-type`) ──
-            type_choice=$(mm -o awt-type)
+            type_output=$(mm -o awt-type)
 
             # If Esc / canceled in Step 1 -> exit completely back to main awt list
-            if [[ -z "$type_choice" ]]; then
+            if [[ -z "$type_output" ]]; then
                 exit 0
             fi
 
-            case "$type_choice" in
-                *"feat"*)     prefix="feat/";     icon="✨" ;;
-                *"fix"*)      prefix="fix/";      icon="🐛" ;;
-                *"refactor"*) prefix="refactor/"; icon="♻️ " ;;
-                *"perf"*)     prefix="perf/";     icon="⚡" ;;
-                *"chore"*)    prefix="chore/";    icon="🔧" ;;
-                *"docs"*)     prefix="docs/";     icon="📝" ;;
-                *"test"*)     prefix="test/";     icon="🧪" ;;
-                *"build"*)    prefix="build/";    icon="📦" ;;
-                *)            prefix="";          icon="🏷️ " ;;
-            esac
+            IFS=$'\t' read -r icon prefix <<< "$type_output"
             step=2
             ;;
 

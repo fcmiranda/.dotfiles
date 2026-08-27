@@ -15,7 +15,7 @@ if [ "$TMUX_POPUP" = "1" ]; then
     MM_TUI_ARGS=("tui.percentage=100" "tui.max=9999")
 fi
 
-selected_base="${1:-}"
+selected_base="$(echo "${1:-}" | sed -E 's/^[^a-zA-Z0-9._/-]+[[:space:]]*//')"
 
 while true; do
     case "$step" in

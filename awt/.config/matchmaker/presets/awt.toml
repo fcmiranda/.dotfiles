@@ -64,6 +64,7 @@ names = [
     { name = "commit" },
     { name = "session", hidden = true },
     { name = "path", hidden = true },
+    { name = "raw", hidden = true },
 ]
 
 [previewer]
@@ -204,8 +205,8 @@ END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch 
     age_display="\033[2m${age:-now}\033[0m"
     head_display="\033[33m$head\033[0m"
 
-    printf "%b\t%b\t%b\t%b\t%b\t%b\t%b\t%s\t%s\n" \
-        "$branch_display" "$base_display" "$status_icon" "$main_div" "$upstream_div" "$age_display" "$head_display" "$session_name" "$wt_path"
+    printf "%b\t%b\t%b\t%b\t%b\t%b\t%b\t%s\t%s\t%s\n" \
+        "$branch_display" "$base_display" "$status_icon" "$main_div" "$upstream_div" "$age_display" "$head_display" "$session_name" "$wt_path" "$branch"
 done
 '''
 
@@ -215,17 +216,17 @@ mode = "nav"
 output_template = "{=session}\t{=path}"
 
 [binds]
-"@delete_worktree" = '''Confirm({red,bold:󱓌} Delete worktree {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")'''
+"@delete_worktree" = '''Confirm({red,bold:󱓌} Delete worktree {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=raw}")'''
 "@new_worktree" = [
-    '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")''',
+    '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=raw}")''',
     "Reload",
 ]
-"@merge_worktree" = '''Confirm({magenta,bold:} Merge into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=branch}" "{=path}" "{=session}" "{=base}")'''
-"@rebase_worktree" = '''Confirm({yellow,bold:󱓎} Rebase {=branch} onto {=base}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-rebase.sh "{=branch}" "{=path}" "{=base}")'''
-"@rename_worktree" = '''Prompt({cyan,bold:} Rename branch to: | ~/.config/matchmaker/scripts/awt-rename.sh "{=branch}" "{=path}" "{input}" | {=branch})'''
+"@merge_worktree" = '''Confirm({magenta,bold:} Merge into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=raw}" "{=path}" "{=session}" "{=base}")'''
+"@rebase_worktree" = '''Confirm({yellow,bold:󱓎} Rebase {=branch} onto {=base}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-rebase.sh "{=raw}" "{=path}" "{=base}")'''
+"@rename_worktree" = '''Prompt({cyan,bold:} Rename branch to: | ~/.config/matchmaker/scripts/awt-rename.sh "{=raw}" "{=path}" "{input}" | {=raw})'''
 "@fetch_remotes" = [
     '''Execute(
-        echo "Fetching remotes for {=branch}..."
+        echo "Fetching remotes for {=raw}..."
         git -C "{=path}" fetch --all --prune
     )''',
     "Reload",

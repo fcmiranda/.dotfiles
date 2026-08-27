@@ -21,6 +21,9 @@ prompt_for_branch_slug() {
     local rest=""
     OUTPUT_SLUG=""
 
+    # Clear terminal screen to prevent ghost lines from previous steps
+    clear >/dev/tty 2>/dev/null || printf "\033[H\033[2J" >/dev/tty
+
     printf "%b%s" "$prompt_msg" "$buf" >/dev/tty
 
     while IFS= read -r -s -n 1 key </dev/tty; do
@@ -92,7 +95,6 @@ while true; do
 
         2)
             # ── Step 2: Worktree Branch Slug Input with Instant ESC ──
-            echo ""
             prompt_header=$(printf "\033[1;36m🏷️  Branch Name (%s<name>)\033[0m \033[2m[Esc / Empty: Back]\033[0m: " "${prefix}")
 
             if ! prompt_for_branch_slug "$prompt_header" "$slug"; then

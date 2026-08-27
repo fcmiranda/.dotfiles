@@ -218,17 +218,25 @@ output_template = "{=session}\t{=path}"
     '''ExecuteSilent(~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")''',
     "Reload",
 ]
+"@new_worktree" = [
+    '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")''',
+    "Reload",
+]
+"@fetch_remotes" = [
+    '''Execute(
+        echo "Fetching remotes for {=branch}..."
+        git -C "{=path}" fetch --all --prune
+    )''',
+    "Reload",
+]
 
 # Standard & fallback keys
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "ctrl-p" = "SwitchPreview"
-"ctrl-n" = '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")'''
+"ctrl-n" = "@new_worktree"
 "ctrl-d" = "@delete_worktree"
-"ctrl-u" = '''Execute(
-    echo "Fetching remotes for {=branch}..."
-    git -C "{=path}" fetch --all --prune
-)'''
+"ctrl-u" = "@fetch_remotes"
 
 # Nav Mode Binds (active when mode = "nav")
 "nav^^j" = "Down"
@@ -241,9 +249,6 @@ output_template = "{=session}\t{=path}"
 "nav^^p" = "SwitchPreview"
 "nav^^g" = "Pos(0)"
 "nav^^G" = "Pos(-1)"
-"nav^^c" = '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")'''
+"nav^^c" = "@new_worktree"
 "nav^^d" = "@delete_worktree"
-"nav^^u" = '''Execute(
-    echo "Fetching remotes for {=branch}..."
-    git -C "{=path}" fetch --all --prune
-)'''
+"nav^^u" = "@fetch_remotes"

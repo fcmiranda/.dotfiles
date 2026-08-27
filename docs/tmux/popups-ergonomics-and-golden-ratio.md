@@ -83,7 +83,7 @@ Sempre que o tema do sistema é alterado (`omarchy theme set <tema>`), 100% dos 
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **1. Efêmera** | [`window-picker.sh`](../../tmux/.config/tmux/window-picker.sh) | `magenta` / `accent` | `#cba6f7` | ` 󱂬 ` | `75% × 60%` | `Esc` (1 toque) |
 | **1. Efêmera** | [`sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh) | `cyan` / `blue` | `#89dceb` | ` ⚡ ` | `75% × 60%` | `Esc` (1 toque) |
-| **1. Efêmera** | [`awt-popup.sh`](../../tmux/.config/tmux/awt-popup.sh) | `orange` / `peach` | `#e84d31` | ` 󰙅 ` | `85% × 75%` | `Esc` / `q` |
+| **1. Efêmera** | [`awt-popup.sh`](../../tmux/.config/tmux/awt-popup.sh) | `orange` / `peach` | `#e84d31` | `  ` | `85% × 75%` | `Esc` / `q` |
 | **2. Persistente** | [`lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh)| `orange` / `peach` | `#e84d31` | ` 󰊢 ` | `90% × 88%` | `Esc` (Files) / `q` |
 | **2. Persistente** | `opencode` (`Alt+o`) | `accent` / `blue` | `#b4befe` | ` 󱜻 ` | `85% × 85%` | `Ctrl+C` / `exit` |
 | **2. Persistente** | `nvim` (`prefix+N`) | `orange` / `peach` | `#fab387` | `  ` | `90% × 90%` | `:q` |

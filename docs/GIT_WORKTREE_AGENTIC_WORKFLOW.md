@@ -259,17 +259,17 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
      `✨ feat`, `🐛 fix`, `♻️ refactor`, `⚡ perf`, `🔧 chore`, `📝 docs`, `🧪 test`, `📦 build`, `🏷️ custom`.
    - `Esc`: Aborts and returns directly to the main `awt` dashboard.
 
-2. **Step 2: Branch Slug Input with Character Event Loop (`awt-new.sh`)**:
-   - Custom prompt featuring the selected type icon:
+2. **Step 2: Branch Name via Native Matchmaker Prompt (`mm -o awt-prompt`)**:
+   - Opens a dedicated, sleek 3-line Matchmaker prompt popup with the selected type icon and prefix pre-filled:
      ```text
-     ✨ Branch Name (feat/<name>): auth-oauth2
+     ✨ Branch name: feat/auth-oauth2_
 
-      [Enter] Confirm  •  [Esc / Empty] Back
+      [Enter] Confirm  •  [Esc] Back
      ```
-   - **Zero Screen Pollution**: Clears terminal (`clear >/dev/tty`) before drawing to prevent ghost artifacts.
-   - **Instant `Esc`**: Low-level interception on `/dev/tty` (`read -r -s -n 1`), immediately returning to Step 1.
-   - **Instant `Enter`**: Submits the branch name to Step 3.
-   - **State Memory**: Returning from Step 3 preserves the previous slug in the buffer.
+   - **Full Line Editing**: Native cursor navigation, backspace, and clipboard paste powered by Matchmaker's engine.
+   - **Instant `Esc`**: Returns to Step 1 (`awt-type`).
+   - **Instant `Enter`**: Submits the branch name to Step 3 (`awt-base`).
+   - **State Memory**: Navigating back from Step 3 preserves the previous slug in the input buffer.
 
 3. **Step 3: Base Branch Selection (`mm -o awt-base`)**:
    - Uses the modular preset [`awt-base.toml`](file:///home/fecavmi/.dotfiles/main/matchmaker/.config/matchmaker/presets/awt-base.toml).

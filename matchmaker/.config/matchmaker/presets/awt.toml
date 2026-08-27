@@ -214,10 +214,7 @@ mode = "nav"
 output_template = "{=session}\t{=path}"
 
 [binds]
-"@delete_worktree" = [
-    '''ExecuteSilent(~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")''',
-    "Reload",
-]
+"@delete_worktree" = '''Confirm({red,bold:🗑️} Delete worktree {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")'''
 "@new_worktree" = [
     '''Execute(~/.config/matchmaker/scripts/awt-new.sh "{=branch}")''',
     "Reload",

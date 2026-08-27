@@ -215,7 +215,7 @@ output_template = "{=session}\t{=path}"
 
 [binds]
 "@delete_worktree" = [
-    '''Execute(~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")''',
+    '''ExecuteSilent(~/.config/matchmaker/scripts/awt-delete.sh "{=session}" "{=path}" "{=branch}")''',
     "Reload",
 ]
 

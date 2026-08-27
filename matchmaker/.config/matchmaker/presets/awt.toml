@@ -2,9 +2,9 @@
 # Interactive worktree switcher with Nav Mode, BASE branch column, ANSI colors, and multi-tab previews.
 
 [tui]
-percentage = 40
+percentage = 100
 min = 15
-max = 90
+max = 9999
 
 [ui]
 nav_mode = true
@@ -70,7 +70,7 @@ debounce_ms = 20
 delay_clear = true
 
 [preview]
-show = false
+show = true
 
 # ── Preview Layout 1: Status & Local Changes + Recent Commits ──
 [[preview.layout]]

@@ -1,9 +1,9 @@
 # Matchmaker Agent Worktree Conventional Type Preset (`mm -o awt-type`)
 
 [tui]
-percentage = 35
+percentage = 100
 min = 12
-max = 50
+max = 9999
 
 [ui]
 nav_mode = true

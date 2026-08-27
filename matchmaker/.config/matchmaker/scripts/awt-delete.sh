@@ -32,9 +32,9 @@ if [[ "$ahead_commits" -gt 0 || "$dirty_count" -gt 0 ]]; then
         details+="${dirty_count} uncommitted file(s)"
     fi
 
-    confirm_cmd=$(printf "ACTION\tLABEL\ncancel\t🛡️  No, Cancel (Keep %s)\ndelete\t🗑️  Yes, Force Delete (%s with %s)\n" "$branch_clean" "$branch_clean" "$details")
+    export MM_CONFIRM_ITEMS=$(printf "ACTION\tLABEL\ncancel\t🛡️  No, Cancel (Keep %s)\ndelete\t🗑️  Yes, Force Delete (%s with %s)\n" "$branch_clean" "$branch_clean" "$details")
 
-    confirm_choice=$(mm -o awt-confirm query.prompt="⚠️ Worktree has ${details}! Delete? > " start.command.command="$confirm_cmd")
+    confirm_choice=$(mm -o awt-confirm)
 
     # If user cancelled, pressed Esc, or chose No -> exit cleanly
     if [[ "$confirm_choice" != "delete" ]]; then

@@ -17,7 +17,7 @@ done < <(tmux list-panes -a -F '#{pane_id} #{@ai_agent_state_raw}' 2>/dev/null |
 
 # 2. Fallback to @ai_agent_last_bell if no state-filtered panes found
 if [ "${#notifying_panes[@]}" -eq 0 ]; then
-  last_bell=$(tmux show-gv @ai_agent_last_bell 2>/dev/null)
+  last_bell=$(tmux show-option -gv @ai_agent_last_bell 2>/dev/null)
   if [ -n "$last_bell" ] && tmux display-message -t "$last_bell" -p '#{pane_id}' >/dev/null 2>&1; then
     notifying_panes+=("$last_bell")
   fi
@@ -30,11 +30,18 @@ if [ "${#notifying_panes[@]}" -eq 0 ]; then
   done < <(tmux list-panes -a -F '#{pane_id} #{@ai_agent_state_raw}' 2>/dev/null | awk '$2 ~ /^(working|busy)$/ {print $1}')
 fi
 
-# 4. Fallback: Search for any pane running agy, antigravity, or opencode
+# 4. Fallback: Check for any pane with a registered AI agent state (including idle / recently responded)
 if [ "${#notifying_panes[@]}" -eq 0 ]; then
   while IFS= read -r line; do
     [ -n "$line" ] && notifying_panes+=("$line")
-  done < <(tmux list-panes -a -F '#{pane_id} #{pane_current_command}' 2>/dev/null | awk '$2 ~ /^(agy|antigravity|opencode)$/ {print $1}')
+  done < <(tmux list-panes -a -F '#{pane_id} #{@ai_agent_state_raw}' 2>/dev/null | awk '$2 ~ /^(idle|working|busy|question|permission|error|awaiting_input)$/ {print $1}')
+fi
+
+# 5. Fallback: Search for any pane running agy, antigravity, or opencode (command or title)
+if [ "${#notifying_panes[@]}" -eq 0 ]; then
+  while IFS= read -r line; do
+    [ -n "$line" ] && notifying_panes+=("$line")
+  done < <(tmux list-panes -a -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null | awk '$2 ~ /^(agy|antigravity|opencode)$/ || $3 ~ /^(agy|antigravity|opencode)$/ {print $1}')
 fi
 
 if [ "${#notifying_panes[@]}" -eq 0 ]; then
@@ -61,32 +68,44 @@ win_name=$(tmux display-message -t "$pane" -p '#W' 2>/dev/null)
 
 TITLE=" $sess › $win_name ($((curr_idx + 1))/$total)  │  prefix+i cycle "
 
-# If current client is already on the same session, jump directly to the window.
+# If current client is already on the same session, jump directly to the window and show HUD.
 current_sess=$(tmux display-message -p '#S' 2>/dev/null)
 if [ "$current_sess" = "$sess" ]; then
-  tmux select-window -t "$sess:$win_idx"
-  tmux select-pane -t "$pane" 2>/dev/null
+  tmux select-window -t "$sess:$win_idx" 2>/dev/null || true
+  tmux select-pane -t "$pane" 2>/dev/null || true
+  tmux display-message -d 1500 " 󰮯 AI Agent: $sess › $win_name ($((curr_idx + 1))/$total)"
   exit 0
 fi
 
 POPUP_SESS="_popups"
 if ! tmux has-session -t "$POPUP_SESS" 2>/dev/null; then
-  tmux new-session -d -s "$POPUP_SESS" -n "bell"
+  tmux new-session -d -s "$POPUP_SESS" -n "_dummy"
 fi
 
-tmux unlink-window -t "$POPUP_SESS:bell" 2>/dev/null || true
-tmux link-window -s "$sess:$win_idx" -t "$POPUP_SESS:bell" 2>/dev/null || true
+# Clean any existing linked window in _popups except the initial _dummy window (index 0)
+for w in $(tmux list-windows -t "$POPUP_SESS" -F '#{window_id}:#{window_index}' 2>/dev/null); do
+  w_id="${w%%:*}"
+  w_idx="${w##*:}"
+  if [ "$w_idx" != "0" ]; then
+    tmux unlink-window -t "$w_id" 2>/dev/null || tmux kill-window -t "$w_id" 2>/dev/null || true
+  fi
+done
+
+# Link target window to index 1 of _popups
+tmux link-window -s "$sess:$win_idx" -t "$POPUP_SESS:1" 2>/dev/null || tmux link-window -a -s "$sess:$win_idx" -t "$POPUP_SESS:0" 2>/dev/null || true
+tmux select-window -t "$POPUP_SESS:1" 2>/dev/null || true
+tmux select-pane -t "$pane" 2>/dev/null || true
 tmux set-option -t "$POPUP_SESS" status off 2>/dev/null || true
 
 ALERT_POPUP_COLOR=$(grep -E '^\s*yellow\s*=' "$HOME/.local/state/omarchy/current/theme/colors.toml" 2>/dev/null | sed -E 's/.*=\s*"([^"]+)".*/\1/')
 [ -z "$ALERT_POPUP_COLOR" ] && ALERT_POPUP_COLOR="${TMUX_POPUP_ALERT_BORDER_COLOR:-#f9e2af}"
 
-tmux popup \
+tmux display-popup \
   -S "fg=$ALERT_POPUP_COLOR" \
-  -s "fg=$TMUX_POPUP_TEXT_COLOR" \
+  -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
   -T " 󰮯 " \
   -w "80%" \
   -h "75%" \
   -b rounded \
   -E \
-  "tmux attach-session -t \"$POPUP_SESS:bell\"; tmux unlink-window -t \"$POPUP_SESS:bell\" >/dev/null 2>&1"
+  "tmux attach-session -t \"$POPUP_SESS:1\"; tmux unlink-window -t \"$POPUP_SESS:1\" >/dev/null 2>&1 || true"

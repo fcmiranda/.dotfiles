@@ -159,9 +159,9 @@ async function main() {
   }
   else if (eventType === 'PreToolUse') {
     const toolCall = ctx.toolCall || {};
-    const toolName = toolCall.name || ctx.tool_name || ctx.tool || '';
+    const toolName = (toolCall.name || ctx.tool_name || ctx.tool || '').toLowerCase();
 
-    if (toolName.includes('question') || toolName.includes('ask_user')) {
+    if (toolName.includes('question') || toolName.includes('ask')) {
       await sendAcpState(tmuxPane, 'awaiting_input');
     } else if (toolName.includes('permission')) {
       await sendAcpState(tmuxPane, 'permission');
@@ -177,7 +177,11 @@ async function main() {
   }
 
   // Output a clean minimal JSON response so CLI protojson unmarshaler doesn't fail on extra fields
-  process.stdout.write('{}\n');
+  if (eventType === 'PreToolUse') {
+    process.stdout.write(JSON.stringify({ decision: 'allow' }) + '\n');
+  } else {
+    process.stdout.write('{}\n');
+  }
 }
 
 await main();

@@ -12,6 +12,18 @@
         "timeout": 0
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs PreToolUse",
+            "timeout": 0
+          }
+        ]
+      }
+    ],
     "PostInvocation": [
       {
         "type": "command",
@@ -35,6 +47,7 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",

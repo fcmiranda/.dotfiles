@@ -1,26 +1,30 @@
 
 
-wt switch --create - cria branch mas nao muda de ssao tmux
-vou ter que criar um mm wt.toml que cria branch e muda de sessao no tmux. 
-deleta branch e sessao do tmux
-
   • Você pode usar o comando /plan caso queira planejar a aplicação e teste dessas alterações em branches isoladas de worktree.
   • Você pode usar o comando /boost para rodar benchmarks detalhados de tempo de renderização em microssegundos com hyperfine.
 
-ajustar modelo de trabalho em worktrees
-sesh worktree
+-----------------------------------------------------------------------
 
-arrumar lazyvimrs para criar worktree no mesmo padrao que o wt
+arrumar lazyvimrs para criar worktree no mesmo padrao que o awt com 
 .bare e tal
+barra de scroll
+-----------------------------------------------------------------------
 
-avaliar se wt realmente necessario
 
 
 
-ARRUMAR O ctrl i 
+- ver o lazygit do nvim quando entra em um hunk
+![alt text](image.png)
+
+hunk mode
+![alt text](image-1.png)
+
+funcionalidade passar o mouse no md e ver preview de imagem
+
+
+- [x] ARRUMAR O ctrl i (prefix + i / ai-agent-bell-popup)
 
 mm
-arrumar imagens nao carregando matchmaker
 colocar borda top entre os grupos pasta locais, arquivos das pastas
 
 

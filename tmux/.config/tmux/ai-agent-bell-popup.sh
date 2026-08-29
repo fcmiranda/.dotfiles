@@ -96,6 +96,7 @@ tmux link-window -s "$sess:$win_idx" -t "$POPUP_SESS:1" 2>/dev/null || tmux link
 tmux select-window -t "$POPUP_SESS:1" 2>/dev/null || true
 tmux select-pane -t "$pane" 2>/dev/null || true
 tmux set-option -t "$POPUP_SESS" status off 2>/dev/null || true
+tmux set-option -t "$POPUP_SESS" key-table popup 2>/dev/null || true
 
 ALERT_POPUP_COLOR=$(grep -E '^\s*yellow\s*=' "$HOME/.local/state/omarchy/current/theme/colors.toml" 2>/dev/null | sed -E 's/.*=\s*"([^"]+)".*/\1/')
 [ -z "$ALERT_POPUP_COLOR" ] && ALERT_POPUP_COLOR="${TMUX_POPUP_ALERT_BORDER_COLOR:-#f9e2af}"

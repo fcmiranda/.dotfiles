@@ -1,18 +1,8 @@
 
 
-  • Você pode usar o comando /plan caso queira planejar a aplicação e teste dessas alterações em branches isoladas de worktree.
-  • Você pode usar o comando /boost para rodar benchmarks detalhados de tempo de renderização em microssegundos com hyperfine.
-
 -----------------------------------------------------------------------
-
-arrumar lazyvimrs para criar worktree no mesmo padrao que o awt com 
-.bare e tal
 barra de scroll
 -----------------------------------------------------------------------
-
-
-
-
 - ver o lazygit do nvim quando entra em um hunk
 ![alt text](image.png)
 
@@ -22,13 +12,10 @@ hunk mode
 funcionalidade passar o mouse no md e ver preview de imagem
 
 
-- [x] ARRUMAR O ctrl i (prefix + i / ai-agent-bell-popup)
 
 mm
-colocar borda top entre os grupos pasta locais, arquivos das pastas
 
-
-nao esta funcionando copiar via vim zsh para outros aplicativos (yy) por exemplo
+- [x] copiar via vim zsh para outros aplicativos (yy)
 talvez adicionar no mm uma forma de copiar diretamente o path
 
 arrumar hypr boder animacao nao mostrando

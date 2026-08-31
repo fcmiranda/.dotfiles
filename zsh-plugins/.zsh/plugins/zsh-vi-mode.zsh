@@ -2,6 +2,8 @@
 function zvm_config() {
     # Keep last mode behavior - the plugin default
     ZVM_LINE_INIT_MODE=$ZVM_MODE_LAST
+    # Enable system clipboard integration (yanks and deletes sync to system clipboard)
+    ZVM_SYSTEM_CLIPBOARD_ENABLED=true
     # Export ZVM_MODE so starship custom modules can read it
     typeset -gx ZVM_MODE
 }
@@ -17,7 +19,9 @@ if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
 fi
 
 # Load omarchy-based colors for zsh-vi-mode prompt indicator
-if [ -f "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh" ]; then
+if [ -f "${HOME}/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
+    source "${HOME}/.zsh/plugins/zsh-vi-mode-theme.zsh"
+elif [ -f "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh" ]; then
     source "${HOME}/.zsh-plugins/zsh-vi-mode-theme.zsh"
 elif [ -f "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh" ]; then
     source "${HOME}/.zsh-plugins/.zsh/plugins/zsh-vi-mode-theme.zsh"

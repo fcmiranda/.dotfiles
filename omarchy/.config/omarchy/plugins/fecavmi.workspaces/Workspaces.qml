@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Wayland
 import qs.Commons
 import qs.Ui
 
@@ -250,9 +251,18 @@ BarWidget {
       else if (toplevel["class"]) cls = String(toplevel["class"])
     }
 
-    if (!title) {
-      if (toplevel.title) title = String(toplevel.title)
-      else if (toplevel.initialTitle) title = String(toplevel.initialTitle)
+    if (toplevel.title) title = String(toplevel.title)
+    else if (toplevel.waylandHandle && toplevel.waylandHandle.title) title = String(toplevel.waylandHandle.title)
+    else if (!title && toplevel.initialTitle) title = String(toplevel.initialTitle)
+
+    // 4. Live Wayland ToplevelManager fallback for active windows
+    if (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) {
+      var act = ToplevelManager.activeToplevel
+      var actApp = String(act.appId || "").toLowerCase()
+      var curCls = cls.toLowerCase()
+      if (curCls.length === 0 || actApp.length === 0 || curCls.indexOf(actApp) !== -1 || actApp.indexOf(curCls) !== -1) {
+        title = String(act.title)
+      }
     }
 
     var clsLower = cls.toLowerCase()
@@ -329,7 +339,29 @@ BarWidget {
           return Hyprland.focusedWorkspace.name === String(modelData)
         }
 
-        readonly property var iconList: root.getWorkspaceIcons(workspace, modelData, focused)
+        // Reactive signature that triggers instant icon re-computation on tab/title changes
+        readonly property string toplevelSignature: {
+          var sig = ""
+          if (workspace && workspace.toplevels && workspace.toplevels.values) {
+            var vals = workspace.toplevels.values
+            for (var i = 0; i < vals.length; i++) {
+              var t = vals[i]
+              if (t.title) sig += t.title + ";"
+              if (t.waylandHandle && t.waylandHandle.title) sig += t.waylandHandle.title + ";"
+              if (t.lastIpcObject && t.lastIpcObject.title) sig += t.lastIpcObject.title + ";"
+            }
+          }
+          if (focused && ToplevelManager.activeToplevel) {
+            sig += (ToplevelManager.activeToplevel.title || "") + ";"
+            sig += (ToplevelManager.activeToplevel.appId || "") + ";"
+          }
+          return sig
+        }
+
+        readonly property var iconList: {
+          var _dep = toplevelSignature
+          return root.getWorkspaceIcons(workspace, modelData, focused)
+        }
         readonly property color itemColor: {
           if (focused) return Color.accent
           if (mouseArea.containsMouse) return Color.foreground

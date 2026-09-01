@@ -251,7 +251,7 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
           └──(Enter)────────────────────────┴──(Enter)──────────────────────────┴──(Enter)──► 🚀 Sesh
 ```
 
-#### 4-Step Architecture:
+#### 5-Step Architecture:
 
 1. **Step 1: Conventional Type Selection (`mm -o awt-type`)**:
    - Uses the modular preset [`awt-type.toml`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/presets/awt-type.toml).
@@ -286,10 +286,24 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
 
 5. **Step 5: Provisioning, Hooks & Automated Session Switch**:
    - Creates the sibling worktree via native Git (`git worktree add`).
+   - **Existing Branch Fallback**: Automatically supports both new branches and pre-existing Git branches (e.g. `fecavmi`, `fecavmi-bk`) without erroring.
    - Saves base branch configuration: `git config branch.<name>.base "$base"`.
    - Executes the [`post-create.sh`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/hooks/post-create.sh) lifecycle hook (replicating `.env` and triggering repo-level setup).
    - Connects instantly via `sesh connect "$target_dir"`, resuming the selected AI conversation (or launching default `startup_command`).
    - Automatically closes the floating popup modal (`tmux display-popup -C`) with clean signal trapping (`trap 'exit 0' HUP INT TERM`).
+
+---
+
+### C. Direct Jump (`awt <branch>`) vs Explicit Creation (`awt -c <branch> [base]`)
+
+The CLI offers two complimentary modes for interacting with worktrees directly from the command line:
+
+1. **`awt <branch>`** *(Fast Jump & Auto-Provision)*:
+   - **Existing Worktree**: Switches the active Tmux client straight into that session.
+   - **Missing Worktree**: Auto-creates the folder from current `HEAD` (or binds to the existing local/remote branch of that name) and switches to it in 1 command.
+2. **`awt -c <branch> [base]`** *(Explicit Base Provisioning)*:
+   - Allows declaring a specific base branch explicitly (e.g., `awt -c feat/login main`).
+   - Running `awt -c` without arguments invokes the full interactive 5-step Matchmaker wizard.
 
 ---
 

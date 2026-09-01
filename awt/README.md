@@ -83,13 +83,23 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 | `awt` | — | Open interactive Matchmaker TUI dashboard in current pane (30% height). |
 | `awt popup` | **`awp`** / `Ctrl+Shift+G` | Open full floating AWT modal ($85\% \times 75\%$) in Tmux. |
 | `awt -c` / `awt new` / `awt add` | **`awc`** | Launch the interactive 5-step Conventional Commits wizard. |
-| `awt -c <branch> [base] [flags]` | — | Create new worktree from base and connect session (`--continue`, `--no-tmux`). |
-| `awt <branch>` / `awt switch <branch>` | — | Switch directly to the Tmux session for the specified worktree. |
+| `awt -c <branch> [base] [flags]` | — | Create/provision worktree from specific base branch (`--continue`, `--no-tmux`). |
+| `awt <branch>` / `awt switch <branch>` | — | Switch to existing worktree or auto-create from current `HEAD` if not yet provisioned. |
 | `awt rm <branch> [-f] [--no-delete-branch]` | — | Delete worktree directory, Git branch (or keep ref), and kill session. |
 | `awt rebase [base]` | — | Safely rebase current worktree onto base branch with auto-stash. |
 | `awt merge [branch] [flags]` | — | Merge current worktree into base with hooks (`--squash`, `--no-commit`, `--no-remove`, `--no-tmux`). |
 | `awt clone <repo> [dir]` | **`awtc`** | Clone repository in `.bare` layout and provision initial worktree. |
 | `awt help` / `awt -h` | — | Display CLI help, usage options, and flag reference. |
+
+### 🧭 Direct Switch vs Explicit Creation:
+* **`awt <branch>`** *(Fast Jump & Auto-Provision)*:
+  - If the worktree folder already exists, it immediately switches your Tmux client to that session.
+  - If the worktree folder does not exist, it automatically creates the worktree (supporting both new and existing local/remote Git branches like `fecavmi` or `fecavmi-bk`) based on current `HEAD` and connects you.
+* **`awt -c <branch> [base]`** *(Explicit Creation with Base Branch)*:
+  - Allows specifying an explicit base branch as the 2nd argument (e.g. `awt -c feat/oauth staging` or `awt -c fecavmi main`).
+  - Running `awt -c` without arguments opens the full interactive 5-step wizard (`awc`).
+* **Existing Branches**:
+  - Both commands gracefully detect existing Git branches without erroring, linking the worktree directory directly to the pre-existing branch.
 
 ### 🚩 Flags Reference:
 * `--continue`, `--ai-continue`: Resume the active AI conversation in the newly created worktree session.

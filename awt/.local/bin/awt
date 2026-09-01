@@ -10,11 +10,11 @@ awt - Agent Worktree Manager & Multi-Agent Git Orchestrator
 
 USAGE:
     awt                                     Open interactive Matchmaker TUI dashboard
-    awt -c | new | add [flags]              Launch interactive Conventional Commits wizard
-    awt -c <branch> [base] [flags]          Create worktree from base and connect session
-    awt <branch> | switch <branch>          Switch/connect to existing worktree Tmux session
-    awt popup                               Open floating AWT modal in Tmux (85% × 75%)
-    awt clone <repo> [dir]                  Clone repository into .bare container layout
+    awt -c | new | add [flags]              Launch interactive 5-step Conventional Commits wizard (awc)
+    awt -c <branch> [base] [flags]          Create/provision worktree from explicit base branch and connect
+    awt <branch> | switch <branch>          Switch to existing worktree session (or auto-create from HEAD)
+    awt popup                               Open floating AWT modal in Tmux (85% × 75%) (awp)
+    awt clone <repo> [dir]                  Clone repository into .bare container layout (awtc)
     awt rm | remove <branch> [flags]        Delete worktree, Git branch, and kill Tmux session
     awt rebase [base]                       Rebase active worktree onto base branch with auto-stash
     awt merge [branch] [flags]              Merge active worktree into base branch with hooks

@@ -41,7 +41,7 @@ if [ -z "${TMUX_POPUP:-}" ]; then
           -d "$PROJECT_DIR" \
           -E \
           -w 85% -h 75% \
-          "TMUX_POPUP=1 '$REAL_SCRIPT' '$PROJECT_DIR' || true" || true
+          "TMUX_POPUP=1 AWT_ORIGIN_PANE='$CURRENT_PANE' '$REAL_SCRIPT' '$PROJECT_DIR' || true" || true
 
         tmux kill-pane -t "$BACKDROP_PANE" 2>/dev/null || true
         tmux set-option -w -t "$CURRENT_PANE" automatic-rename on 2>/dev/null || true
@@ -50,6 +50,7 @@ if [ -z "${TMUX_POPUP:-}" ]; then
             tmux select-pane -t "$CURRENT_PANE" 2>/dev/null || true
         fi
     else
+        CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
         exec tmux display-popup \
           -S "fg=$AWT_POPUP_COLOR" \
           -s "fg=${TMUX_POPUP_TEXT_COLOR:-default}" \
@@ -58,7 +59,7 @@ if [ -z "${TMUX_POPUP:-}" ]; then
           -d "$PROJECT_DIR" \
           -E \
           -w 85% -h 75% \
-          "TMUX_POPUP=1 '$REAL_SCRIPT' '$PROJECT_DIR' || true" || true
+          "TMUX_POPUP=1 AWT_ORIGIN_PANE='$CURRENT_PANE' '$REAL_SCRIPT' '$PROJECT_DIR' || true" || true
     fi
     exit 0
 fi

@@ -277,12 +277,19 @@ Triggered by pressing **`c`** inside Matchmaker or by running **`awt -c`**:
    - **Single Keypress Confirmation**: If you want to branch from the selected branch, simply press **`Enter`** (1 stroke).
    - `Esc`: Returns to Step 2 with the branch name pre-filled.
 
-4. **Step 4: Provisioning, Hooks & Automated Session Switch**:
-   - Creates the sibling worktree via `wt switch --create "$branch" --base "$base"` or `git worktree add`.
+4. **Step 4: AI Conversation Continuity (`mm -o awt-ai`)**:
+   - Uses [`awt-ai.toml`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/presets/awt-ai.toml) and [`awt-ai-detect.sh`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/scripts/awt-ai-detect.sh).
+   - **Auto-Detection**: Scans running Tmux panes in the current session for active AI processes (`agy`, `opencode`, `claude`, etc.).
+   - **Row 0**: Highlights the active conversation from the current pane (`󱐋 <ai> (current pane)`).
+   - **Multi-Session Selection**: If multiple AI conversations are active across panes/windows, allows selecting which conversation to carry over into the new worktree.
+   - **Fresh Option**: Select `󰓹 Fresh Conversation` (or press `Esc`) to launch a brand-new clean AI session.
+
+5. **Step 5: Provisioning, Hooks & Automated Session Switch**:
+   - Creates the sibling worktree via native Git (`git worktree add`).
    - Saves base branch configuration: `git config branch.<name>.base "$base"`.
    - Executes the [`post-create.sh`](file:///home/fecavmi/.dotfiles/main/awt/.config/matchmaker/hooks/post-create.sh) lifecycle hook (replicating `.env` and triggering repo-level setup).
-   - Connects instantly via `sesh connect "$target_dir"`, launching **`agy`** (Antigravity CLI) in the new session.
-   - Automatically closes the floating popup modal (`tmux display-popup -C`) with clean signal trapping (`trap 'exit 0' HUP INT TERM`), landing you directly inside the new workspace without error banners or duplicate commands.
+   - Connects instantly via `sesh connect "$target_dir"`, resuming the selected AI conversation (or launching default `startup_command`).
+   - Automatically closes the floating popup modal (`tmux display-popup -C`) with clean signal trapping (`trap 'exit 0' HUP INT TERM`).
 
 ---
 

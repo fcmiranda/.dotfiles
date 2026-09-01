@@ -1,0 +1,85 @@
+# Matchmaker Agent Worktree AI Conversation Preset (`mm -o awt-ai`)
+
+[tui]
+percentage = 30
+min = 8
+max = 20
+restore_fullscreen = false
+
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "white"
+
+[ui.parent_peek]
+enabled = false
+
+[query]
+status_inline = false
+prompt = "> "
+prompt_style.fg = "white"
+prompt_style.modifier = "BOLD"
+
+[status]
+show = false
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Select AI Session}  •  {darkgray,bold:[Esc/q]} {darkgray:Back}"
+row_connection = "Full"
+match_indent = false
+style.fg = "gray"
+style.modifier = "DIM"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+column_spacing = 2
+symlink_target = false
+
+[results.current_style]
+bg = "darkgray"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "cyan"
+modifier = "BOLD"
+
+[columns]
+split = "\t"
+default = "title"
+max_columns = 5
+names = [
+    { name = "title" },
+    { name = "source" },
+    { name = "action" },
+    { name = "cmd", hidden = true },
+]
+
+[preview]
+show = false
+
+[start.command]
+command = '''
+"$HOME/.config/matchmaker/scripts/awt-ai-list.sh"
+'''
+
+[start]
+ansi = true
+mode = "nav"
+output_template = "{=cmd}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^down" = "Down"
+"nav^^up" = "Up"
+"nav^^enter" = "Accept"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"

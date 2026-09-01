@@ -222,26 +222,18 @@ BarWidget {
   }
 
   function iconForToplevel(toplevel) {
-    if (!toplevel) return ""
+    if (!toplevel) return { icon: "", brightness: 0.0, contrast: 1.0 }
 
     var cls = ""
     var title = ""
 
-    // 1. Try lastIpcObject (Hyprland IPC JSON properties)
-    if (toplevel.lastIpcObject) {
-      if (toplevel.lastIpcObject["class"]) cls = String(toplevel.lastIpcObject["class"])
-      else if (toplevel.lastIpcObject.initialClass) cls = String(toplevel.lastIpcObject.initialClass)
-      if (toplevel.lastIpcObject.title) title = String(toplevel.lastIpcObject.title)
-      else if (toplevel.lastIpcObject.initialTitle) title = String(toplevel.lastIpcObject.initialTitle)
-    }
-
-    // 2. Try waylandHandle (Wayland toplevel)
-    if (!cls && toplevel.waylandHandle) {
+    // 1. Try waylandHandle (Wayland toplevel instance for this exact window)
+    if (toplevel.waylandHandle) {
       if (toplevel.waylandHandle.appId) cls = String(toplevel.waylandHandle.appId)
-      if (!title && toplevel.waylandHandle.title) title = String(toplevel.waylandHandle.title)
+      if (toplevel.waylandHandle.title) title = String(toplevel.waylandHandle.title)
     }
 
-    // 3. Direct properties on toplevel
+    // 2. Try direct properties on toplevel
     if (!cls) {
       if (toplevel.appId) cls = String(toplevel.appId)
       else if (toplevel.waylandClass) cls = String(toplevel.waylandClass)
@@ -251,17 +243,30 @@ BarWidget {
       else if (toplevel["class"]) cls = String(toplevel["class"])
     }
 
-    if (toplevel.title) title = String(toplevel.title)
-    else if (toplevel.waylandHandle && toplevel.waylandHandle.title) title = String(toplevel.waylandHandle.title)
-    else if (!title && toplevel.initialTitle) title = String(toplevel.initialTitle)
+    if (!title && toplevel.title) {
+      title = String(toplevel.title)
+    }
 
-    // 4. Live Wayland ToplevelManager fallback for active windows
-    if (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) {
-      var act = ToplevelManager.activeToplevel
-      var actApp = String(act.appId || "").toLowerCase()
-      var curCls = cls.toLowerCase()
-      if (curCls.length === 0 || actApp.length === 0 || curCls.indexOf(actApp) !== -1 || actApp.indexOf(curCls) !== -1) {
-        title = String(act.title)
+    // 3. Try lastIpcObject (Hyprland IPC JSON properties)
+    if (toplevel.lastIpcObject) {
+      if (!cls) {
+        if (toplevel.lastIpcObject["class"]) cls = String(toplevel.lastIpcObject["class"])
+        else if (toplevel.lastIpcObject.initialClass) cls = String(toplevel.lastIpcObject.initialClass)
+      }
+      if (!title) {
+        if (toplevel.lastIpcObject.title) title = String(toplevel.lastIpcObject.title)
+        else if (toplevel.lastIpcObject.initialTitle) title = String(toplevel.lastIpcObject.initialTitle)
+      }
+    }
+
+    if (!title && toplevel.initialTitle) {
+      title = String(toplevel.initialTitle)
+    }
+
+    // 4. Only if this EXACT toplevel instance is the active Wayland window, use active title
+    if (toplevel.waylandHandle && ToplevelManager.activeToplevel && toplevel.waylandHandle === ToplevelManager.activeToplevel) {
+      if (ToplevelManager.activeToplevel.title) {
+        title = String(ToplevelManager.activeToplevel.title)
       }
     }
 
@@ -339,21 +344,20 @@ BarWidget {
           return Hyprland.focusedWorkspace.name === String(modelData)
         }
 
-        // Reactive signature that triggers instant icon re-computation on tab/title changes
+        // Reactive signature that triggers instant icon re-computation on tab/title changes for THIS workspace only
         readonly property string toplevelSignature: {
           var sig = ""
           if (workspace && workspace.toplevels && workspace.toplevels.values) {
             var vals = workspace.toplevels.values
             for (var i = 0; i < vals.length; i++) {
               var t = vals[i]
-              if (t.title) sig += t.title + ";"
               if (t.waylandHandle && t.waylandHandle.title) sig += t.waylandHandle.title + ";"
+              if (t.title) sig += t.title + ";"
               if (t.lastIpcObject && t.lastIpcObject.title) sig += t.lastIpcObject.title + ";"
             }
           }
           if (focused && ToplevelManager.activeToplevel) {
             sig += (ToplevelManager.activeToplevel.title || "") + ";"
-            sig += (ToplevelManager.activeToplevel.appId || "") + ";"
           }
           return sig
         }

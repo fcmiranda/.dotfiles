@@ -130,3 +130,20 @@ additional_commands = [
 
 [start.command]
 command = ""
+
+# Regras automáticas de ordenação por pasta (avaliadas em ordem top-to-bottom)
+[[folder_rules]]
+path = "~/Downloads"
+sort = "ModifiedReverse" # arquivos modificados recentemente primeiro
+
+[[folder_rules]]
+path = "*/Downloads"
+sort = "ModifiedReverse"
+
+[[folder_rules]]
+path = "*/screenshots"
+sort = "CreatedReverse"  # capturas de tela criadas recentemente primeiro
+
+[[folder_rules]]
+path = "*/Screenshots"
+sort = "CreatedReverse"

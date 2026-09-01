@@ -37,6 +37,7 @@ install_packages \
     cava \
     mpv-wallpaper \
     bibata-cursor-theme-bin \
+    papirus-icon-theme \
     upscayl-bin \
     aether \
     just \

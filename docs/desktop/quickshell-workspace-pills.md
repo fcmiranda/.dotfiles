@@ -63,12 +63,12 @@ Web browsers share a common class (`google-chrome`, `firefox`), but different ta
 
 | Pattern in `title` | Mapped Icon | Description |
 | :--- | :---: | :--- |
-| `YouTube` | `󰗃` | YouTube video or music tab |
-| `GitHub` | `󰊤` | GitHub repositories or PRs |
-| `Google Photos` | `󰋩` | Google Photos gallery |
-| `ChatGPT` / `Grok` | `󰚩` | AI Chat interfaces |
-| `WhatsApp` | `󰖣` | WhatsApp Web |
-| `Google Messages` | `󰭹` | SMS / Chat |
+| `youtube` | `󰗃` | YouTube video or music tab |
+| `github`, `github.io`, `/ repositories`, `pull request(s)`, `issues ·`, `commits ·`, `releases ·` | `󰊤` | GitHub repositories, PRs, SPA pages, or GitHub Pages |
+| `google photos` | `󰋩` | Google Photos gallery |
+| `chatgpt` / `grok` | `󰚩` | AI Chat interfaces |
+| `whatsapp` | `󰖣` | WhatsApp Web |
+| `google messages` | `󰭹` | SMS / Chat |
 | `is sharing your screen` | `󰹑` | Screen recording / sharing indicator |
 
 #### Tier 2: Application Class Mapping (`appId` / `class`)
@@ -76,9 +76,9 @@ For desktop applications, Tier 2 checks the compositor class identifiers:
 
 | App Category | Matching Identifiers (`cls`) | Icon |
 | :--- | :--- | :---: |
-| **Terminals** | `ghostty`, `kitty`, `foot`, `alacritty`, `agent` | `` / `󱚤` |
+| **Terminals** | `ghostty`, `kitty` (Theme-Aware Vector SVGs / `app:`), `foot`, `alacritty`, `agent` | `app:com.mitchellh.ghostty` / `app:kitty` / `` / `󱚤` |
 | **Browsers** | `google-chrome`, `chromium`, `brave`, `firefox`, `zen` | `` / `` |
-| **Editors & IDEs** | `antigravity-ide`, `code`, `vscode`, `nvim`, `obsidian` | `󰲇` / `` / `` / `󰈙` |
+| **Editors & IDEs** | `antigravity-ide` (Theme-Aware `app:`), `code`, `vscode`, `nvim`, `obsidian` | `app:antigravity-ide` / `` / `` / `󰈙` |
 | **Communication** | `discord`, `vesktop`, `telegram`, `signal`, `thunderbird` | `` / `` / `󰭹` / `` |
 | **Media & Audio** | `spotify`, `steam`, `vlc`, `mpv` | `` / `` / `󰕼` / `` |
 | **File Managers** | `nautilus`, `dolphin`, `thunar`, `yazi` | `` |

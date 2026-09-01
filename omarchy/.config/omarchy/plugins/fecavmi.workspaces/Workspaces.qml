@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
+import Quickshell
 import Quickshell.Hyprland
 import qs.Commons
 import qs.Ui
@@ -41,6 +43,183 @@ BarWidget {
     root.bar.run("hyprctl dispatch " + Util.shellQuote("hl.dsp.focus({ workspace = \"" + target + "\" })"))
   }
 
+  readonly property var defaultNerdFontGlyphs: ({
+    "com.mitchellh.ghostty": "",
+    "ghostty": "",
+    "kitty": "",
+    "foot": "",
+    "alacritty": "",
+    "agent": "󱚤",
+    "google-chrome": "",
+    "chrome": "",
+    "firefox": "",
+    "zen": "",
+    "zen-browser": "",
+    "antigravity-ide": "󰲇",
+    "antigravity": "󰲇",
+    "vscode": "",
+    "code": "",
+    "nvim": "",
+    "obsidian": "󰈙",
+    "discord": "",
+    "vesktop": "",
+    "signal": "󰭹",
+    "signal-desktop": "󰭹",
+    "telegram": "",
+    "thunderbird": "",
+    "spotify": "",
+    "steam": "",
+    "vlc": "󰕼",
+    "mpv": "",
+    "system-file-manager": "",
+    "nautilus": "",
+    "thunar": "",
+    "yazi": "",
+    "youtube": "󰗃",
+    "google-photos": "󰋩",
+    "github": "󰊤",
+    "whatsapp": "󰖣",
+    "chatgpt": "󰚩",
+    "grok": "󰚩",
+    "google messages": "󰭹"
+  })
+
+  function getGlyphOrFallback(data) {
+    if (!data) return ""
+    var s = String(data)
+    if (s.indexOf("app:") === 0) {
+      var appName = s.substring(4).toLowerCase()
+      if (root.defaultNerdFontGlyphs[appName]) return root.defaultNerdFontGlyphs[appName]
+      return ""
+    }
+    if (s.indexOf("svg:") === 0 || s.indexOf("/") === 0) return ""
+    return s
+  }
+
+  function getIconSpec(val) {
+    if (!val) return { icon: "", brightness: 0.0, contrast: 0.6 }
+    if (typeof val === "object" && val.icon) {
+      return {
+        icon: val.icon,
+        brightness: (typeof val.brightness === "number") ? val.brightness : 0.0,
+        contrast: (typeof val.contrast === "number") ? val.contrast : 0.6
+      }
+    }
+    return { icon: String(val), brightness: 0.0, contrast: 0.6 }
+  }
+
+  function resolveIconSource(icon) {
+    if (!icon) return ""
+    var s = String(icon)
+    if (s.indexOf("app:") === 0) {
+      var appName = s.substring(4)
+
+      // Direct Papirus SVG mapping exclusively for dedicated vector apps
+      if (appName === "ghostty" || appName === "com.mitchellh.ghostty") {
+        return "/usr/share/icons/Papirus/32x32/apps/com.mitchellh.ghostty.svg"
+      }
+      if (appName === "kitty") {
+        return "/usr/share/icons/Papirus/32x32/apps/kitty.svg"
+      }
+      if (appName === "antigravity" || appName === "antigravity-ide") {
+        return "/usr/share/icons/Papirus/32x32/apps/antigravity.svg"
+      }
+
+      return ""
+    }
+    if (s.indexOf("svg:") === 0) {
+      return s.substring(4)
+    }
+    if (s.indexOf("/") === 0 || s.indexOf("file://") === 0) {
+      return s
+    }
+    return ""
+  }
+
+  readonly property var titleRules: [
+    { patterns: ["youtube"],                                 icon: "󰗃" },
+    { patterns: ["google photos"],                          icon: "󰋩" },
+    { patterns: [
+        "github", "github.io", "github.com",
+        "/ repositories", "/ stars", "/ followers", "/ following", "/ projects", "/ packages",
+        "pull request", "pull requests", "issues ·", "issue #", "commits ·", "commit ·",
+        "releases ·", "release ·", "actions ·"
+      ],                                                     icon: "󰊤" },
+    { patterns: ["chatgpt", "grok"],                        icon: "󰚩" },
+    { patterns: ["whatsapp"],                               icon: "󰖣" },
+    { patterns: ["google messages"],                        icon: "󰭹" },
+    { patterns: ["is sharing your screen"],                 icon: "󰹑" }
+  ]
+
+  readonly property var classRules: [
+    // Terminals (Theme-Aware SVGs for Ghostty and Kitty)
+    { patterns: ["ghostty"],                                icon: "app:com.mitchellh.ghostty" },
+    { patterns: ["kitty"],                                  icon: "app:kitty", brightness: 0.80, contrast: 1.0 },
+    { patterns: ["foot", "alacritty"],                      icon: "" },
+    { patterns: ["agent"],                                  icon: "󱚤" },
+
+    // Browsers (Nerd Font Glyphs)
+    { patterns: ["google-chrome", "chrome", "chromium", "brave"], icon: "" },
+    { patterns: ["firefox", "librewolf", "zen"],            icon: "" },
+
+    // Editors & IDEs (Antigravity with custom brightness & contrast)
+    { patterns: ["antigravity"],                            icon: "app:antigravity", brightness: 0.80, contrast: 1.0 },
+    { patterns: ["code", "vscode"],                         icon: "" },
+    { patterns: ["nvim", "neovim"],                         icon: "" },
+    { patterns: ["typora", "obsidian", "writer"],           icon: "󰈙" },
+
+    // Communication
+    { patterns: ["vesktop", "discord"],                     icon: "" },
+    { patterns: ["signal"],                                 icon: "󰭹" },
+    { patterns: ["telegram"],                               icon: "" },
+    { patterns: ["thunderbird"],                            icon: "" },
+
+    // Media
+    { patterns: ["spotify"],                                icon: "" },
+    { patterns: ["steam"],                                  icon: "" },
+    { patterns: ["vlc"],                                    icon: "󰕼" },
+    { patterns: ["mpv"],                                    icon: "" },
+
+    // Files
+    { patterns: ["nautilus", "dolphin", "thunar", "yazi"],  icon: "" },
+
+    // Omarchy Tools & System
+    { patterns: ["impala"],                                 icon: "󰤨" },
+    { patterns: ["bluetui"],                                icon: "󰂰" },
+    { patterns: ["wiremix"],                                icon: "󰕾" },
+    { patterns: ["btop"],                                   icon: "󰍛" },
+    { patterns: ["lazydocker"],                             icon: "󰡨" },
+    { patterns: ["lazygit"],                                icon: "󰊢" }
+  ]
+
+  readonly property var titleFallbackRules: [
+    { patterns: ["chrome", "google"],                       icon: "" },
+    { patterns: ["ghostty"],                                icon: "app:com.mitchellh.ghostty" },
+    { patterns: ["kitty"],                                  icon: "app:kitty", brightness: 0.80, contrast: 1.0 },
+    { patterns: ["bash", "zsh"],                            icon: "" },
+    { patterns: ["antigravity"],                            icon: "app:antigravity", brightness: 0.80, contrast: 1.0 },
+    { patterns: ["code"],                                   icon: "" },
+    { patterns: ["spotify"],                                icon: "" },
+    { patterns: ["discord"],                                icon: "" }
+  ]
+
+  function matchRule(rules, target) {
+    if (!target) return null
+    for (var i = 0; i < rules.length; i++) {
+      var rule = rules[i]
+      for (var j = 0; j < rule.patterns.length; j++) {
+        if (target.indexOf(rule.patterns[j]) !== -1) {
+          return {
+            icon: rule.icon,
+            brightness: (typeof rule.brightness === "number") ? rule.brightness : 0.0,
+            contrast: (typeof rule.contrast === "number") ? rule.contrast : 1.0
+          }
+        }
+      }
+    }
+    return null
+  }
+
   function iconForToplevel(toplevel) {
     if (!toplevel) return ""
 
@@ -76,90 +255,49 @@ BarWidget {
       else if (toplevel.initialTitle) title = String(toplevel.initialTitle)
     }
 
-    cls = cls.toLowerCase()
-
-    // 1. Title matches (webapps & special titles)
-    if (title.indexOf("YouTube") !== -1) return "󰗃"
-    if (title.indexOf("Google Photos") !== -1) return "󰋩"
-    if (title.indexOf("GitHub") !== -1) return "󰊤"
-    if (title.indexOf("ChatGPT") !== -1) return "󰚩"
-    if (title.indexOf("Grok") !== -1) return "󰚩"
-    if (title.indexOf("WhatsApp") !== -1) return "󰖣"
-    if (title.indexOf("Google Messages") !== -1) return "󰭹"
-    if (title.indexOf("is sharing your screen") !== -1) return "󰹑"
-
-    // 2. Class matches (from legacy waybar config ca80b30d422cd30a19acf0843f144d4d10b07625)
-    // Terminals
-    if (cls.indexOf("ghostty") !== -1) return ""
-    if (cls.indexOf("kitty") !== -1) return ""
-    if (cls.indexOf("foot") !== -1) return ""
-    if (cls.indexOf("alacritty") !== -1) return ""
-    if (cls.indexOf("agent") !== -1) return "󱚤"
-
-    // Browsers
-    if (cls.indexOf("google-chrome") !== -1 || cls.indexOf("chrome") !== -1) return ""
-    if (cls.indexOf("chromium") !== -1) return ""
-    if (cls.indexOf("brave") !== -1) return ""
-    if (cls.indexOf("firefox") !== -1) return ""
-    if (cls.indexOf("librewolf") !== -1) return ""
-    if (cls.indexOf("zen") !== -1) return ""
-
-    // Editors & IDEs
-    if (cls.indexOf("antigravity") !== -1) return "󰲇"
-    if (cls.indexOf("code") !== -1 || cls.indexOf("vscode") !== -1) return ""
-    if (cls.indexOf("nvim") !== -1 || cls.indexOf("neovim") !== -1) return ""
-    if (cls.indexOf("typora") !== -1) return "󰈙"
-    if (cls.indexOf("obsidian") !== -1) return "󰈙"
-    if (cls.indexOf("writer") !== -1) return "󰈙"
-
-    // Communication
-    if (cls.indexOf("vesktop") !== -1 || cls.indexOf("discord") !== -1) return ""
-    if (cls.indexOf("signal") !== -1) return "󰭹"
-    if (cls.indexOf("telegram") !== -1) return ""
-    if (cls.indexOf("thunderbird") !== -1) return ""
-
-    // Media
-    if (cls.indexOf("spotify") !== -1) return ""
-    if (cls.indexOf("steam") !== -1) return ""
-    if (cls.indexOf("vlc") !== -1) return "󰕼"
-    if (cls.indexOf("mpv") !== -1) return ""
-
-    // Files
-    if (cls.indexOf("nautilus") !== -1 || cls.indexOf("dolphin") !== -1 || cls.indexOf("thunar") !== -1 || cls.indexOf("yazi") !== -1) return ""
-
-    // Omarchy Tools & System
-    if (cls.indexOf("impala") !== -1) return "󰤨"
-    if (cls.indexOf("bluetui") !== -1) return "󰂰"
-    if (cls.indexOf("wiremix") !== -1) return "󰕾"
-    if (cls.indexOf("btop") !== -1) return "󰍛"
-    if (cls.indexOf("lazydocker") !== -1) return "󰡨"
-    if (cls.indexOf("lazygit") !== -1) return "󰊢"
-
-    // Fallback: title heuristics
+    var clsLower = cls.toLowerCase()
     var titleLower = title.toLowerCase()
-    if (titleLower.indexOf("chrome") !== -1 || titleLower.indexOf("google") !== -1) return ""
-    if (titleLower.indexOf("ghostty") !== -1 || titleLower.indexOf("bash") !== -1 || titleLower.indexOf("zsh") !== -1) return ""
-    if (titleLower.indexOf("antigravity") !== -1) return "󰲇"
-    if (titleLower.indexOf("code") !== -1) return ""
-    if (titleLower.indexOf("spotify") !== -1) return ""
-    if (titleLower.indexOf("discord") !== -1) return ""
 
-    // Generic window icon fallback
-    return ""
+    var isBrowser = (clsLower.indexOf("chrome") !== -1 ||
+                     clsLower.indexOf("chromium") !== -1 ||
+                     clsLower.indexOf("brave") !== -1 ||
+                     clsLower.indexOf("firefox") !== -1 ||
+                     clsLower.indexOf("zen") !== -1 ||
+                     clsLower.indexOf("librewolf") !== -1 ||
+                     clsLower.indexOf("browser") !== -1 ||
+                     clsLower === "")
+
+    // Tier 1: Semantic Title Patterns (Webapps & Special States - evaluated for browsers)
+    var ruleMatch = null
+    if (isBrowser) {
+      ruleMatch = matchRule(root.titleRules, titleLower)
+      if (ruleMatch) return ruleMatch
+    }
+
+    // Tier 2: Application Class Mapping (appId / class)
+    ruleMatch = matchRule(root.classRules, clsLower)
+    if (ruleMatch) return ruleMatch
+
+    // Tier 3: Title Heuristics Fallback
+    ruleMatch = matchRule(root.titleFallbackRules, titleLower)
+    if (ruleMatch) return ruleMatch
+
+    // Tier 4: Generic window icon fallback
+    return { icon: "", brightness: 0.0, contrast: 1.0 }
   }
 
-  function getWorkspaceLabel(workspace, id, focused) {
+  function getWorkspaceIcons(workspace, id, focused) {
     if (!workspace || !workspace.toplevels || !workspace.toplevels.values || workspace.toplevels.values.length === 0) {
-      return focused ? "\uDB85\uDCFB" : String(id)
+      return [{ icon: focused ? "\uDB85\uDCFB" : String(id), brightness: 0.0, contrast: 1.0 }]
     }
 
     var toplevels = workspace.toplevels.values
     var icons = []
     for (var i = 0; i < toplevels.length; i++) {
-      var icon = root.iconForToplevel(toplevels[i])
-      if (icon) icons.push(icon)
+      var iconSpec = root.iconForToplevel(toplevels[i])
+      if (iconSpec) icons.push(iconSpec)
     }
-    return icons.length > 0 ? icons.join(" ") : (focused ? "\uDB85\uDCFB" : String(id))
+    return icons.length > 0 ? icons : [{ icon: focused ? "\uDB85\uDCFB" : String(id), brightness: 0.0, contrast: 1.0 }]
   }
 
   readonly property real trailingGap: root.vertical ? 0 : Style.spaceReal(1.5)
@@ -191,7 +329,13 @@ BarWidget {
           return Hyprland.focusedWorkspace.name === String(modelData)
         }
 
-        readonly property string labelText: root.getWorkspaceLabel(workspace, modelData, focused)
+        readonly property var iconList: root.getWorkspaceIcons(workspace, modelData, focused)
+        readonly property color itemColor: {
+          if (focused) return Color.accent
+          if (mouseArea.containsMouse) return Color.foreground
+          if (occupied) return Qt.lighter(Color.muted, 1.65)
+          return Util.alpha(Color.muted, 0.45)
+        }
 
         implicitWidth: pillRect.implicitWidth
         implicitHeight: root.barSize
@@ -202,7 +346,7 @@ BarWidget {
           height: root.barSize - 8
           radius: height / 2
 
-          implicitWidth: Math.max(height, label.implicitWidth + 14)
+          implicitWidth: Math.max(height, iconsRow.implicitWidth + 14)
 
           color: {
             if (focused) return Util.alpha(Color.accent, 0.22)
@@ -222,18 +366,67 @@ BarWidget {
           Behavior on color { ColorAnimation { duration: 140 } }
           Behavior on border.color { ColorAnimation { duration: 140 } }
 
-          Text {
-            id: label
+          Row {
+            id: iconsRow
             anchors.centerIn: parent
-            text: pillItem.labelText
-            color: focused ? Color.accent : (occupied ? (root.bar ? root.bar.barForeground : Color.foreground) : Util.alpha(Color.foreground, 0.45))
-            font.family: "JetBrainsMono Nerd Font Propo"
-            font.pixelSize: Style.font.body
-            renderType: Text.NativeRendering
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+            spacing: Style.space(2)
 
-            Behavior on color { ColorAnimation { duration: 140 } }
+            Repeater {
+              model: pillItem.iconList
+
+              Item {
+                required property var modelData
+                readonly property var spec: root.getIconSpec(modelData)
+                readonly property string resolvedSvg: root.resolveIconSource(spec.icon)
+                readonly property bool hasSvg: resolvedSvg.length > 0
+                readonly property real iconSize: Math.max(13, Style.font.body)
+
+                width: hasSvg ? iconSize : glyphText.implicitWidth
+                height: hasSvg ? iconSize : glyphText.implicitHeight
+                anchors.verticalCenter: parent.verticalCenter
+
+                // 1. Default Nerd Font / Numeric Glyph
+                Text {
+                  id: glyphText
+                  visible: !hasSvg
+                  anchors.centerIn: parent
+                  text: hasSvg ? "" : root.getGlyphOrFallback(spec.icon)
+                  color: pillItem.itemColor
+                  font.family: "JetBrainsMono Nerd Font Propo"
+                  font.pixelSize: Style.font.body
+                  renderType: Text.NativeRendering
+                  horizontalAlignment: Text.AlignHCenter
+                  verticalAlignment: Text.AlignVCenter
+
+                  Behavior on color { ColorAnimation { duration: 140 } }
+                }
+
+                // 2. Theme-Aware Vector Icon (Papirus SVG / PNG via MultiEffect)
+                Image {
+                  id: svgImage
+                  visible: false
+                  anchors.fill: parent
+                  fillMode: Image.PreserveAspectFit
+                  sourceSize.width: Math.round(width * Screen.devicePixelRatio)
+                  sourceSize.height: Math.round(height * Screen.devicePixelRatio)
+                  source: hasSvg ? resolvedSvg : ""
+                  layer.enabled: hasSvg
+                  smooth: true
+                }
+
+                MultiEffect {
+                  visible: hasSvg
+                  anchors.fill: svgImage
+                  source: svgImage
+                  brightness: spec.brightness
+                  contrast: spec.contrast
+                  colorization: 1.0
+                  colorizationColor: pillItem.itemColor
+
+                  Behavior on colorizationColor { ColorAnimation { duration: 140 } }
+                }
+              }
+            }
           }
         }
 

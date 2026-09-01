@@ -1,28 +1,47 @@
 #!/usr/bin/env bash
 # awt-ai-detect.sh - Extensible AI Conversation Discovery Driver for AWT
 # Detects active AI sessions across Tmux panes (agy, opencode, claude, codex, etc.)
+# Extracts EXACT conversation/session IDs and titles for each pane.
 
-detect_agy_conv() {
+detect_agy_conv_id() {
     local pid="$1"
     local conv_id=""
-    # 1. Inspect open file descriptors for conversation db
-    conv_id=$(ls -l /proc/"$pid"/fd 2>/dev/null | grep 'antigravity-cli/conversations' | sed -E 's/.*conversations\/([a-f0-9-]+)\.db.*/\1/' | head -n 1)
+
+    # 1. Inspect open file descriptors for presence lock or conversation db
+    conv_id=$(readlink /proc/"$pid"/fd/* 2>/dev/null | grep -E 'antigravity-cli/(conversations|presence)' | sed -E 's/.*(conversations|presence)\/([a-f0-9-]+)(\.db|\.lock).*/\2/' | head -n 1)
     if [ -n "$conv_id" ]; then
         echo "$conv_id"
         return 0
     fi
 
-    # 2. Inspect process cmdline
+    # 2. Inspect crash log in fd (contains UUID in filename)
+    conv_id=$(readlink /proc/"$pid"/fd/* 2>/dev/null | grep -E 'crashes/crash_' | sed -E 's/.*crash_[0-9]+_([a-f0-9-]+)\.log.*/\1/' | head -n 1)
+    if [ -n "$conv_id" ]; then
+        echo "$conv_id"
+        return 0
+    fi
+
+    # 3. Inspect process cmdline
     local cmdline
     cmdline=$(cat /proc/"$pid"/cmdline 2>/dev/null | tr '\0' ' ')
     if [[ "$cmdline" =~ --conversation[[:space:]=]+([a-f0-9-]+) ]]; then
         echo "${BASH_REMATCH[1]}"
         return 0
     fi
+
     echo ""
 }
 
-detect_opencode_conv() {
+get_agy_title() {
+    local conv_id="$1"
+    local title=""
+    if [ -n "$conv_id" ] && [ -f "$HOME/.gemini/antigravity-cli/conversation_summaries.db" ] && command -v sqlite3 >/dev/null 2>&1; then
+        title=$(sqlite3 "$HOME/.gemini/antigravity-cli/conversation_summaries.db" "SELECT title FROM conversation_summaries WHERE conversation_id = '$conv_id' LIMIT 1" 2>/dev/null)
+    fi
+    echo "$title"
+}
+
+detect_opencode_conv_id() {
     local pid="$1"
     local cmdline
     cmdline=$(cat /proc/"$pid"/cmdline 2>/dev/null | tr '\0' ' ')
@@ -36,7 +55,16 @@ detect_opencode_conv() {
     echo "$conv_id"
 }
 
-detect_claude_conv() {
+get_opencode_title() {
+    local conv_id="$1"
+    local title=""
+    if [ -n "$conv_id" ] && command -v opencode >/dev/null 2>&1; then
+        title=$(opencode session list --format json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((x.get('title','') for x in data if x.get('id')=='$conv_id'), ''))" 2>/dev/null || true)
+    fi
+    echo "$title"
+}
+
+detect_claude_conv_id() {
     local pid="$1"
     local cmdline
     cmdline=$(cat /proc/"$pid"/cmdline 2>/dev/null | tr '\0' ' ')
@@ -58,7 +86,7 @@ find_descendants() {
 }
 
 # Returns list of AI sessions:
-# Format: is_cur_pane \t ai_name \t conv_id \t win_pane_label \t resume_cmd
+# Format: is_cur_pane \t ai_name \t conv_id \t conv_title \t win_pane_label \t resume_cmd
 awt_ai_detect_all() {
     local current_pane="${AWT_ORIGIN_PANE:-$(tmux display-message -p '#{pane_id}' 2>/dev/null || echo '')}"
     local current_session=$(tmux display-message -p '#{session_name}' 2>/dev/null || echo "")
@@ -82,43 +110,47 @@ awt_ai_detect_all() {
             local cmdline
             cmdline=$(cat /proc/"$p"/cmdline 2>/dev/null | tr '\0' ' ' || true)
 
+            # Skip common shell wrappers to find the actual AI binary
+            [[ "$comm" == "bash" || "$comm" == "zsh" || "$comm" == "sh" ]] && continue
+
             local ai_tool=""
             local conv_id=""
+            local conv_title=""
             local resume_cmd=""
 
             # Driver 1: Antigravity (agy)
-            if [[ "$comm" == "agy-bin" || "$comm" == "agy" || "$cmdline" == *"agy"* || "$cmdline" == *"antigravity"* ]]; then
+            if [[ "$comm" == "agy-bin" || "$comm" == "agy" || "$comm" == "antigravity" ]]; then
                 if [[ "$cmdline" != *"grep"* && "$cmdline" != *"awt-ai"* ]]; then
-                    conv_id=$(detect_agy_conv "$p")
-                    if [ -n "$conv_id" ] || [[ "$comm" == "agy-bin" ]]; then
-                        ai_tool="agy"
-                        if [ -n "$conv_id" ]; then
-                            resume_cmd="agy --conversation $conv_id"
-                        else
-                            resume_cmd="agy -c"
-                        fi
+                    conv_id=$(detect_agy_conv_id "$p")
+                    ai_tool="agy"
+                    if [ -n "$conv_id" ]; then
+                        conv_title=$(get_agy_title "$conv_id")
+                        resume_cmd="agy --conversation $conv_id"
+                    else
+                        resume_cmd="agy"
                     fi
                 fi
             # Driver 2: OpenCode
-            elif [[ "$comm" == "opencode" || "$cmdline" == *"opencode"* ]]; then
+            elif [[ "$comm" == "opencode" ]]; then
                 if [[ "$cmdline" != *"grep"* && "$cmdline" != *"awt-ai"* ]]; then
+                    conv_id=$(detect_opencode_conv_id "$p")
                     ai_tool="opencode"
-                    conv_id=$(detect_opencode_conv "$p")
                     if [ -n "$conv_id" ]; then
+                        conv_title=$(get_opencode_title "$conv_id")
                         resume_cmd="opencode -s $conv_id"
                     else
-                        resume_cmd="opencode -c"
+                        resume_cmd="opencode"
                     fi
                 fi
             # Driver 3: Claude Code
-            elif [[ "$comm" == "claude" || "$cmdline" == *"claude"* ]]; then
+            elif [[ "$comm" == "claude" ]]; then
                 if [[ "$cmdline" != *"grep"* && "$cmdline" != *"awt-ai"* ]]; then
+                    conv_id=$(detect_claude_conv_id "$p")
                     ai_tool="claude"
-                    conv_id=$(detect_claude_conv "$p")
                     if [ -n "$conv_id" ]; then
                         resume_cmd="claude --resume $conv_id"
                     else
-                        resume_cmd="claude --resume"
+                        resume_cmd="claude"
                     fi
                 fi
             fi
@@ -126,7 +158,10 @@ awt_ai_detect_all() {
             if [ -n "$ai_tool" ]; then
                 local label="win ${win_idx}.${pane_idx}"
                 [ -n "$win_name" ] && label+=" (${win_name})"
-                printf "%s\t%s\t%s\t%s\t%s\n" "$is_cur" "$ai_tool" "$conv_id" "$label" "$resume_cmd"
+                [ -z "$conv_id" ] && conv_id="none"
+                [ -z "$conv_title" ] && conv_title="Active Session"
+                [ -z "$resume_cmd" ] && resume_cmd="$ai_tool"
+                printf "%s\t%s\t%s\t%s\t%s\t%s\n" "$is_cur" "$ai_tool" "$conv_id" "$conv_title" "$label" "$resume_cmd"
                 break
             fi
         done

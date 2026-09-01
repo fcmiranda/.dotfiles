@@ -8,19 +8,31 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0" 2>/dev/null || realpath "$0")")
 cur_lines=()
 other_lines=()
 
-while IFS=$'\t' read -r is_cur ai_tool conv_id label resume_cmd; do
+while IFS=$'\t' read -r is_cur ai_tool conv_id conv_title label resume_cmd; do
     [ -z "$ai_tool" ] && continue
 
-    short_id="$conv_id"
-    if [ ${#short_id} -gt 18 ]; then
-        short_id="${short_id:0:8}..${short_id: -6}"
+    display_title="$conv_title"
+    if [ -z "$display_title" ] || [ "$display_title" = "Active Session" ]; then
+        if [ -n "$conv_id" ] && [ "$conv_id" != "none" ]; then
+            if [ ${#conv_id} -gt 18 ]; then
+                display_title="${conv_id:0:8}..${conv_id: -6}"
+            else
+                display_title="$conv_id"
+            fi
+        else
+            display_title="Active Session"
+        fi
     fi
-    [ -z "$short_id" ] && short_id="active"
+
+    # Trim display title if overly long
+    if [ ${#display_title} -gt 40 ]; then
+        display_title="${display_title:0:37}..."
+    fi
 
     if [[ "$is_cur" -eq 1 ]]; then
-        cur_lines+=( "$(printf "\033[1;35m󱐋 %s\033[0m \033[35m(%s)\033[0m\t\033[35mcurrent pane\033[0m\t\033[1;32mcontinue\033[0m\t%s" "$ai_tool" "$short_id" "$resume_cmd")" )
+        cur_lines+=( "$(printf "\033[1;35m󱐋 %s\033[0m \033[35m(%s)\033[0m\t\033[35mcurrent pane\033[0m\t\033[1;32mcontinue\033[0m\t%s" "$ai_tool" "$display_title" "$resume_cmd")" )
     else
-        other_lines+=( "$(printf "\033[1;36m󱐋 %s\033[0m \033[36m(%s)\033[0m\t\033[2m%s\033[0m\t\033[1;32mcontinue\033[0m\t%s" "$ai_tool" "$short_id" "$label" "$resume_cmd")" )
+        other_lines+=( "$(printf "\033[1;36m󱐋 %s\033[0m \033[36m(%s)\033[0m\t\033[2m%s\033[0m\t\033[1;32mcontinue\033[0m\t%s" "$ai_tool" "$display_title" "$label" "$resume_cmd")" )
     fi
 done < <(awt_ai_detect_all)
 

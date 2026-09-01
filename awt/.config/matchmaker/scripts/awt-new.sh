@@ -96,7 +96,7 @@ while true; do
             elif [[ "$ai_continue_mode" == "yes" ]]; then
                 detected_ai=$(awt_ai_detect_all | head -n 1)
                 if [ -n "$detected_ai" ]; then
-                    ai_cmd=$(echo "$detected_ai" | awk -F'\t' '{print $5}')
+                    ai_cmd=$(echo "$detected_ai" | awk -F'\t' '{print $6}')
                     step=5
                 else
                     step=4

@@ -291,7 +291,7 @@ if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
             . "$detect_script" 2>/dev/null || true
             detected_ai=$(awt_ai_detect_all | head -n 1)
             if [ -n "$detected_ai" ]; then
-                ai_cmd=$(echo "$detected_ai" | awk -F'\t' '{print $5}')
+                ai_cmd=$(echo "$detected_ai" | awk -F'\t' '{print $6}')
             fi
         fi
     fi

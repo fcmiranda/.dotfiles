@@ -134,7 +134,11 @@ while true; do
 
             printf "\n\033[1;32m󰄬 Creating worktree '%s' (base: %s)...\033[0m\n" "$branch_name" "$bbase"
 
-            git worktree add "$target_dir" -b "$branch_name" "$bbase"
+            git worktree add "$target_dir" -b "$branch_name" "$bbase" 2>/dev/null || \
+            git worktree add "$target_dir" "$branch_name" 2>/dev/null || {
+                printf "\n\033[1;31m󰅖 Failed to create worktree at %s\033[0m\n" "$target_dir"
+                exit 1
+            }
             git -C "$target_dir" config "branch.${branch_name}.base" "$bbase" 2>/dev/null || true
 
             # Run post-create hook if present

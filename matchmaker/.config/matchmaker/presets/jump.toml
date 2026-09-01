@@ -41,6 +41,9 @@ typo_tolerance = true         # true / false (tolerância a erros de digitação
 dir_first = true              # true / false (prioriza pastas no topo da lista)
 
 [results]
+tier_separator = "Underline"
+# Grossura / tipo de borda do navbar exclusivo para o item focado:
+current_nav_bar = "Plain" # "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
 max = 15                      # Quantidade máxima de linhas visíveis
 reverse = false               # true (ordem de baixo para cima) / false (cima para baixo)
 icons = true                  # true (ativa ícones Nerd Font por tipo de arquivo) / false
@@ -50,8 +53,8 @@ row_connection = "Full"       # Destaque da linha: "Full" (barra sólida contín
 symlink_target = true         # true (mostra '-> destino' em links simbólicos) / false
 symlink_target_style.fg = "cyan" # Cor do texto de destino do symlink
 
-# Grossura / tipo de borda do navbar exclusivo para o item focado:
-current_nav_bar = "Plain" # "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+[results.tier_separator_style]
+fg = "gray"   # ou "Cyan", "Blue", "Gray", "#555555", etc.
 
 # Estilo independente para a célula da barra do navbar no item focado:
 [results.current_nav_bar_style]

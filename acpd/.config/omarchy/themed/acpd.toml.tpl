@@ -6,6 +6,7 @@ listen_addr = "127.0.0.1"
 port = 4040
 pid_file = "/tmp/acpd.pid"
 shutdown_timeout_secs = 30
+idle_debounce_ms = 650
 log_level = "info"
 
 [sound]

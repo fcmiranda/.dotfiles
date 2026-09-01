@@ -6,6 +6,7 @@ listen_addr = "127.0.0.1"
 port = 4040
 pid_file = "/tmp/acpd.pid"
 shutdown_timeout_secs = 30
+idle_debounce_ms = 650
 log_level = "info"
 
 [sound]
@@ -20,27 +21,27 @@ active_spinner = "minidot"
 
 [theme.states.idle]
 icon = "󱥂"
-color = "#8fbcbb"
+color = "#0db9d7"
 
 [theme.states.busy]
 icon = "󰑮"
-color = "#ebcb8b"
+color = "#ff9e64"
 
 [theme.states.working]
 icon = "󰑮"
-color = "#ebcb8b"
+color = "#ff9e64"
 
 [theme.states.question]
 icon = "󱜻"
-color = "#b48ead"
+color = "#bb9af7"
 
 [theme.states.permission]
 icon = "󱅭"
-color = "#bf616a"
+color = "#f7768e"
 
 [theme.states.error]
 icon = "󰨄"
-color = "#bf616a"
+color = "#f7768e"
 
 [spinners]
 minidot = { interval = 83, frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"] }

@@ -41,6 +41,11 @@
     "SessionEnd": [
       {
         "type": "command",
+        "command": "node /home/fecavmi/.gemini/hooks/tmux-hook.mjs SessionEnd",
+        "timeout": 0
+      },
+      {
+        "type": "command",
         "command": "node /home/fecavmi/.gemini/hooks/lazygit-hook.mjs SessionEnd",
         "timeout": 0
       }

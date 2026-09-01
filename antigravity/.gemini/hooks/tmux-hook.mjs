@@ -63,91 +63,10 @@ async function sendAcpState(paneId, state, message = null) {
       } catch (err) {}
     }
   }
-
-  // Spawn watchdog if transition to an active state
-  if (['working', 'permission', 'awaiting_input'].includes(state)) {
-    try {
-      const child = spawn(process.execPath, [__filename, 'Watchdog', paneId], {
-        detached: true,
-        stdio: 'ignore',
-        env: process.env
-      });
-      child.unref();
-    } catch (e) {}
-  }
-}
-
-async function getPaneCapture(paneId) {
-  if (!paneId) return '';
-  try {
-    const res = await fetch('http://127.0.0.1:4040/rpc', {
-      method: 'POST',
-      headers: getAcpdHeaders(),
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'tmux.capture_pane',
-        params: { pane_id: paneId },
-        id: Date.now()
-      })
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json?.result?.content !== undefined) {
-        return json.result.content;
-      }
-    }
-  } catch (e) {
-    log(LOG_FILE, `[Watchdog] rpc fetch error: ${e.message}`);
-  }
-
-  try {
-    return execSync(`tmux capture-pane -p -t "${paneId}"`, { stdio: 'pipe', env: process.env }).toString();
-  } catch (e) {
-    log(LOG_FILE, `[Watchdog] getPaneCapture(${paneId}) error: ${e.message}`);
-    return '';
-  }
-}
-
-async function runWatchdog(paneId) {
-  log(LOG_FILE, `[Watchdog] started for pane=${paneId}`);
-  for (let i = 0; i < 60; i++) {
-    await new Promise(r => setTimeout(r, 2000));
-
-    const currentState = readPaneState(paneId);
-    if (!currentState || ['idle', 'closed', 'awaiting_input', 'permission'].includes(currentState.state)) {
-      log(LOG_FILE, `[Watchdog] pane ${paneId} state is now ${currentState?.state} -> exiting watchdog`);
-      return;
-    }
-
-    const cap = await getPaneCapture(paneId);
-    const lines = (cap || '').trim().split('\n').filter(l => l.trim().length > 0);
-    const lastLine = lines[lines.length - 1] || '';
-
-    // AGY CLI status bar indicator:
-    // "esc to cancel" -> actively thinking / working
-    // "? for shortcuts" -> idle / prompt waiting for user input
-    const isThinking = /esc to cancel/i.test(lastLine);
-    const atIdlePrompt = /\? for shortcuts/i.test(lastLine) || /[❯$#%>?]\s*$/i.test(lastLine) || /\^C|cancelled|interrupted/i.test(lastLine);
-
-    log(LOG_FILE, `[Watchdog] loop ${i} isThinking=${isThinking} atIdlePrompt=${atIdlePrompt} lastLine="${lastLine.substring(0, 40)}..."`);
-
-    if (!isThinking && atIdlePrompt) {
-      log(LOG_FILE, `[Watchdog] pane ${paneId} AGY returned to idle prompt -> resetting state to idle`);
-      await sendAcpState(paneId, 'idle');
-      return;
-    }
-  }
-  log(LOG_FILE, `[Watchdog] pane ${paneId} timeout reached after 120s`);
 }
 
 async function main() {
   const eventType = process.argv[2];
-
-  if (eventType === 'Watchdog') {
-    const targetPane = process.argv[3];
-    await runWatchdog(targetPane);
-    return;
-  }
 
   const tmuxPane = getActiveTmuxPane();
   const { ctx } = await readCtx();
@@ -169,7 +88,8 @@ async function main() {
       await sendAcpState(tmuxPane, 'working');
     }
   }
-  else if (['Stop', 'PostInvocation'].includes(eventType)) {
+  else if (eventType === 'Stop') {
+    // Only transition to idle when the entire agent turn terminates (Stop event)
     await sendAcpState(tmuxPane, 'idle');
   }
   else if (['SessionEnd', 'Exit'].includes(eventType)) {

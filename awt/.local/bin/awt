@@ -22,6 +22,9 @@ USAGE:
 
 FLAGS & OPTIONS:
     --no-tmux, --no-connect                 Create or merge worktree without switching Tmux session
+    --continue, --ai-continue               Resume active AI conversation in the new worktree session
+    --no-continue, --fresh                  Start with a fresh AI session (skip resume prompt)
+    --ai=<cmd>                              Specify explicit AI launch command (e.g. --ai="opencode -s id")
     --squash / --no-squash                  Squash all commits on merge (default: no-squash / ff)
     --no-commit                             Perform merge without auto-committing (staged)
     --no-remove                             Keep worktree directory after merge
@@ -167,8 +170,11 @@ fi
 # 3. Parse arguments and flags
 create=0
 no_connect=0
+ai_continue_mode="auto"
+custom_ai_cmd=""
 branch=""
 base="HEAD"
+extra_flags=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -185,6 +191,23 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-tmux|--no-connect)
             no_connect=1
+            extra_flags+=("$1")
+            shift
+            ;;
+        --continue|--ai-continue)
+            ai_continue_mode="yes"
+            extra_flags+=("$1")
+            shift
+            ;;
+        --no-continue|--fresh)
+            ai_continue_mode="no"
+            extra_flags+=("$1")
+            shift
+            ;;
+        --ai=*)
+            ai_continue_mode="custom"
+            custom_ai_cmd="${1#*=}"
+            extra_flags+=("$1")
             shift
             ;;
         *)
@@ -201,16 +224,15 @@ done
 # 4. Interactive Matchmaker wizard when called as `awt -c` or `awt new` without branch name
 if [[ "$create" -eq 1 && -z "$branch" ]]; then
     new_script="$HOME/.config/matchmaker/scripts/awt-new.sh"
+    [ -x "$new_script" ] || new_script="$(dirname "$0")/../../.config/matchmaker/scripts/awt-new.sh"
     cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
     if [[ -x "$new_script" ]]; then
-        flags=()
-        [[ $no_connect -eq 1 ]] && flags+=("--no-tmux")
-        exec "$new_script" "$cur_branch" "${flags[@]}"
+        exec "$new_script" "$cur_branch" "${extra_flags[@]}"
     fi
     exit 0
 fi
 
-[[ -z "$branch" ]] && { echo "awt: branch name required. Usage: awt [-c <branch> [base] [--no-tmux]]"; exit 1; }
+[[ -z "$branch" ]] && { echo "awt: branch name required. Usage: awt [-c <branch> [base] [--no-tmux] [--continue]]"; exit 1; }
 
 # 5. Direct Connection or Creation via 100% Native Git
 branch_clean="${branch//\//-}"
@@ -218,12 +240,16 @@ repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 target_dir="$repo_root/../$branch_clean"
 target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
 
+repo_parent="$(basename "$(dirname "$repo_root")")"
+if [[ "$repo_parent" == ".dotfiles" ]]; then
+    sess="_dotfiles/$branch_clean"
+else
+    sess="${repo_parent}/${branch_clean}"
+fi
+
 # If the worktree directory already exists, connect directly
 if [[ -d "$target_dir" ]]; then
     if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
-        repo_name="$(basename "$repo_root")"
-        sess="${repo_name}/${branch_clean}"
-        sess="${sess#.}"
         if tmux has-session -t "$sess" 2>/dev/null; then
             exec sesh connect "$sess"
         else
@@ -253,7 +279,32 @@ fi
 echo "✓ Worktree ready at $target_dir"
 
 if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
-    exec sesh connect "$target_dir"
+    # AI continuation resolution for direct CLI creation
+    ai_cmd=""
+    if [[ "$ai_continue_mode" == "custom" ]]; then
+        ai_cmd="$custom_ai_cmd"
+    elif [[ "$ai_continue_mode" == "yes" || "$ai_continue_mode" == "auto" ]]; then
+        detect_script="$HOME/.config/matchmaker/scripts/awt-ai-detect.sh"
+        [ -f "$detect_script" ] || detect_script="$(dirname "$0")/../../.config/matchmaker/scripts/awt-ai-detect.sh"
+        if [ -f "$detect_script" ]; then
+            # shellcheck source=/dev/null
+            . "$detect_script" 2>/dev/null || true
+            detected_ai=$(awt_ai_detect_all | head -n 1)
+            if [ -n "$detected_ai" ]; then
+                ai_cmd=$(echo "$detected_ai" | awk -F'\t' '{print $5}')
+            fi
+        fi
+    fi
+
+    if [ -n "$ai_cmd" ] && [ "$ai_cmd" != "__FRESH__" ]; then
+        if ! tmux has-session -t "$sess" 2>/dev/null; then
+            tmux new-session -d -s "$sess" -c "$target_dir"
+            tmux send-keys -t "$sess:0.0" "$ai_cmd" C-m
+        fi
+        exec sesh connect "$sess"
+    else
+        exec sesh connect "$target_dir"
+    fi
 else
     cd "$target_dir"
 fi

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# 100% Matchmaker Presets Worktree Creation Wizard
-
+# 100% Matchmaker Presets Worktree Creation Wizard with AI Conversation Continuation
 trap 'exit 0' HUP INT TERM
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0" 2>/dev/null || realpath "$0")")
+# shellcheck source=/dev/null
+. "$SCRIPT_DIR/awt-ai-detect.sh" 2>/dev/null || true
 
 step=1
 icon="󰓹"
@@ -9,6 +12,7 @@ prefix=""
 slug=""
 branch_name=""
 bbase=""
+ai_cmd="__FRESH__"
 
 MM_TUI_ARGS=()
 if [ "$TMUX_POPUP" = "1" ]; then
@@ -18,10 +22,25 @@ fi
 selected_base="$(echo "${1:-}" | sed -E 's/^[^a-zA-Z0-9._/-]+[[:space:]]*//')"
 
 connect_tmux=1
+ai_continue_mode="auto"
+custom_ai_cmd=""
+
 for arg in "$@"; do
-    if [[ "$arg" == "--no-tmux" || "$arg" == "--no-connect" ]]; then
-        connect_tmux=0
-    fi
+    case "$arg" in
+        --no-tmux|--no-connect)
+            connect_tmux=0
+            ;;
+        --continue|--ai-continue)
+            ai_continue_mode="yes"
+            ;;
+        --no-continue|--fresh)
+            ai_continue_mode="no"
+            ;;
+        --ai=*)
+            ai_continue_mode="custom"
+            custom_ai_cmd="${arg#*=}"
+            ;;
+    esac
 done
 
 while true; do
@@ -67,11 +86,48 @@ while true; do
                 continue
             fi
 
-            step=4
+            # Check if AI sessions exist in the origin tmux session
+            if [[ "$ai_continue_mode" == "no" ]]; then
+                ai_cmd="__FRESH__"
+                step=5
+            elif [[ "$ai_continue_mode" == "custom" ]]; then
+                ai_cmd="$custom_ai_cmd"
+                step=5
+            elif [[ "$ai_continue_mode" == "yes" ]]; then
+                detected_ai=$(awt_ai_detect_all | head -n 1)
+                if [ -n "$detected_ai" ]; then
+                    ai_cmd=$(echo "$detected_ai" | awk -F'\t' '{print $5}')
+                    step=5
+                else
+                    step=4
+                fi
+            else
+                detected_count=$(awt_ai_detect_all | wc -l)
+                if [ "$detected_count" -gt 0 ]; then
+                    step=4
+                else
+                    ai_cmd="__FRESH__"
+                    step=5
+                fi
+            fi
             ;;
 
         4)
-            # ── Step 4: Provision Worktree via Native Git, Run Hooks & Connect via Sesh ──
+            # ── Step 4: AI Conversation Selection via Matchmaker Preset (`mm -o awt-ai`) ──
+            ai_output=$(mm -o awt-ai "${MM_TUI_ARGS[@]}")
+
+            # If Esc was pressed in Step 4 -> step back to Step 3 (base selection)
+            if [[ -z "$ai_output" ]]; then
+                step=3
+                continue
+            fi
+
+            ai_cmd="$ai_output"
+            step=5
+            ;;
+
+        5)
+            # ── Step 5: Provision Worktree via Native Git, Run Hooks & Connect via Sesh ──
             repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
             branch_folder="${branch_name//\//-}"
             target_dir="$repo_root/../$branch_folder"
@@ -86,11 +142,31 @@ while true; do
                 "$HOME/.config/matchmaker/hooks/post-create.sh" "$target_dir" "$branch_name" "$bbase" 2>/dev/null || true
             fi
 
-            # Connect via Sesh unless --no-tmux / --no-connect was requested
+            # Connect via Sesh / Tmux unless --no-tmux / --no-connect was requested
             if [[ $connect_tmux -eq 1 ]]; then
                 touch "/tmp/awt_new_created_${USER:-user}" 2>/dev/null || true
-                if command -v sesh >/dev/null 2>&1; then
-                    sesh connect "$target_dir"
+
+                repo_parent=$(basename "$(dirname "$repo_root")")
+                if [[ "$repo_parent" == ".dotfiles" ]]; then
+                    session_name="_dotfiles/$branch_folder"
+                else
+                    session_name="${repo_parent}/${branch_folder}"
+                fi
+
+                if [ -n "$ai_cmd" ] && [ "$ai_cmd" != "__FRESH__" ]; then
+                    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+                        tmux new-session -d -s "$session_name" -c "$target_dir"
+                        tmux send-keys -t "$session_name:0.0" "$ai_cmd" C-m
+                    fi
+                    if command -v sesh >/dev/null 2>&1; then
+                        sesh connect "$session_name" 2>/dev/null || tmux switch-client -t "$session_name" 2>/dev/null || true
+                    else
+                        tmux switch-client -t "$session_name" 2>/dev/null || true
+                    fi
+                else
+                    if command -v sesh >/dev/null 2>&1; then
+                        sesh connect "$target_dir"
+                    fi
                 fi
 
                 # Dismiss popup modal completely so user lands cleanly in the new session

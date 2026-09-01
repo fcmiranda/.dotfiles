@@ -29,12 +29,16 @@
 * **Golden Ratio Geometry**: Sized precisely at $85\% \times 75\%$ with dynamic theme border colors inherited from Omarchy (`#e84d31`).
 * **Instant Background Protection**: Protects active terminal panes and AI streams from redraw glitches while the modal is open.
 
-### 2. 🧙 4-Step Conventional Commits Creation Wizard (`c` / `awt -c` / `awc`)
+### 2. 🧙 5-Step Conventional Commits Creation Wizard (`c` / `awt -c` / `awc`)
 * **Step 1 — Conventional Type Selection**: Pick conventional prefixes with unified Nerd Font icons:
   ` feat`, ` fix`, `󰣪 refactor`, `󰓅 perf`, ` ci`, ` chore`, `󰧮 docs`, `󰙨 test`, `󰏖 build`, `󰓹 custom`.
 * **Step 2 — In-Place Branch Prompt**: Fast Matchmaker prompt box with memory of previous inputs; press `Esc` to step back to Step 1 without losing context.
-* **Step 3 — Base Branch Selector**: Dynamically highlights the currently selected/active branch at **Row 0** (` <branch> current base`), followed by ` main (default base)` and all other local branches. If branching off the current context, press **`Enter`** (1 stroke) to confirm immediately.
-* **Step 4 — Automated Provisioning & Single-Execution Guard**: Creates the worktree, copies `.env` via `post-create.sh`, provisions a dedicated Tmux session via `sesh`, switches client, and dismisses the modal cleanly without duplicate startup commands.
+* **Step 3 — Base Branch Selector**: Dynamically highlights the currently selected/active branch at **Row 0** (` <branch> current base`), followed by ` main (default base)` and all other local branches.
+* **Step 4 — AI Conversation Continuity**: If active AI coding sessions are detected in the origin Tmux session (`agy`, `opencode`, `claude`, etc.):
+  - **Row 0**: Pre-selects the active AI conversation from the current pane (`󱐋 <ai> (current pane)`).
+  - **Rows 1..N**: Lists other active AI conversations across panes in the session.
+  - **Last Row**: `󰓹 Fresh Conversation` (starts a clean AI session).
+* **Step 5 — Automated Provisioning & Seamless Handover**: Creates the worktree, copies `.env` via `post-create.sh`, launches the selected AI conversation in the new Tmux session, and switches client cleanly.
 
 ### 3. 📊 Real-Time 3-Tab Live Previews (`p`)
 Toggle instantly between 3 live preview panes in Nav Mode:
@@ -78,8 +82,8 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 | :--- | :---: | :--- |
 | `awt` | — | Open interactive Matchmaker TUI dashboard in current pane (30% height). |
 | `awt popup` | **`awp`** / `Ctrl+Shift+G` | Open full floating AWT modal ($85\% \times 75\%$) in Tmux. |
-| `awt -c` / `awt new` / `awt add` | **`awc`** | Launch the interactive 4-step Conventional Commits wizard. |
-| `awt -c <branch> [base] [--no-tmux]` | — | Create new worktree from base and connect session (or stay with `--no-tmux`). |
+| `awt -c` / `awt new` / `awt add` | **`awc`** | Launch the interactive 5-step Conventional Commits wizard. |
+| `awt -c <branch> [base] [flags]` | — | Create new worktree from base and connect session (`--continue`, `--no-tmux`). |
 | `awt <branch>` / `awt switch <branch>` | — | Switch directly to the Tmux session for the specified worktree. |
 | `awt rm <branch> [-f] [--no-delete-branch]` | — | Delete worktree directory, Git branch (or keep ref), and kill session. |
 | `awt rebase [base]` | — | Safely rebase current worktree onto base branch with auto-stash. |
@@ -88,6 +92,9 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 | `awt help` / `awt -h` | — | Display CLI help, usage options, and flag reference. |
 
 ### 🚩 Flags Reference:
+* `--continue`, `--ai-continue`: Resume the active AI conversation in the newly created worktree session.
+* `--no-continue`, `--fresh`: Start with a fresh AI session (skip the resume prompt).
+* `--ai=<cmd>`: Explicitly specify the AI launch command (e.g. `--ai="opencode -s id"`).
 * `--no-tmux`, `--no-connect`: Create or merge worktree without creating/switching the Tmux session.
 * `--squash` / `--no-squash`: Squash all commits into one on merge (default: fast-forward or linear merge).
 * `--no-commit`: Perform merge without auto-committing (leaves changes staged in the index).

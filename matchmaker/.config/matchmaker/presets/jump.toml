@@ -9,12 +9,13 @@ status_inline = true          # true (contador de resultados na barra de busca) 
 cursor = "none"
 filter_prompt_style.fg = "blue"          # Muda a cor (ex: Yellow, Cyan, #fab387, etc.)
 filter_prompt_style.modifier = "BOLD"      # Aplica Negrito ("BOLD", "ITALIC", "DIM", etc.)
-
+filter_underline = true       # Underline aparece quando o filtro está focado e desaparece no modo de navegação
+filter_underline_style.fg = "#8999f1" # Cor do underline no foco ("blue", "gray", "cyan", etc.)
 
 [ui]
 nav_mode = true               # true (modo navegação habilitado) / false
 nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
-nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
+nav_color = "Darkgray"        # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
 # nav_bold = false            # true / false (barra em negrito)
 # nav_blink = false           # true / false (barra piscando)
 # nav_blink_rate = "Slow"     # "Slow", "Medium", "Fast"
@@ -54,7 +55,7 @@ symlink_target = true         # true (mostra '-> destino' em links simbólicos) 
 symlink_target_style.fg = "cyan" # Cor do texto de destino do symlink
 
 [results.tier_separator_style]
-fg = "gray"   # ou "Cyan", "Blue", "Gray", "#555555", etc.
+fg = "#555555"   # ou "Cyan", "Blue", "Gray", "#555555", etc.
 
 # Estilo independente para a célula da barra do navbar no item focado:
 [results.current_nav_bar_style]
@@ -65,7 +66,7 @@ fg = "lightblue"                 # Cor do glifo da barra focada ("yellow", "cyan
 # Estilo da linha em foco (cursor):
 [results.current_style]
 fg = "black"                  # Cor do texto no foco: "black", "#000000", "white", "reset", etc.
-bg = "lightblue"              # Cor de fundo do destaque: "lightblue", "gray", "#1e1e2e", "reset" (transparente), etc.
+bg = "Darkgray"              # Cor de fundo do destaque: "lightblue", "gray", "#1e1e2e", "reset" (transparente), etc.
 modifier = "BOLD"             # "BOLD", "DIM", "ITALIC", "UNDERLINED", "REVERSED"
 
 # (Opcional) Cor e estilo exclusivos para o glifo do ícone no foco:
@@ -91,8 +92,9 @@ side = "right"                # Posição do preview: "right", "left", "top", "b
 percentage = 60               # Tamanho balanceado do painel em % (Proporção Áurea 60/40)
 
 [binds]
-"@reloadnext" = "ReloadNext"
-"ctrl-f" = "@reloadnext"
+"ctrl-f" = "@dirs"
+"ctrl-b" = "@bookmarks"
+"*" = "@bookmark"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
 "ctrl-p" = "SwitchPreview"
@@ -102,7 +104,9 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
 
 [ui.nav_binds]
-"f" = "@reloadnext"
+"f" = "@dirs"
+"b" = "@bookmarks"
+"*" = "@bookmark"
 "e" = "Execute(nvim {+})"
 "l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
 "h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
@@ -121,12 +125,14 @@ style.modifier = "BOLD"       # "BOLD", "DIM", "ITALIC", "UNDERLINED"
 separator_style.fg = "Cyan"   # Cor do separador
 
 [start]
-# Fontes de dados cicláveis via @reloadnext (ctrl-f / f):
+# Fontes de dados cicláveis via @reloadnext (ctrl-f / f / b):
 # Índice 0: "" -> Usa AsyncWalker nativo para pasta/arquivos locais.
 # Índice 1: Lista global de pastas por frecência via mm list --dirs.
+# Índice 2: Lista exclusiva de pastas favoritadas via mm list --bookmarks.
 additional_commands = [
     "",
-    "mm list --dirs 2>/dev/null"
+    "mm list --dirs 2>/dev/null",
+    "mm list --bookmarks 2>/dev/null"
 ]
 
 [start.command]

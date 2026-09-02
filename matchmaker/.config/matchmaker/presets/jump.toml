@@ -84,6 +84,7 @@ delay_clear = true             # true (evita flicker retendo preview anterior at
 show = true
 media = true
 media_fit = "fit"
+scrollbar = true
 
 [[preview.layout]]
 side = "right"                # Posição do preview: "right", "left", "top", "bottom"

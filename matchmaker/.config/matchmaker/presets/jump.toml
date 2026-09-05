@@ -6,14 +6,27 @@ percentage = 70               # Altura do TUI em % da tela (1-100)
 
 [query]
 status_inline = true          # true (contador de resultados na barra de busca) / false
-cursor = "none"
 filter_prompt_style.fg = "blue"          # Muda a cor (ex: Yellow, Cyan, #fab387, etc.)
 filter_prompt_style.modifier = "BOLD"      # Aplica Negrito ("BOLD", "ITALIC", "DIM", etc.)
 filter_underline = true       # Underline aparece quando o filtro está focado e desaparece no modo de navegação
 filter_underline_style.fg = "#8999f1" # Cor do underline no foco ("blue", "gray", "cyan", etc.)
 
+# Prompts e cores por modo:
+local_prompt = "> "
+local_prompt_style.fg = "cyan"
+local_underline_style.fg = "cyan"
+
+frecency_prompt = "󱅤 "
+frecency_prompt_style.fg = "#8999f1"
+frecency_underline_style.fg = "#8999f1"
+
+bookmarks_prompt = " "
+bookmarks_prompt_style.fg = "#f9e2af"
+bookmarks_underline_style.fg = "#f9e2af"
+
 [ui]
 nav_mode = true               # true (modo navegação habilitado) / false
+nav_focus_on_start = "filter" # Inicia focado no filtro para busca imediata
 nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
 nav_color = "Darkgray"        # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
 # nav_bold = false            # true / false (barra em negrito)
@@ -54,12 +67,20 @@ row_connection = "Full"       # Destaque da linha: "Full" (barra sólida contín
 symlink_target = true         # true (mostra '-> destino' em links simbólicos) / false
 symlink_target_style.fg = "cyan" # Cor do texto de destino do symlink
 
+bookmark_folder_icon = "󰮟"
+bookmark_file_icon = "󱀻"
+bookmark_icon_style.fg = "#f9e2af"
+frecency_folder_icon = "󰪻"
+frecency_folder_icon_style.fg = "#8999f1"
+frecency_icon = "󱋢"
+frecency_icon_style.fg = "#8999f1"
+
 [results.tier_separator_style]
 fg = "#555555"   # ou "Cyan", "Blue", "Gray", "#555555", etc.
 
 # Estilo independente para a célula da barra do navbar no item focado:
 [results.current_nav_bar_style]
-fg = "lightblue"                 # Cor do glifo da barra focada ("yellow", "cyan", "black", "#89b4fa", etc.)
+fg = "white"                 # Cor do glifo da barra focada ("yellow", "cyan", "black", "#89b4fa", etc.)
 # bg = "lightblue"            # Cor de fundo da barra focada (se omitido, herda current_style.bg)
 # modifier = "BOLD"           # "BOLD", "DIM", "ITALIC", "UNDERLINED"
 
@@ -92,6 +113,8 @@ side = "right"                # Posição do preview: "right", "left", "top", "b
 percentage = 60               # Tamanho balanceado do painel em % (Proporção Áurea 60/40)
 
 [binds]
+"tab" = []
+"esc" = "ToggleFocus"
 "ctrl-f" = "@dirs"
 "ctrl-b" = "@bookmarks"
 "*" = "@bookmark"
@@ -99,20 +122,34 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "ctrl-k" = "Up"
 "ctrl-p" = "SwitchPreview"
 "ctrl-e" = "Execute(nvim {+})"
-"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
-"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
+"ctrl-right" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
+"ctrl-left" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
 "ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
 
 [ui.nav_binds]
+"tab" = []
+" " = "Toggle"
+"esc" = "Quit"
+"/" = "FocusFilter"
+"q" = "Quit"
+"j" = "Down"
+"k" = "Up"
+"backspace" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
 "f" = "@dirs"
 "b" = "@bookmarks"
 "*" = "@bookmark"
 "e" = "Execute(nvim {+})"
-"l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
-"h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
+"h" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
+"right" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
+"left" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
 "ctrl-e" = "Execute(nvim {+})"
-"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
-"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "Pos(0)"]
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
+"ctrl-right" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
+"ctrl-left" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
 "ctrl-p" = "SwitchPreview"
 "u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
 "ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]

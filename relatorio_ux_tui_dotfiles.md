@@ -108,7 +108,7 @@ sequenceDiagram
     participant MM as Matchmaker Core (Rust)
     participant Preview as Preview Engine (Bat / Chafa / Eza)
 
-    Dev->>ZLE: Pressiona TAB (buffer vazio) ou Ctrl+T
+    Dev->>ZLE: Pressiona Ctrl+F
     ZLE->>MM: Executa mm --no-read -o jump
     Note over MM: Carrega preset jump.toml em sub-milissegundo
     MM->>Dev: Renderiza TUI com ordenação Smart / Frecency

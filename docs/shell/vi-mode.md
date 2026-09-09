@@ -41,4 +41,4 @@ Custom ZLE widgets extend Vi mode with smart, unified surround text objects so y
 ## 3. Keybindings & Initialization
 
 - **Insert Mode Default**: Every new command prompt starts in Vi Insert mode (`_zvm_custom_zle_line_init`).
-- **History Navigation**: `Ctrl+K` / `Ctrl+J` and Up/Down arrows perform prefix-aware history searches; `Ctrl+R` opens Atuin; `Ctrl+T` triggers the Matchmaker jump widget.
+- **History Navigation**: `Ctrl+K` / `Ctrl+J` and Up/Down arrows perform prefix-aware history searches; `Ctrl+R` opens Atuin; `Ctrl+F` triggers the Matchmaker jump widget.

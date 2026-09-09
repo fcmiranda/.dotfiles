@@ -10,17 +10,17 @@ The `_smart_tab` widget detects command-line state and dynamically routes the ta
 
 ```mermaid
 flowchart TD
-    A["User presses <Tab>"] --> B{"Is command buffer empty?"}
-    B -- Yes --> C["Open _jump_widget (Matchmaker Directory Jump)"]
-    B -- No --> D{"Is ghost text active AND cursor at end of line?"}
-    D -- "Yes ($CURSOR == $#BUFFER)" --> E["Accept autosuggestion (autosuggest-accept)"]
+    A["User presses <Tab>"] --> B{"Is ghost text active AND cursor at end of line?"}
+    B -- "Yes ($CURSOR == $#BUFFER)" --> C["Accept autosuggestion (autosuggest-accept)"]
+    B -- "No" --> D{"Is command buffer empty?"}
+    D -- "Yes" --> E["Do nothing (neutral, no intrusive popups)"]
     D -- "No (Mid-command or arguments)" --> F["Auto-space & trigger Matchmaker completion (mm-ftb)"]
 ```
 
-- **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker frecency directory selection) for zero-friction directory jumping without pre-typing `j`.
+- **Empty Line (`<Tab>`)**: Neutral; does nothing to prevent accidental popups when idle.
 - **Autosuggestions at End of Line**: If ghost text is visible and the cursor is at the end of the line (`$CURSOR -eq $#BUFFER`), `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
 - **Middle-of-Line / Arguments (`<Tab>` with text)**: When editing in the middle of a command, `<Tab>` bypasses ghost text and opens Matchmaker-powered tab completion (`mm-ftb`) for the specific argument at the cursor.
-- **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker directory jump interface at any prompt state.
+- **Direct Hotkey (`Ctrl+F`)**: Opens the Matchmaker Jump directory interface (`mm -o jump`) at any prompt state.
 
 ### 1.1. Deep-Dive: Por que `$CURSOR -eq $#BUFFER` Revoluciona a Edição no Meio da Linha
 
@@ -125,7 +125,7 @@ $ cargo test --package match█ --test integration ░--package matchmaker-lib -
 
 | Posição do Cursor | Intenção do Desenvolvedor | Ação Executada |
 | :--- | :--- | :--- |
-| **Linha Vazia (`$#BUFFER == 0`)** | Navegação rápida ou seleção de alvo | Abre o TUI do **Matchmaker Jump** (`_jump_widget`). |
+| **Linha Vazia (`$#BUFFER == 0`)** | Sem ação intrusiva (neutro) | Mantém o prompt limpo sem abrir popups acidentais (use **`Ctrl+F`** para o Matchmaker Jump). |
 | **Fim da Linha (`$CURSOR == $#BUFFER`)** | Aceitar a sugestão do histórico | Executa **`autosuggest-accept`** instantaneamente. |
 | **Meio do Comando (`$CURSOR < $#BUFFER`)** | Autocompletar o argumento/pasta sob o cursor | Abre o **`fzf-tab` com Matchmaker (`mm-ftb`)** sem poluir o restante da linha. |
 
@@ -172,7 +172,7 @@ The dedicated completion preset includes key UX optimizations:
 
 ## 5. Matchmaker Jump Mode ([`jump.toml`](../../matchmaker/.config/matchmaker/presets/jump.toml))
 
-Triggered on empty prompt via `<Tab>` or directly with `Ctrl+T`. Optimized for directory traversal, frecency ranking, and subfolder navigation:
+Triggered directly with `Ctrl+F`. Optimized for directory traversal, frecency ranking, and subfolder navigation:
 
 - **Seamless Traversal (`Ctrl+L` / `Ctrl+H`)**:
   - **`Ctrl+L`**: Enters the highlighted directory immediately (`ChDir({=})`), clears the filter input (`Cancel`), and reloads the file list (`Reload`) without needing to switch focus to the results pane with `Tab`.
@@ -204,7 +204,7 @@ Triggered on empty prompt via `<Tab>` or directly with `Ctrl+T`. Optimized for d
 | **`Enter`** | All | `Accept` | Confirm selection and insert into prompt |
 | **`Esc`** / **`Ctrl+C`** | All | `Abort` | Cancel completion |
 
-### Jump Mode (`jump.toml` / `<Tab>` / `Ctrl+T`)
+### Jump Mode (`jump.toml` / `Ctrl+F`)
 
 | Shortcut | Mode | Action | Description |
 | :--- | :--- | :--- | :--- |
@@ -236,7 +236,7 @@ flowchart TD
 ```
 
 ### 1. Object-First Command Composition (`CURSOR=0` on Empty Buffer)
-When starting from an empty prompt (e.g. hitting `<Tab>` or `Ctrl+T`), the mental model is **"Object First, Verb Second"**:
+When starting from an empty prompt (e.g. hitting `Ctrl+F`), the mental model is **"Object First, Verb Second"**:
 1. You open Matchmaker and pick `completion.md` (or multiple files).
 2. The widget places the cursor at index `0` with a leading space:
    ```zsh

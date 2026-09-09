@@ -55,9 +55,8 @@ This document provides a comprehensive audit and definitive reference of all key
 
 | Keybinding | Widget / Function | Behavior & Context Awareness |
 | :--- | :--- | :--- |
-| **`<Tab>`** (Empty Line) | `_smart_tab` $\rightarrow$ `_jump_widget` | Opens Matchmaker Jump directly when prompt is empty. |
-| **`<Tab>`** (With Command) | `_smart_tab` $\rightarrow$ `mm-ftb` | Auto-appends space and triggers Matchmaker completion. |
-| **`Ctrl + T`** | Matchmaker Jump Widget | Fuzzy directory jumper with Object-First buffer insertion. |
+| **`<Tab>`** (With Command) | `_smart_tab` $\rightarrow$ `mm-ftb` | Auto-appends space and triggers Matchmaker completion (or accepts autosuggestion). |
+| **`Ctrl + F`** | Matchmaker Jump Widget | Fuzzy directory jumper with Object-First buffer insertion ($H=0$). |
 | **`Ctrl + N`** | Matchmaker Completion UI | Explicitly invokes Matchmaker completion picker. |
 | **`Ctrl + K`** | Prefix History Search Backward | Searches previous commands starting with current buffer prefix. |
 | **`Ctrl + J`** | Prefix History Search Forward | Searches forward in history with current buffer prefix. |

@@ -35,8 +35,7 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 | **Desktop** | Hyprland + Fuzzel/Walker | Any desktop app or session | `Super+Shift+K` (sesh picker) |
 | **Global Overlay** | Ghostty + Hyprland Float | Global omniscient AI scratchpad | `Super+A` |
 | **Terminal / Session** | sesh + tmux + Matchmaker | Switch between project sessions | `Alt+s` (Universal Terminal: Zsh & Tmux popup) |
-| **Window & Pane** | tmux windows + popups | Switch within session (editor, AI, git) | `Ctrl+0-9`, `Alt+a`, `Alt+o`, `prefix+i` |
-| **Shell & Directory** | Zsh + Matchmaker (`mm`) | Zero-friction directory jumping & completion | `<Tab>` (empty line), `Ctrl+T` |
+| **Shell & Directory** | Zsh + Matchmaker (`mm`) | Zero-friction directory jumping & completion | `Ctrl+F`, `<Tab>` (completion) |
 
 ---
 
@@ -50,23 +49,21 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 
 ### Why This Pattern is the Fastest, Smartest Way to Navigate:
 
-1. **Zero Cognitive Overhead on Clean Prompt**:
-   - Eliminates the need to type prefix shortcut keys (like `j`, `c`, or `cd`) before hitting `<Tab>`. Opening a shell or clearing line (`Ctrl+U`) + pressing `<Tab>` instantly triggers directory navigation.
+1. **Focused & Predictable Tab Completion**:
+   - `<Tab>` is 100% predictable: accepts ghost text autosuggestions when at the end of the line, triggers argument completion (`mm-ftb`) when typing a command, and stays completely neutral on an empty line without intrusive popups.
 2. **Native Frecency Ranking (`mm frecency`)**:
    - Selecting any directory via Matchmaker Jump or navigating via `j` continuously updates Matchmaker's internal frecency database, ensuring your most frequented projects always float to the top.
-3. **Modal Intelligence & Atomic Escape (Vim / TUI Philosophy)**:
-   - Following Vim design principles, modal workflows must maintain a **contextual default with an unconditional atomic escape**:
-     - **Contextual Default (`<Tab>`)**: Adapts to prompt state — triggers Jump when prompt is empty, but preserves native argument completion (`fzf-tab`) when typing a command (e.g. `ls -la /path`).
-     - **Atomic Unconditional Escape (`Ctrl+T`)**: A dedicated hotkey mapped in both `viins` and `vicmd` modes that opens the Matchmaker Jump picker unconditionally at any moment, regardless of current line content.
+3. **Modal Intelligence & Dedicated Jump (`Ctrl+F`)**:
+   - Following Vim and terminal ergonomics ($H=0$ Home Row index finger), `Ctrl+F` is mapped in both `viins` and `vicmd` modes to open the Matchmaker Jump picker unconditionally at any moment, regardless of current line content.
 
 ### Interactive Trigger Matrix:
 
 | Prompt State | Trigger | Action Executed | Outcome |
 |---|---|---|---|
-| **Empty Prompt** | `<Tab>` | `_jump_widget` (`mm --no-read -o jump`) | Instantly opens Matchmaker directory picker with frecency ranking and `cd`s directly. |
-| **Active Command** | `<Tab>` (e.g. `ls -la /path`) | `expand-or-complete` (`fzf-tab`) | Performs standard Zsh argument/file autocompletion without interrupting command line args. |
-| **Ghost Text** | `<Tab>` | `autosuggest-accept` | Accepts Zsh autosuggestion. |
-| **Atomic Escape** | `Ctrl+T` | `_jump_widget` | Unconditionally opens Matchmaker Jump picker regardless of prompt state (`viins` & `vicmd`). |
+| **Empty Prompt** | `<Tab>` | Nenhuma ação (neutro) | Mantém o prompt limpo e silencioso sem abrir popups acidentais. |
+| **Ghost Text (End of Line)** | `<Tab>` | `autosuggest-accept` | Aceita a sugestão do histórico instantaneamente. |
+| **Active Command** | `<Tab>` (e.g. `ls -la /path`) | `expand-or-complete` (`mm-ftb`) | Realiza autocompletação via Matchmaker sem poluir argumentos. |
+| **Direct Jump** | `Ctrl+F` | `_jump_widget` (`mm -o jump`) | Abre o Matchmaker Jump com frecency e ranking de diretórios em qualquer momento (`viins` & `vicmd`). |
 
 ## Keybinding Reference Map
 
@@ -100,9 +97,9 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 │  prefix+B / Y / N .... btop / yazi / nvim popups (90x90%)       │
 ├─────────────────────────────────────────────────────────────────┤
 │ ZSH SHELL & DIRECTORY JUMP LAYER                                │
-│  <Tab> (empty line) .. Matchmaker directory jump (_jump_widget) │
-│  <Tab> (active line) . Standard autocompletion (expand/fzf-tab) │
-│  Ctrl+T .............. Direct Matchmaker jump picker            │
+│  <Tab> (empty line) .. Neutral (clean prompt, no popup)          │
+│  <Tab> (active line) . Standard autocompletion (expand/mm-ftb)  │
+│  Ctrl+F .............. Direct Matchmaker jump picker            │
 │  Ctrl+G .............. Matchmaker Git Status Jump + Nvim edit   │
 └─────────────────────────────────────────────────────────────────┘
 ```

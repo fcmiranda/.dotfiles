@@ -52,7 +52,7 @@ See [MATCHMAKER_PRESETS.md](MATCHMAKER_PRESETS.md) for full documentation.
 ## Hardware & Keyboard Ergonomics (Home Row Optimization)
 
 * **Caps Lock Mapping**: Dual-function key — **`Esc` on tap** (instant Normal Mode in Neovim/Zsh) and **`Ctrl` on hold** (Home Row anchor at position `(0, 0)`).
-* **Biomechanics / KLM Cost ($H = 0$)**: Because the left pinky rests on the Home Row, chords like `Ctrl+Space` (Tmux Prefix), `Ctrl+G` (Lazygitrs), `Ctrl+T` (Matchmaker Jump), and `Ctrl+N` (Matchmaker Branch Completion) execute in under 50ms with zero wrist abduction.
+* **Biomechanics / KLM Cost ($H = 0$)**: Because the left pinky rests on the Home Row, chords like `Ctrl+Space` (Tmux Prefix), `Ctrl+G` (Lazygitrs), `Ctrl+F` (Matchmaker Jump), and `Ctrl+N` (Matchmaker Branch Completion) execute in under 50ms with zero wrist abduction.
 
 ## Stow management
 

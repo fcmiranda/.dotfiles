@@ -153,7 +153,7 @@ Custom ZLE widgets extend Vi mode with smart, unified surround text objects so y
 ### Keybindings & Initialization
 
 - **Insert Mode Default**: Every new command prompt starts in Vi Insert mode (`_zvm_custom_zle_line_init`).
-- **History Navigation**: `Ctrl+K` / `Ctrl+J` and Up/Down arrows perform prefix-aware history searches; `Ctrl+R` opens Atuin; `Ctrl+T` triggers the Matchmaker jump widget.
+- **History Navigation**: `Ctrl+K` / `Ctrl+J` and Up/Down arrows perform prefix-aware history searches; `Ctrl+R` opens Atuin; `Ctrl+F` triggers the Matchmaker jump widget.
 
 ## Automatic Monitor Management via Kanshi
 
@@ -197,23 +197,22 @@ Display profiles and hotplug events are automatically handled by [`kanshi`](http
 
 The shell tab completion behavior in [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh) is augmented with unified context-aware logic (`_smart_tab`) and Matchmaker completion integration:
 
-### Context-Aware Behaviors (`<Tab>`)
-
-- **Empty Line (`<Tab>`)**: Directly opens `_jump_widget` (Matchmaker frecency directory selection) for zero-friction directory jumping without pre-typing `j`.
+#### Context-Aware Behaviors (`<Tab>`)
+ 
+- **Empty Line (`<Tab>`)**: Neutral; does nothing to prevent accidental popups when idle.
 - **Autosuggestions at End of Line**: If ghost text is active and cursor is at the end of the line (`$CURSOR -eq $#BUFFER`), `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
 - **Middle-of-Line / Arguments (`<Tab>` with text)**: Completes the specific argument at cursor position via Matchmaker-powered tab completion (`mm-ftb`) without interference from ghost text.
-- **Direct Hotkey (`Ctrl+T`)**: Unconditionally opens the Matchmaker directory jump interface at any prompt state.
-
-### Auto-Spacing on Aliases & Commands (`_auto_space_if_command`)
-
-Eliminates the friction of manually typing a trailing space before requesting argument/branch completion:
-- **How it Works**: When you trigger completion directly on an exact alias (`gco`, `ga`, `gst`, `gp`), an executable binary (`cat`, `nvim`, `git`, `kill`), or a shell function without a trailing space, the widget automatically appends a space (`BUFFER="$BUFFER "`) and positions the cursor before delegating to Zsh completion.
-- **Example**: Typing `gco<Tab>` or `gco<Ctrl+N>` immediately opens the Git branch picker without requiring `gco <Tab>`. Typing a partial word (e.g. `gi` or `ca`) completes the command name itself normally.
-
-### Matchmaker vs FZF Completion Backends
-
-- **Matchmaker Completion (`Ctrl+N` / `<Tab>`)**: Uses [`mm-ftb`](../matchmaker/.local/bin/mm-ftb) configured with the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset (Zero-Fork / In-Memory direct streaming).
-- **Classic FZF Completion (`Ctrl+F`)**: Falls back to classic `fzf` completion.
+- **Direct Hotkey (`Ctrl+F`)**: Unconditionally opens the Matchmaker directory jump interface (`mm -o jump`) at any prompt state.
+ 
+ ### Auto-Spacing on Aliases & Commands (`_auto_space_if_command`)
+ 
+ Eliminates the friction of manually typing a trailing space before requesting argument/branch completion:
+ - **How it Works**: When you trigger completion directly on an exact alias (`gco`, `ga`, `gst`, `gp`), an executable binary (`cat`, `nvim`, `git`, `kill`), or a shell function without a trailing space, the widget automatically appends a space (`BUFFER="$BUFFER "`) and positions the cursor before delegating to Zsh completion.
+ - **Example**: Typing `gco<Tab>` or `gco<Ctrl+N>` immediately opens the Git branch picker without requiring `gco <Tab>`. Typing a partial word (e.g. `gi` or `ca`) completes the command name itself normally.
+ 
+ ### Matchmaker Completion Backend
+ 
+ - **Matchmaker Completion (`Ctrl+N` / `<Tab>`)**: Uses [`mm-ftb`](../matchmaker/.local/bin/mm-ftb) configured with the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset (Zero-Fork / In-Memory direct streaming).
 
 ### Matchmaker FZF-Tab Preset Highlights ([`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml))
 

@@ -92,7 +92,8 @@ _jump_widget() {
     zle reset-prompt
 }
 zle -N _jump_widget
-bindkey '^T' _jump_widget
+bindkey '^F' _jump_widget
+bindkey -r '^T' 2>/dev/null || true
 
 
 _auto_space_if_command() {
@@ -107,9 +108,8 @@ _auto_space_if_command() {
 }
 
 _smart_tab() {
-    # 1. Empty command line (or whitespace only) → open matchmaker jump widget directly
+    # 1. Empty command line (or whitespace only) → do nothing (jump is on Ctrl+F)
     if [[ -z "${BUFFER// /}" ]]; then
-        zle _jump_widget
         return
     fi
 
@@ -148,23 +148,6 @@ zle -N _mm_tab_widget
 bindkey '^N' _mm_tab_widget
 bindkey -M viins '^N' _mm_tab_widget
 bindkey -M emacs '^N' _mm_tab_widget
-
-# =============================================================================
-# FZF-Tab Completion (Ctrl+F): Uses classic FZF as the completion UI (Disabled)
-# =============================================================================
-# _fzf_tab_widget() {
-#     _auto_space_if_command
-#     zstyle ':fzf-tab:*' fzf-command fzf
-#     if (( $+widgets[fzf-tab-complete] )); then
-#         zle fzf-tab-complete
-#     else
-#         zle expand-or-complete
-#     fi
-# }
-# zle -N _fzf_tab_widget
-# bindkey '^F' _fzf_tab_widget
-# bindkey -M viins '^F' _fzf_tab_widget
-# bindkey -M emacs '^F' _fzf_tab_widget
 
 # Delete previous word with Ctrl+Backspace in vi insert mode
 bindkey -M viins $'\e\x7f' backward-kill-word
@@ -212,8 +195,10 @@ bindkey -M viins '^[[B' history-beginning-search-forward-end
 
 # Hook for zsh-vi-mode plugin to preserve keybindings after zvm init
 _binds_zvm_setup() {
-    # Unbind legacy ctrl-p/ctrl-n in insert mode
+    # Unbind legacy ctrl-p/ctrl-n/ctrl-t in insert mode
     bindkey -M viins -r '^P' 2>/dev/null || true
+    bindkey -M viins -r '^T' 2>/dev/null || true
+    bindkey -M vicmd -r '^T' 2>/dev/null || true
 
     # Prefix-aware history search
     zvm_bindkey viins '^[[A' history-beginning-search-backward-end
@@ -264,13 +249,11 @@ _binds_zvm_setup() {
     # Custom widgets
     zvm_bindkey viins '^G' _git_files_widget
     zvm_bindkey vicmd '^G' _git_files_widget
-    zvm_bindkey viins '^T' _jump_widget
-    zvm_bindkey vicmd '^T' _jump_widget
+    zvm_bindkey viins '^F' _jump_widget
+    zvm_bindkey vicmd '^F' _jump_widget
     zvm_bindkey viins '^I' _smart_tab
     zvm_bindkey viins '^N' _mm_tab_widget
     zvm_bindkey vicmd '^N' _mm_tab_widget
-    # zvm_bindkey viins '^F' _fzf_tab_widget
-    # zvm_bindkey vicmd '^F' _fzf_tab_widget
 }
 zvm_after_init_commands+=('_binds_zvm_setup')
 

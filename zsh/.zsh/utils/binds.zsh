@@ -108,8 +108,9 @@ _auto_space_if_command() {
 }
 
 _smart_tab() {
-    # 1. Empty command line (or whitespace only) → do nothing (jump is on Ctrl+F)
+    # 1. Empty command line (or whitespace only) → trigger Matchmaker jump
     if [[ -z "${BUFFER// /}" ]]; then
+        zle _jump_widget
         return
     fi
 
@@ -131,6 +132,7 @@ _smart_tab() {
 zle -N _smart_tab
 bindkey '^I' _smart_tab
 bindkey -M viins '^I' _smart_tab
+bindkey -M vicmd '^I' _smart_tab
 
 # =============================================================================
 # Matchmaker Completion (Ctrl+N): Uses Matchmaker (mm-ftb) as the completion UI
@@ -252,6 +254,7 @@ _binds_zvm_setup() {
     zvm_bindkey viins '^F' _jump_widget
     zvm_bindkey vicmd '^F' _jump_widget
     zvm_bindkey viins '^I' _smart_tab
+    zvm_bindkey vicmd '^I' _smart_tab
     zvm_bindkey viins '^N' _mm_tab_widget
     zvm_bindkey vicmd '^N' _mm_tab_widget
 }

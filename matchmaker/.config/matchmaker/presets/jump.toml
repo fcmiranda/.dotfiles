@@ -26,7 +26,7 @@ bookmarks_underline_style.fg = "#f9e2af"
 
 [ui]
 nav_mode = true               # true (modo navegação habilitado) / false
-nav_focus_on_start = "filter" # Inicia focado no filtro para busca imediata
+nav_focus_on_start = "picker" # Inicia na lista de resultados (NavBar) para navegação VIM instantânea na Home Row
 nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
 nav_color = "Darkgray"        # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
 # nav_bold = false            # true / false (barra em negrito)
@@ -55,6 +55,7 @@ typo_tolerance = true         # true / false (tolerância a erros de digitação
 dir_first = true              # true / false (prioriza pastas no topo da lista)
 
 [results]
+scroll_wrap = true             # true (navegação circular: volta ao início no último item e vice-versa)
 tier_separator = "Underline"
 # Grossura / tipo de borda do navbar exclusivo para o item focado:
 current_nav_bar = "Plain" # "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
@@ -100,7 +101,7 @@ indicator_style.fg = "blue"   # Cor do indicador de autoscroll
 
 [previewer]
 debounce_ms = 20              # Delay em ms para atualizar o preview ao mover o cursor
-delay_clear = true             # true (evita flicker retendo preview anterior até o novo estar pronto)
+delay_clear = false             # true (evita flicker retendo preview anterior até o novo estar pronto)
 
 [preview]
 show = true
@@ -113,7 +114,9 @@ side = "right"                # Posição do preview: "right", "left", "top", "b
 percentage = 60               # Tamanho balanceado do painel em % (Proporção Áurea 60/40)
 
 [binds]
-"tab" = []
+"tab" = "@reloadnext"
+"shift-backtab" = "@reloadprev"
+"backtab" = "@reloadprev"
 "esc" = "ToggleFocus"
 "ctrl-f" = "@dirs"
 "ctrl-b" = "@bookmarks"
@@ -126,10 +129,13 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
 "ctrl-right" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
 "ctrl-left" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
+"ctrl-v" = "@paste_into"
 "ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
 
 [ui.nav_binds]
-"tab" = []
+"tab" = "@reloadnext"
+"shift-backtab" = "@reloadprev"
+"backtab" = "@reloadprev"
 " " = "Toggle"
 "esc" = "Quit"
 "/" = "FocusFilter"
@@ -150,12 +156,17 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "ctrl-h" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
 "ctrl-right" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
 "ctrl-left" = ["ChDir(..)", "Cancel", "Reload", "FocusNav"]
-"ctrl-p" = "SwitchPreview"
-"u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
+"p" = "@paste"
+"P" = "@paste_into"
+"ctrl-p" = "@paste_into"
+"ctrl-v" = "@paste_into"
+"y" = "@yank"
+"x" = "@cut"
+"u" = "@undo"
 "ctrl-u" = ["Reload(curr=\"$(pwd)\"; while [ \"$curr\" != \"/\" ] && [ -n \"$curr\" ]; do curr=\"$(dirname \"$curr\")\"; echo \"$curr\"; done)", "Cancel", "Pos(0)"]
 
 [breadcrumb]
-show = false                   # true (exibe caminho atual como breadcrumb no topo) / false
+show = true                   # true (exibe caminho atual como breadcrumb no topo) / false
 separator = "/"               # Caractere separador de diretório (ex: "/", " › ", " > ")
 style.fg = "Cyan"             # Cor do texto do caminho
 style.modifier = "BOLD"       # "BOLD", "DIM", "ITALIC", "UNDERLINED"

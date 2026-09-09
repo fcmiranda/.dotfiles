@@ -227,10 +227,11 @@ BarWidget {
     var cls = ""
     var title = ""
 
-    // 1. Try waylandHandle (Wayland toplevel instance for this exact window)
-    if (toplevel.waylandHandle) {
-      if (toplevel.waylandHandle.appId) cls = String(toplevel.waylandHandle.appId)
-      if (toplevel.waylandHandle.title) title = String(toplevel.waylandHandle.title)
+    // 1. Try wayland (Wayland toplevel instance for this exact window)
+    var wlHandle = toplevel.wayland || toplevel.waylandHandle
+    if (wlHandle) {
+      if (wlHandle.appId) cls = String(wlHandle.appId)
+      if (wlHandle.title) title = String(wlHandle.title)
     }
 
     // 2. Try direct properties on toplevel
@@ -264,7 +265,7 @@ BarWidget {
     }
 
     // 4. Only if this EXACT toplevel instance is the active Wayland window, use active title
-    if (toplevel.waylandHandle && ToplevelManager.activeToplevel && toplevel.waylandHandle === ToplevelManager.activeToplevel) {
+    if (wlHandle && ToplevelManager.activeToplevel && wlHandle === ToplevelManager.activeToplevel) {
       if (ToplevelManager.activeToplevel.title) {
         title = String(ToplevelManager.activeToplevel.title)
       }
@@ -279,8 +280,7 @@ BarWidget {
                      clsLower.indexOf("firefox") !== -1 ||
                      clsLower.indexOf("zen") !== -1 ||
                      clsLower.indexOf("librewolf") !== -1 ||
-                     clsLower.indexOf("browser") !== -1 ||
-                     clsLower === "")
+                     clsLower.indexOf("browser") !== -1)
 
     // Tier 1: Semantic Title Patterns (Webapps & Special States - evaluated for browsers)
     var ruleMatch = null
@@ -351,6 +351,7 @@ BarWidget {
             var vals = workspace.toplevels.values
             for (var i = 0; i < vals.length; i++) {
               var t = vals[i]
+              if (t.wayland && t.wayland.title) sig += t.wayland.title + ";"
               if (t.waylandHandle && t.waylandHandle.title) sig += t.waylandHandle.title + ";"
               if (t.title) sig += t.title + ";"
               if (t.lastIpcObject && t.lastIpcObject.title) sig += t.lastIpcObject.title + ";"

@@ -2,7 +2,7 @@
 # Interactive directory navigation, frecency ranking, and TUI traversal.
 
 [tui]
-percentage = 70               # Altura do TUI em % da tela (1-100)
+percentage = 70               # Altura do TUI em % da tela (descomente para modo inline)
 
 [query]
 status_inline = true          # true (contador de resultados na barra de busca) / false
@@ -100,13 +100,14 @@ indicator = ""               # Caractere indicador de scroll automático
 indicator_style.fg = "blue"   # Cor do indicador de autoscroll
 
 [previewer]
-debounce_ms = 20              # Delay em ms para atualizar o preview ao mover o cursor
-delay_clear = false             # true (evita flicker retendo preview anterior até o novo estar pronto)
+debounce_ms = 200              # Delay em ms para atualizar o preview ao mover o cursor (evita floods em scroll rápido)
+delay_clear = true            # true (evita flicker retendo preview anterior até o novo estar pronto)
 
 [preview]
 show = true
 media = true
 media_fit = "fit"
+media_size = 0             # Resolução máxima do downscaling em pixels (ex: 512, 800, 1280, 1920; 0 = original/sem downscale)
 scrollbar = true
 
 [[preview.layout]]

@@ -1,21 +1,31 @@
 
+hipoteses
+ filtrar pasta/arquivo
+  enter
+   entrar na pasta`
 
------------------------------------------------------------------------
-barra de scroll
------------------------------------------------------------------------
-- ver o lazygit do nvim quando entra em um hunk
-![alt text](image.png)
+f - frecency
 
-hunk mode
-![alt text](image-1.png)
+  l - pasta destino (ao entrar em uma pasta deve mudar para nav mode)
+   tab - nav mode
+    p - paste
+
+
+
+---------------------------------------------------------------------------
+j download
+ filtro: imagem
+  ctrl enter
+    (entra no navbar com item selecionado)
+        y: copia
+         
+----------------------------------------------------------------------------
+j download
+ filtro: imagem
+  ctrl y: copia
 
 funcionalidade passar o mouse no md e ver preview de imagem
 
-
-
-mm
-
-- [x] copiar via vim zsh para outros aplicativos (yy)
 talvez adicionar no mm uma forma de copiar diretamente o path
 
 arrumar hypr boder animacao nao mostrando
@@ -35,29 +45,7 @@ plugin omarchy
  - context aware pills
  - criar blog
 
-
-
-implementar 
-
-### Proposta 1: Navegação Sem Fricção (*Seamless Traversal*) sem Alternância Modal
-Para eliminar o problema de *keystroke slipping*, introduzir atalhos que funcionem **em ambos os modos (Input Focus e Results Focus)** sem exigir a tecla `Tab`:
-- `Ctrl+l`: Entra imediatamente no diretório selecionado (`ChDir({=}) + Cancel query`).
-- `Ctrl+h`: Sobe para o diretório pai (`ChDir(..) + Cancel query`).
-
-### Proposta 2: Badges Semânticos de Escopo no Breadcrumb / Header
-Quando o usuário ciclar fontes com `f` ou `ctrl-f` no `jump.toml`, o breadcrumb ou status deve exibir distintamente o modo de busca:
-
-```
-# Estado 1: Navegação Local
-📁 LOCAL: /home/fecavmi/dev/github/matchmaker (12 pastas)
-
-# Estado 2: Salto Global por Frecência (após apertar 'f')
-⚡ FRECENCY (Top 50 Pastas Mais Acessadas)
-```
-- **Estilo Recomendado:** Badge em fundo invertido (`BgCyan + FgBlack` para `LOCAL`, `BgMagenta + FgWhite` para `FRECENCY`).
-
-
-
+implementar
 
 improve separators site
 

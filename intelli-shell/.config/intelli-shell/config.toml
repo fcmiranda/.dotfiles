@@ -1,0 +1,19 @@
+# IntelliShell configuration
+# https://lasantosr.github.io/intelli-shell/
+
+[search]
+# Search mode: auto | fuzzy | regex | exact | relaxed
+mode = "auto"
+
+# Search across user commands + tldr pages by default
+user_only = false
+
+# Disable AI by default (rely on curated templates and local agents)
+initial_ai = false
+
+[interface]
+# Default to inline/compact interface when called in terminal
+fullscreen = false
+
+[ai]
+enabled = false

@@ -42,6 +42,20 @@ pkg_is_installed() {
     return 0
   fi
 
+  # Known package-to-binary or service aliases
+  case "$pkg" in
+    mpv-wallpaper) command -v mpvpaper &>/dev/null && return 0 ;;
+    upscayl-bin) command -v upscayl &>/dev/null && return 0 ;;
+    apm-unix) command -v apm &>/dev/null && return 0 ;;
+    battery) [[ -f /etc/battery-charge-threshold.conf ]] && return 0 ;;
+    sesh-bin) command -v sesh &>/dev/null && return 0 ;;
+    opencode-bin) command -v opencode &>/dev/null && return 0 ;;
+    zen-browser-bin) command -v zen-browser &>/dev/null && return 0 ;;
+    crush-bin) command -v crush &>/dev/null && return 0 ;;
+    visual-studio-code-bin) command -v code &>/dev/null && return 0 ;;
+    pacsea-bin) command -v pacsea &>/dev/null && return 0 ;;
+  esac
+
   # Fallback to package database check
   if command -v yay &>/dev/null; then
     yay -Qi "$pkg" &>/dev/null && return 0

@@ -61,6 +61,7 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Ctrl + J`** | `history-beginning-search-forward-end` | Prefix history search forward based on current buffer query. |
 | **`Ctrl + Backspace`** | `backward-kill-word` | Deletes preceding word in Insert mode ($T_K = 120\text{ ms}$). |
 | **`Ctrl + R`** | `atuin-search` | Full-text contextual and temporal history search. |
+| **`Ctrl + T`** | `_intelli_search` | IntelliShell Command Templates & TLDR: Interactive fuzzy search across 29k+ curated command snippets with parameter replacement ($H=0$). |
 
 #### 2.1 Zero-Friction Frecency 2.0 File Transfer & Directory Jump
 > For comprehensive KLM-GOMS benchmarks, speedup tables ($20.5\times$ vs CLI, $32.7\times$ vs AI), and architectural pillars, see [**Zero-Friction File Transfer Benchmark & Architectural Guide**](zero-friction-file-transfer-benchmark.md).

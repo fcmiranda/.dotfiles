@@ -10,7 +10,6 @@ source "${0:A:h}/helpers.zsh"
 echo "Starting installation..."
 
 install_packages \
-    kanshi \
     battery \
     atuin \
     ghostty \
@@ -45,7 +44,6 @@ install_packages \
     worktrunk \
     apm-unix \
     wf-recorder \
-    herdr \
     ripdrag \
     cross \
     cargo-zigbuild \
@@ -55,7 +53,11 @@ install_packages \
     ai-memory \
     ai-jail \
     ai-usagebar \
-    leaf
+    leaf \
+    pacsea-bin \
+    jless \
+    mcat \
+    intelli-shell
 
 install_plugins \
     zsh-plugins \

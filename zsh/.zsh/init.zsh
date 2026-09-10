@@ -27,7 +27,8 @@ source_packages \
 	figlet \
 	procs \
 	sesh \
-	tmux
+	tmux \
+	intelli-shell
 
 source_if_exists packages fed cargo
 

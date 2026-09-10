@@ -93,7 +93,11 @@ _jump_widget() {
 }
 zle -N _jump_widget
 bindkey '^F' _jump_widget
-bindkey -r '^T' 2>/dev/null || true
+if (( $+widgets[_intelli_search] )); then
+    bindkey '^T' _intelli_search
+else
+    bindkey -r '^T' 2>/dev/null || true
+fi
 
 
 _auto_space_if_command() {
@@ -197,10 +201,17 @@ bindkey -M viins '^[[B' history-beginning-search-forward-end
 
 # Hook for zsh-vi-mode plugin to preserve keybindings after zvm init
 _binds_zvm_setup() {
-    # Unbind legacy ctrl-p/ctrl-n/ctrl-t in insert mode
+    # Unbind legacy ctrl-p in insert mode
     bindkey -M viins -r '^P' 2>/dev/null || true
-    bindkey -M viins -r '^T' 2>/dev/null || true
-    bindkey -M vicmd -r '^T' 2>/dev/null || true
+
+    # Intelli-shell search widget or unbind ^T
+    if (( $+widgets[_intelli_search] )); then
+        zvm_bindkey viins '^T' _intelli_search
+        zvm_bindkey vicmd '^T' _intelli_search
+    else
+        bindkey -M viins -r '^T' 2>/dev/null || true
+        bindkey -M vicmd -r '^T' 2>/dev/null || true
+    fi
 
     # Prefix-aware history search
     zvm_bindkey viins '^[[A' history-beginning-search-backward-end

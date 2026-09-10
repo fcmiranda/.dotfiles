@@ -47,7 +47,7 @@ Specialized TUI pickers configured in [`matchmaker/.config/matchmaker/presets/`]
 * `mm -o animations` / `hypr-anim` — Interactive Hyprland window animation switcher (`SUPER + SHIFT + A`).
 
 
-See [MATCHMAKER_PRESETS.md](MATCHMAKER_PRESETS.md) for full documentation.
+See [MATCHMAKER_PRESETS.md](shell/matchmaker-presets.md) for full documentation.
 
 ## Hardware & Keyboard Ergonomics (Home Row Optimization)
 
@@ -86,7 +86,7 @@ For a single edited file you can also just point `hyprctl` at it:
 hyprctl reload
 ```
 
-The `theme-set` hook (see [SYSTEM_THEME.md](SYSTEM_THEME.md)) already calls
+The `theme-set` hook (see [system-theme.md](theme/system-theme.md)) already calls
 `omarchy-restart-hyprctl` after a theme swap, so you don't need to do this manually on theme
 changes.
 
@@ -132,7 +132,7 @@ omarchy-hyprland-window-close-all
 
 ## Theme commands
 
-See [SYSTEM_THEME.md](SYSTEM_THEME.md) for the full theme system. Quick reference:
+See [system-theme.md](theme/system-theme.md) for the full theme system. Quick reference:
 
 ```bash
 omarchy-theme-list                # available themes

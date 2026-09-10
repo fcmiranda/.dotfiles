@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Git pre-commit hook to ensure documentation integrity and prevent broken links / clutter
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+LINTER="$REPO_ROOT/scripts/docs-lint.sh"
+
+if [[ -f "$LINTER" && -x "$LINTER" ]]; then
+    exec "$LINTER"
+fi
+
+exit 0

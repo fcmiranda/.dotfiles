@@ -29,27 +29,27 @@ The core principle across this dotfiles setup is **Zero Polling, Maximum Context
 ```
 
 ### 1. Dynamic Context-Aware Workspace Pills
-* **Location**: [`omarchy/.config/omarchy/plugins/fecavmi.workspaces/Workspaces.qml`](../omarchy/.config/omarchy/plugins/fecavmi.workspaces/Workspaces.qml)
-* **Doc**: [Dynamic Workspace Pills Guide](desktop/quickshell-workspace-pills.md)
+* **Location**: [`omarchy/.config/omarchy/plugins/fecavmi.workspaces/Workspaces.qml`](../../omarchy/.config/omarchy/plugins/fecavmi.workspaces/Workspaces.qml)
+* **Doc**: [Dynamic Workspace Pills Guide](../desktop/quickshell-workspace-pills.md)
 * **How it works**: Uses Quickshell reactive property bindings over Hyprland IPC. When navigating tabs in Chrome/Firefox, it matches web signatures (`YouTube` ──► `󰗃`, `GitHub` ──► `󰊤`, `Google Photos` ──► `󰋩`, `ChatGPT` ──► `󰚩`, `WhatsApp` ──► `󰖣`) and application classes (`ghostty` ──► ``, `antigravity-ide` ──► `󰲇`, `spotify` ──► ``) inside adaptive capsule pills.
 
 ### 2. Tmux AI Agent Status & Event-Driven Popups
-* **Location**: [`tmux/.config/tmux/`](../tmux/.config/tmux/), [`acpd/`](../acpd/)
-* **Doc**: [Tmux AI Status Bar](tmux/ai-status-bar.md) & [Popup Isolation & Debounce](tmux/popup-isolation-and-debounce.md)
+* **Location**: [`tmux/.config/tmux/`](../../tmux/.config/tmux/), [`acpd/`](../../acpd/)
+* **Doc**: [Tmux AI Status Bar](../tmux/ai-status-bar.md) & [Popup Isolation & Debounce](../tmux/popup-isolation-and-debounce.md)
 * **How it works**: The ACPD daemon intercepts agent lifecycle hooks (Claude, Antigravity, OpenCode). Status updates are broadcast with a 400ms debounce to tmux status pills (`status-interval 0`), rendering spinners (`󱚤 󰑮 Running...`), error alerts, and bell popups.
 
 ### 3. Smart Tab Completion & On-Demand Preview (`_smart_tab`)
-* **Location**: [`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh), [`matchmaker/.config/matchmaker/presets/ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml)
-* **Doc**: [Shell Completion & Matchmaker](shell/completion.md)
+* **Location**: [`zsh/.zsh/utils/binds.zsh`](../../zsh/.zsh/utils/binds.zsh), [`matchmaker/.config/matchmaker/presets/ftb.toml`](../../matchmaker/.config/matchmaker/presets/ftb.toml)
+* **Doc**: [Shell Completion & Matchmaker](../shell/completion.md)
 * **How it works**: Analyzes cursor context on `<Tab>`: auto-spaces single-word aliases (e.g. `gco<Tab>` ──► `gco <Tab>`), opens fast native fzf menus for short paths, or triggers rich Matchmaker TUI pickers (`mm-ftb`) with `Ctrl+P` syntax-highlighted previews for files and directories.
 
 ### 4. Zsh Vi-Mode & Live Prompt Mode Sync
-* **Location**: [`zsh/.zshrc`](../zsh/.zshrc), [`starship/.config/starship.toml`](../starship/.config/starship.toml)
-* **Doc**: [Zsh Vi Mode Guide](shell/vi-mode.md)
+* **Location**: [`zsh/.zshrc`](../../zsh/.zshrc), [`starship/.config/omarchy/themed/starship.toml.tpl`](../../starship/.config/omarchy/themed/starship.toml.tpl)
+* **Doc**: [Zsh Vi Mode Guide](../shell/vi-mode.md)
 * **How it works**: Hooks into `zsh-vi-mode` state changes, immediately exporting `ZVM_MODE` and triggering redraws so the Starship prompt pill transitions dynamically between INSERT (green), NORMAL (blue), and VISUAL (amber) modes.
 
 ### 5. Universal Theming Engine Pipeline
-* **Location**: [`omarchy/.config/omarchy/theme-overrides/`](../omarchy/.config/omarchy/theme-overrides/), [`docs/SYSTEM_THEME.md`](SYSTEM_THEME.md)
+* **Location**: [`omarchy/.config/omarchy/theme-overrides/`](../../omarchy/.config/omarchy/theme-overrides/), [`docs/theme/system-theme.md`](../theme/system-theme.md)
 * **How it works**: Evaluates a single `colors.toml` source of truth, compiling templates into Hyprland Lua colors, Quickshell `Color.qml` surface tokens, Ghostty themes, Starship palettes, and Neovim color schemes on the fly.
 
 ---

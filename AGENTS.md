@@ -37,10 +37,21 @@ See [.shell/install/README.md](.shell/install/README.md) for the current bootstr
 - **Ergonomics & Zero-Churn Principle**: This repository is engineered around strict biomechanical ergonomics (Home Row first, $H=0$, sub-100ms latency, pure icon badges, dynamic Omarchy theme color sync). If a keybinding, modal layout, or popup workflow is already optimal and working, do NOT arbitrarily change, rebind, or churn it. Always consult [docs/architecture/terminal-ergonomics-and-ux-manifesto.md](docs/architecture/terminal-ergonomics-and-ux-manifesto.md) before proposing UX or keybinding modifications.
 - **System Skills Location**: Core Omarchy skills (e.g. `omarchy`, `diagnose-crash`) are managed dynamically outside of dotfiles via system symlinks in `~/.agents/skills/` pointing to `/usr/share/omarchy/default/agents/skills/`. Agents MUST read the live system skills from `~/.agents/skills/omarchy/SKILL.md` (or `/usr/share/omarchy/default/agents/skills/`) to always use the up-to-date documentation matching the installed OS version, rather than duplicating them statically in dotfiles.
 
+## Documentation Governance & Living Knowledge Architecture
+
+- **Language Policy**: ALL documentation, skill definitions, markdown files, and references in this repository MUST be written in **English**.
+- **Living Documentation Principle**: Documentation and code MUST never diverge. Whenever an agent modifies keybindings, aliases, zsh functions, popup layouts, or tool behaviors, the agent MUST update the corresponding canonical documentation in `docs/` in the SAME commit.
+- **Root Directory Non-Proliferation**: NEVER create loose markdown files in the repository root (`/`). All documentation belongs under categorized folders in `docs/` (`architecture/`, `shell/`, `tmux/`, `desktop/`, `theme/`, `articles/`).
+- **Single Source of Truth**: Link to existing documentation rather than duplicating explanations across files.
+- **Validation**: Run `./scripts/docs-lint.sh` to verify link integrity and root cleanliness before finalizing commits.
+- **Documentation Skill**: When auditing or updating documentation, activate the `.agents/skills/dotfiles-docs/SKILL.md` skill.
+
 ## Useful References
 
+- [docs/README.md](docs/README.md)
 - [docs/architecture/terminal-ergonomics-and-ux-manifesto.md](docs/architecture/terminal-ergonomics-and-ux-manifesto.md)
 - [docs/architecture/workflow-keybindings-matrix.md](docs/architecture/workflow-keybindings-matrix.md)
+- [docs/architecture/zero-friction-file-transfer-benchmark.md](docs/architecture/zero-friction-file-transfer-benchmark.md)
 - [docs/tmux/popups-ergonomics-and-golden-ratio.md](docs/tmux/popups-ergonomics-and-golden-ratio.md)
 - [docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md](docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md)
 - [.shell/install/README.md](.shell/install/README.md)

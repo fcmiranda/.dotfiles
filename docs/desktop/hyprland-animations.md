@@ -53,7 +53,7 @@ The following Bézier curves are registered for window and layer transitions:
 
 ## 4. Customizing Animations
 
-To customize or override animations without modifying system packages, edit [`~/.config/hypr/looknfeel.lua`](~/.config/hypr/looknfeel.lua):
+To customize or override animations without modifying system packages, edit [`hypr/.config/hypr/looknfeel.lua`](../../hypr/.config/hypr/looknfeel.lua):
 
 ### Example: Enable Workspace Slide Animations
 ```lua

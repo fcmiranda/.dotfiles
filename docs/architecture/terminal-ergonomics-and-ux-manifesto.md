@@ -165,4 +165,4 @@ permission = "~/.local/share/sounds/ai/06-cyber-pulse.wav"    # High-priority ap
 * [`docs/tmux/popups-ergonomics-and-golden-ratio.md`](../tmux/popups-ergonomics-and-golden-ratio.md): Detailed reference, formulas, and benchmarks.
 * [`docs/tmux/popup-isolation-and-debounce.md`](../tmux/popup-isolation-and-debounce.md): Backdrop snapshots and event-driven architecture.
 * [`docs/shell/completion.md`](../shell/completion.md): Matchmaker smart completions.
-* [`docs/theme/SYSTEM_THEME.md`](../theme/SYSTEM_THEME.md): Omarchy theme pipeline.
+* [`docs/theme/system-theme.md`](../theme/system-theme.md): Omarchy theme pipeline.

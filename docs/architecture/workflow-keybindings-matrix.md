@@ -231,9 +231,8 @@ The table below consolidates the definitive keybindings across all layers, audit
 ## 🔗 Related Documentation
 * [`docs/architecture/terminal-ergonomics-and-ux-manifesto.md`](terminal-ergonomics-and-ux-manifesto.md): Core HCI philosophy and cognitive models.
 * [`docs/architecture/zero-friction-file-transfer-benchmark.md`](zero-friction-file-transfer-benchmark.md): Quantitative KLM-GOMS benchmark and architectural guide for Zero-Friction Frecency 2.0 file transfer and navigation.
-* [`FILE_MANAGER_WORKFLOW.md`](../../FILE_MANAGER_WORKFLOW.md): Evolution and operational specification of the PasteTo/MoveTo file manager workflow.
 * [`docs/tmux/popups-ergonomics-and-golden-ratio.md`](../tmux/popups-ergonomics-and-golden-ratio.md): Golden Ratio geometry and visual semiotics.
 * [`docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md`](../GIT_WORKTREE_AGENTIC_WORKFLOW.md): Agent worktree orchestrator and multi-agent Git workflow.
 * [`docs/shell/completion.md`](../shell/completion.md): Matchmaker completion architecture.
-* [`docs/MATCHMAKER_PRESETS.md`](../MATCHMAKER_PRESETS.md): Matchmaker presets reference.
+* [`docs/shell/matchmaker-presets.md`](../shell/matchmaker-presets.md): Matchmaker presets reference.
 

@@ -8,7 +8,7 @@ Zsh is configured with `zsh-vi-mode` in [`zsh-plugins/.zsh/plugins/zsh-vi-mode.z
 
 - **Live Mode Tracking**: Exported shell variable `ZVM_MODE` tracks the active mode (`i` = insert, `n` = normal/cmd, `v`/`vl` = visual, `r` = replace).
 - **Instant Prompt Refresh**: Switching modes (e.g. pressing `<Esc>` to enter `vi-cmd-mode` or `i` for insert mode) invokes `zvm_after_select_vi_mode()`, calling `zle reset-prompt` to instantly redraw the prompt indicator.
-- **Starship Theme Presets**: Preset templates (see [`starship/.config/omarchy/themed-overrides/starship.toml.tpl`](../../starship/.config/omarchy/themed-overrides/starship.toml.tpl)) evaluate `$ZVM_MODE` via custom module `when` rules (e.g. `case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac`) to render distinct colors and indicators per mode.
+- **Starship Theme Presets**: Preset templates (see [`starship/.config/omarchy/themed/starship.toml.tpl`](../../starship/.config/omarchy/themed/starship.toml.tpl)) evaluate `$ZVM_MODE` via custom module `when` rules (e.g. `case "$ZVM_MODE" in n) exit 0;; *) exit 1;; esac`) to render distinct colors and indicators per mode.
 
 ---
 

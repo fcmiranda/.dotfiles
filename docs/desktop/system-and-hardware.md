@@ -10,7 +10,7 @@ Display profiles and hotplug events are automatically handled by [`kanshi`](http
 
 ### How it Works
 
-- **Autostart**: `kanshi` is launched on session start via [`hypr/.config/hypr/autostart.conf`](../../hypr/.config/hypr/autostart.conf):
+- **Autostart**: `kanshi` is launched on session start via [`hypr/.config/hypr/autostart.lua`](../../hypr/.config/hypr/autostart.lua):
   ```ini
   exec-once = kanshi
   ```

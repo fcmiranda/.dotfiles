@@ -45,7 +45,7 @@ The control plane spans **4 navigation layers**, each with a distinct scope:
 
 ### The Stack & Tools Used:
 1. **Matchmaker (`mm`)**: High-performance Rust TUI fuzzy picker configured with preset `-o jump` (`~/.config/matchmaker/presets/jump.toml`). It uses its native frecency engine (`frecency = true`) to rank directories by access frequency and recency.
-2. **Zsh Smart Tab (`_smart_tab`)**: Custom Zsh widget ([`zsh/.zsh/utils/binds.zsh`](../zsh/.zsh/utils/binds.zsh)) attached to `<Tab>` (`^I`) in `zsh-vi-mode`.
+2. **Zsh Smart Tab (`_smart_tab`)**: Custom Zsh widget ([`zsh/.zsh/utils/binds.zsh`](../../zsh/.zsh/utils/binds.zsh)) attached to `<Tab>` (`^I`) in `zsh-vi-mode`.
 
 ### Why This Pattern is the Fastest, Smartest Way to Navigate:
 
@@ -174,7 +174,7 @@ The AI agent state management pipeline consists of 5 integrated components:
    - Animates `@SPIN@` during `working`/`busy` states and renders matching Nerdfont state icons (`󱥂`, `󱜻`, `󱅭`, `󰨄`) colored with the active Omarchy theme palette.
 
 4. **Omarchy Theme Template (`acpd.toml.tpl`)**:
-   - Template located in [`acpd/.config/omarchy/themed/acpd.toml.tpl`](../acpd/.config/omarchy/themed/acpd.toml.tpl) maps `idle` (`{{ color14 }}`), `busy/working` (`{{ color11 }}`), `question` (`{{ color13 }}`), and `error/permission` (`{{ color1 }}`).
+   - Template located in [`acpd/.config/omarchy/themed/acpd.toml.tpl`](../../acpd/.config/omarchy/themed/acpd.toml.tpl) maps `idle` (`{{ color14 }}`), `busy/working` (`{{ color11 }}`), `question` (`{{ color13 }}`), and `error/permission` (`{{ color1 }}`).
    - Switching system themes (`omarchy-theme-set`) re-compiles `~/.config/acpd/config.toml` and automatically restarts `acpd` via systemd (`systemctl --user restart acpd`) to apply theme colors instantly.
 
 5. **Resilient Ctrl+C Interrupt Watchdog (`tmux-hook.mjs`)**:

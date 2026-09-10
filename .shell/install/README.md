@@ -31,16 +31,16 @@ Create a markdown file
 
 Setup Section
 
-How to install .zsh and set as default shell using `sh -c "$(curl -fsSL https://raw.githubusercontent.com/fcmiranda/.omc/refs/heads/main/omc/sh/zsh.sh)"` or [running the zsh script locally](sh/zsh.sh) 
-How clone omc repo and how checkout using `sh -c "$(curl -fsSL https://raw.githubusercontent.com/fcmiranda/.omc/refs/heads/main/omc/sh/omc.sh)"` or [running the omc.zsh locally](sh/omc.sh) 
-Why it was create us international locale [script](sh/us-intl-locale.sh), how works and how run it
+How to install .zsh and set as default shell using `sh -c "$(curl -fsSL https://raw.githubusercontent.com/fcmiranda/.omc/refs/heads/main/omc/sh/zsh.sh)"`
+How clone omc repo and how checkout using `sh -c "$(curl -fsSL https://raw.githubusercontent.com/fcmiranda/.omc/refs/heads/main/omc/sh/omc.sh)"`
+Why it was create us international locale script, how works and how run it
 
 
 Setup Section
 Installing packages, plugins and setup them
 
-How [install script](pkgs/install.zsh) works
-How zsh.sh works importing the modules and evaluating the files
+How [install script](install.zsh) works
+How zsh modules import and evaluate the files
 
 
 Setup Section

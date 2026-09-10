@@ -1,66 +1,66 @@
-# Arquitetura de Popups TUI, Ergonomia Biomecânica & Proporção Áurea
+# TUI Popup Architecture, Biomechanical Ergonomics & The Golden Ratio
 
-Este documento formaliza a arquitetura estado da arte de interfaces flutuantes (Popups, Pickers, Modais e HUDs) desenvolvida para o ecossistema de dotfiles (`tmux`, `matchmaker`, `lazygitrs`, `sesh`). 
+This document formalizes the state-of-the-art architecture for floating terminal interfaces (Popups, Pickers, Modals, and HUDs) engineered across the dotfiles ecosystem (`tmux`, `matchmaker`, `lazygitrs`, `sesh`).
 
-O objetivo central desta arquitetura é atingir **Zero Fricção Cognitiva e Motora**, **latência sub-perceptiva (<100ms)**, **Signal-to-Noise máximo com identificadores icônicos puros** e **sincronização dinâmica universal de cores com o tema do Omarchy**.
+The primary objective of this architecture is to achieve **Zero Cognitive and Motor Friction**, **sub-perceptual latency (<100ms)**, **maximal Signal-to-Noise ratio via pure preattentive glyph badges**, and **universal dynamic color synchronization with the Omarchy theme engine**.
 
 ---
 
-## 🔬 1. Fundamentos Científicos & Modelos de Fatores Humanos
+## 🔬 1. Scientific Foundations & Human Factors Engineering
 
-Toda decisão de design, dimensionamento espacial e mapeamento de teclas neste repositório é fundamentada em modelos científicos de Interação Homem-Máquina (*HCI*) e Neurociência Visual:
+Every design decision, spatial dimension, and keymap in this repository is strictly grounded in Human-Computer Interaction (*HCI*) and visual neuroscience models:
 
 ```mermaid
 flowchart TD
-    subgraph Modelos ["Modelos Científicos Aplicados"]
-        KLM["<b>KLM / GOMS (Card & Moran)</b><br/>T_execute = ∑K + ∑P + ∑H + ∑M + ∑R<br/>Meta: Eliminar H, minimizar M ≈ 0 e reduzir K"]
-        DOH["<b>Doherty Threshold (&lt;100ms)</b><br/>Interação e fechamento sub-100ms<br/>Sensação biológica de continuidade mental"]
-        TUFTE["<b>Signal-to-Noise &amp; Glifos Puros (Tufte)</b><br/>Ícones puros na moldura (󱂬, ⚡, 󰊢, 󱜻)<br/>Reconhecimento pré-atencional em &lt;15ms"]
-        THEME["<b>Sincronização Dinâmica Universal</b><br/>100% dos popups herdam de colors.toml<br/>Orange, Cyan, Magenta, Yellow sincronizados"]
-        AUREA["<b>Proporção Áurea (φ ≈ 1.618)</b><br/>Geometria 75% × 60% e split 40/60<br/>Conforto foveal e preservação da âncora periférica"]
+    subgraph Models ["Applied Scientific Models"]
+        KLM["<b>KLM / GOMS (Card & Moran)</b><br/>T_execute = ∑K + ∑P + ∑H + ∑M + ∑R<br/>Goal: Eliminate H, minimize M ≈ 0, reduce K"]
+        DOH["<b>Doherty Threshold (&lt;100ms)</b><br/>Sub-100ms interaction and teardown<br/>Biological illusion of mental continuity"]
+        TUFTE["<b>Signal-to-Noise &amp; Pure Glyphs (Tufte)</b><br/>Minimalist badge icons in frame (󱂬, ⚡, 󰊢, 󱜻)<br/>Preattentive decoding in &lt;15ms"]
+        THEME["<b>Universal Dynamic Color Sync</b><br/>100% of popups inherit from colors.toml<br/>Synchronized Orange, Cyan, Magenta, Yellow"]
+        AUREA["<b>Golden Ratio (φ ≈ 1.618)</b><br/>75% × 60% geometry and 40/60 column split<br/>Foveal visual comfort and peripheral context"]
     end
 ```
 
 ### 1.1 Keystroke-Level Model (KLM/GOMS)
 $$T_{\text{execute}} = \sum T_K + \sum T_P + \sum T_H + \sum T_M + \sum T_R$$
-* **$T_H$ (Homing das mãos):** **$0\text{ ms}$**. As mãos nunca saem da posição base ($ASDF / JKL;$).
-* **$T_M$ (Mental Preparation / Hesitação):** Reduzido para próximo de **$0\text{ ms}$** através de semiótica visual de cores nas bordas e atalhos mnemônicos universais (`Esc` desempilha/cancela, `Ctrl+G` entra no Git, `s` seleciona janelas).
-* **$T_K$ (Keystrokes):** Reduzido de $240\text{ ms}$ (acordes compostos) para **$120\text{ ms}$** via teclas diretas no modo de navegação (`nav^^` no Matchmaker).
+* **$T_H$ (Hand Homing):** **$0\text{ ms}$**. Hands remain anchored on the Home Row ($ASDF / JKL;$).
+* **$T_M$ (Mental Preparation / Hesitation):** Reduced toward **$0\text{ ms}$** through preattentive color signifiers on borders and universal mnemonic muscle pathways (`Esc` unwinds/cancels, `Ctrl+G` opens Git, `prefix+s` switches windows).
+* **$T_K$ (Keystroke Cost):** Reduced from $240\text{ ms}$ (compound chords) to **$120\text{ ms}$** via direct single keys in navigation mode (`nav` in Matchmaker).
 
-### 1.2 Limiar de Doherty & Percepção Temporal (<100ms)
-Quando a resposta do computador a uma ação do usuário ocorre abaixo de **100 milissegundos**, o cérebro humano experimenta a ilusão neurológica de *"simbiose homem-máquina"* e *"continuidade de pensamento"*. 
-* **Zero-Fork & Subprocessos:** O `lazygitrs` (Rust nativo) inicializa em **~3ms** e fecha em **0ms** com a flag `-E` do Tmux.
-* **Zero-Flicker:** Buffering duplo via `delay_clear = true` e `debounce_ms = 20` no `matchmaker` elimina oscilações de tela durante scroll vertical acelerado.
-* **HUD Não-Bloqueante:** Notificações informativas usam `tmux display-message` (<1ms), eliminando modais com `sleep` síncrono.
+### 1.2 Doherty Threshold & Temporal Perception (<100ms)
+When computer response occurs under **100 milliseconds**, the human brain experiences the biological illusion of *"human-computer symbiosis"* and uninterrupted cognitive flow.
+* **Zero-Fork Execution:** `lazygitrs` (native Rust) initializes in **~3ms** and exits in **0ms** via Tmux's `-E` flag.
+* **Zero-Flicker Double Buffering:** `delay_clear = true` and `debounce_ms = 20` in `matchmaker` eliminate terminal redraw flash during rapid vertical list scrolling.
+* **Non-Blocking HUDs:** Ephemeral status feedback utilizes `tmux display-message` (<1ms), eliminating synchronous blocking modals.
 
 ---
 
-## 🎨 2. Semiótica Visual, Ícones Puros & Dinamismo Omarchy
+## 🎨 2. Visual Semiotics, Pure Icon Badges & Dynamic Omarchy Theming
 
 ```text
 ╭── 󱂬 ──────────────────────────────────────────────────────────────────────╮  🟣 Mauve / Magenta
-│ 1. CAMADA EFÊMERA (Pickers / Seleção Rápida < 5s)                        │  Dimensão: 75% × 60%
-│ • Window Picker, Sesh Picker, Matchmaker Jump. Fechamento: [Esc] imediato │
+│ 1. EPHEMERAL LAYER (Fast Pickers / Quick Selection < 5s)                  │  Dimensions: 75% × 60%
+│ • Window Picker, Sesh Picker, Matchmaker Jump. Dismissal: immediate [Esc] │
 ╰───────────────────────────────────────────────────────────────────────────╯
 
-╭── 󰊢 ──────────────────────────────────────────────────────────────────────╮  🟠 Laranja Git (colors.toml)
-│ 2. CAMADA PERSISTENTE (Workspaces de Alta Densidade / Inspeção)           │  Dimensão: 90% × 88%
-│ • Lazygitrs, Neovim Float, OpenCode Agent. Fechamento: [Esc] no Files / [q]│
+╭── 󰊢 ──────────────────────────────────────────────────────────────────────╮  🟠 Git Orange (colors.toml)
+│ 2. PERSISTENT LAYER (High-Density Workspaces / Deep Inspection)           │  Dimensions: 90% × 88%
+│ • Lazygitrs, Floating Neovim, Agent Session. Dismissal: [Esc] / [q]       │
 ╰───────────────────────────────────────────────────────────────────────────╯
 
-╭── 󰮯 ──────────────────────────────────────────────────────────────────────╮  🟡 Amarelo Alerta (colors.toml)
-│ 3. CAMADA REATIVA (Intervenção de IA / Bells de Agentes)                  │  Dimensão: 80% × 75%
-│ • Alertas de permissão/pergunta de IA. Rotação: [prefix+i] / [Esc]        │
+╭── 󰮯 ──────────────────────────────────────────────────────────────────────╮  🟡 Alert Yellow (colors.toml)
+│ 3. REACTIVE LAYER (AI Agent Intervention / Bell Popups)                   │  Dimensions: 80% × 75%
+│ • AI permission/question alerts. Navigation: [prefix+i] / [Esc]           │
 ╰───────────────────────────────────────────────────────────────────────────╯
 ```
 
-### 2.1 Por que apenas o Ícone Puro (`-T " 󰊢 "`)?
-1. **Signal-to-Noise Ratio (Edward Tufte):** Textos longos como *"Windows & Agents"* ou *"Lazygit"* são redundantes, pois o conteúdo interno do picker e o prompt já explicam a tela.
-2. **Reconhecimento Pré-Atencional de Glifos (15ms vs 200ms):** O cérebro humano decodifica um pictograma conhecido (`󰊢`, `⚡`, `󱂬`, `󱜻`) em **$\approx 15\text{ ms}$**, enquanto ler uma frase leva mais de $180\text{ ms}$.
-3. **Elegância Geométrica:** A borda superior arredondada fica minimalista, equilibrada e com acabamento "Zen".
+### 2.1 Why Pure Icon Badges (`-T " 󰊢 "`)?
+1. **Signal-to-Noise Ratio (Edward Tufte):** Verbose labels like *"Windows & Agents"* or *"Lazygit"* create visual clutter; the internal prompt and list content already describe the context.
+2. **Preattentive Glyph Recognition (15ms vs 200ms):** The visual cortex identifies recognized pictograms (`󰊢`, `⚡`, `󱂬`, `󱜻`) in **$\approx 15\text{ ms}$**, whereas reading textual titles requires over $180\text{ ms}$.
+3. **Geometric Elegance:** Thin rounded borders (`╭─╮`) remain balanced and visually anchored.
 
-### 2.2 Sincronização Dinâmica Universal com o Tema Omarchy
-Todos os scripts de popup extraem suas cores semânticas diretamente do arquivo central gerado pelo Omarchy (`~/.local/state/omarchy/current/theme/colors.toml`):
+### 2.2 Universal Dynamic Synchronization with the Omarchy Theme
+All popup scripts resolve their border and accent colors directly from Omarchy's active theme cache (`~/.local/state/omarchy/current/theme/colors.toml`):
 
 ```text
                ┌────────────────────────────────────────────────────────┐
@@ -75,33 +75,33 @@ Todos os scripts de popup extraem suas cores semânticas diretamente do arquivo 
                      ╰───────╯      ╰───────╯      ╰───────╯           ╰───────╯
 ```
 
-Sempre que o tema do sistema é alterado (`omarchy theme set <tema>`), 100% dos popups adaptam suas bordas harmoniosamente à nova paleta (ex: Catppuccin Mocha, Gruvbox Dark, Tokyo Night, Nord).
+Whenever the system theme switches (`omarchy theme set <name>`), 100% of terminal popups immediately adapt their border palettes harmoniously (e.g. Catppuccin Mocha, Gruvbox Dark, Tokyo Night, Nord).
 
-### Tabela de Especificação Semiótica Universal
+### Universal Semiotics Specification Table
 
-| Camada | Ferramenta / Script | Chave Dinâmica no Omarchy | Fallback | Badge (`-T`) | Dimensões | Fechamento |
+| Layer | Tool / Script | Omarchy Dynamic Key | Fallback Hex | Badge (`-T`) | Dimensions | Dismissal |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **1. Efêmera** | [`window-picker.sh`](../../tmux/.config/tmux/window-picker.sh) | `magenta` / `accent` | `#cba6f7` | ` 󱂬 ` | `75% × 60%` | `Esc` (1 toque) |
-| **1. Efêmera** | [`sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh) | `cyan` / `blue` | `#89dceb` | ` ⚡ ` | `75% × 60%` | `Esc` (1 toque) |
-| **1. Efêmera** | [`awt-popup.sh`](../../tmux/.config/tmux/awt-popup.sh) | `orange` / `peach` | `#e84d31` | `  ` | `85% × 75%` | `Esc` / `q` |
-| **2. Persistente** | [`lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh)| `orange` / `peach` | `#e84d31` | ` 󰊢 ` | `90% × 88%` | `Esc` (Files) / `q` |
-| **2. Persistente** | `opencode` (`Alt+o`) | `accent` / `blue` | `#b4befe` | ` 󱜻 ` | `85% × 85%` | `Ctrl+C` / `exit` |
-| **2. Persistente** | `nvim` (`prefix+N`) | `orange` / `peach` | `#fab387` | `  ` | `90% × 90%` | `:q` |
-| **3. Reativa** | [`ai-agent-bell`](../../tmux/.config/tmux/ai-agent-bell-popup.sh) | `yellow` / `bright_yellow` | `#f9e2af` | ` 󰮯 ` | `80% × 75%` | `Esc` / `prefix+i` |
+| **1. Ephemeral** | [`window-picker.sh`](../../tmux/.config/tmux/window-picker.sh) | `magenta` / `accent` | `#cba6f7` | ` 󱂬 ` | `75% × 60%` | `Esc` (1 tap) |
+| **1. Ephemeral** | [`sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh) | `cyan` / `blue` | `#89dceb` | ` ⚡ ` | `75% × 60%` | `Esc` (1 tap) |
+| **1. Ephemeral** | [`awt-popup.sh`](../../awt/.config/tmux/awt-popup.sh) | `orange` / `peach` | `#e84d31` | `  ` | `85% × 75%` | `Esc` / `q` |
+| **2. Persistent** | [`lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh)| `orange` / `peach` | `#e84d31` | ` 󰊢 ` | `90% × 88%` | `Esc` (Files) / `q` |
+| **2. Persistent** | Floating Agent Overlay | `accent` / `blue` | `#b4befe` | ` 󱜻 ` | `85% × 85%` | `Ctrl+C` / `exit` |
+| **2. Persistent** | `nvim` (`prefix+N`) | `orange` / `peach` | `#fab387` | `  ` | `90% × 90%` | `:q` |
+| **3. Reactive** | [`ai-agent-bell`](../../tmux/.config/tmux/ai-agent-bell-popup.sh) | `yellow` / `bright_yellow` | `#f9e2af` | ` 󰮯 ` | `80% × 75%` | `Esc` / `prefix+i` |
 
 ---
 
-## 📐 3. A Proporção Áurea ($\phi$) em Interfaces de Terminal
+## 📐 3. The Golden Ratio ($\phi$) in Terminal Viewports
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           VIEWPORT DO TERMINAL                              │
+│                             TERMINAL VIEWPORT                               │
 │                                                                             │
 │        ┌─ 󱂬 ───────────────────────────────────────────────────────┐        │
-│        │  MODAL CENTRALIZADO (Largura: ~75% │ Altura: ~60%)        │        │
+│        │  CENTERED MODAL (Width: ~75% │ Height: ~60%)               │        │
 │        │                                                           │        │
 │        │  ┌───────────────────────┬─────────────────────────────┐  │        │
-│        │  │ Lista de Candidatos   │ Inspeção / Live Preview     │  │        │
+│        │  │ Candidate List        │ Contextual Live Preview     │  │        │
 │        │  │ (38.2% ≈ 40%)         │ (61.8% ≈ 60%)               │  │        │
 │        │  │                       │                             │  │        │
 │        │  │ • 0  nvim     󱥂 idle  │ $ git status -s             │  │        │
@@ -109,53 +109,53 @@ Sempre que o tema do sistema é alterado (`omarchy theme set <tema>`), 100% dos 
 │        │  │ · 2  zsh              │ M matchmaker/jump.toml      │  │        │
 │        │  │                       │                             │  │        │
 │        │  └───────────────────────┴─────────────────────────────┘  │        │
-│        │  [Enter] Trocar  •  [c] Nova  •  [d] Matar  •  [Esc] Sair  │        │
+│        │  [Enter] Switch  •  [c] Create  •  [d] Kill  •  [Esc] Exit │        │
 │        └───────────────────────────────────────────────────────────┘        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-A **Proporção Áurea** ($\phi = \frac{1 + \sqrt{5}}{2} \approx 1{,}618$) dita a divisão mais equilibrada e orgânica do espaço:
-* **Painel Menor ($B$ - Lista):** $\frac{1}{\phi^2} \approx 38{,}2\%$ (arredondado para **$40\%$** em colunas de terminal).
-* **Painel Maior ($A$ - Preview):** $\frac{1}{\phi} \approx 61{,}8\%$ (arredondado para **$60\%$**).
-* **Enquadramento Foveal (75% × 60%):** Enquadra a informação no cone óptico central (2° a 5°) sem esconder o terminal de fundo.
+The **Golden Ratio** ($\phi = \frac{1 + \sqrt{5}}{2} \approx 1.618$) provides the most ergonomic, natural spatial division:
+* **Minor Panel ($B$ - Candidate List):** $\frac{1}{\phi^2} \approx 38.2\%$ (rounded to **$40\%$** in terminal column splits).
+* **Major Panel ($A$ - Inspection / Preview):** $\frac{1}{\phi} \approx 61.8\%$ (rounded to **$60\%$**).
+* **Foveal Window (75% × 60%):** Constrains primary information inside the eye's central 2° to 5° foveal field without occluding peripheral backdrop orientation.
 
 ---
 
-## ⌨️ 4. Mapeamento Biomecânico & Arquitetura de Teclas
+## ⌨️ 4. Biomechanical Keymapping Architecture
 
-### 4.1 Ancoragem no Kernel via `keyd` (Dual-Function Key)
-No driver do kernel, a tecla `CapsLock` atua como:
-* **`Ctrl`** quando mantida pressionada (*Hold*).
-* **`Esc`** quando tocada rapidamente (*Tap*).
+### 4.1 Kernel Anchoring via `keyd` (Dual-Function Modifiers)
+At the kernel layer, physical `CapsLock` is overloaded:
+* **`Ctrl`** when held down (*Hold*).
+* **`Esc`** when tapped quickly (*Tap*).
 
-Isso posiciona os dois modificadores mais críticos da computação diretamente sob o dedo mindinho esquerdo em posição de repouso, neutralizando o desvio ulnar e prevenindo LER/DORT.
+This places computing's two most frequent control keys directly under the left pinky at rest, eliminating ulnar deviation and wrist strain.
 
-### 4.2 O "Desempilhamento em Cascata" no Lazygitrs
-Para evitar o fechamento acidental enquanto se inspeciona um diff ou edita uma mensagem de commit:
-1. **Foco no Diff ou Submenus:** `Esc` desempilha o foco e volta para o painel de arquivos (*Files [2]*).
-2. **Foco na Lista de Arquivos (Raiz):** `Esc` fecha o popup instantaneamente.
-3. **Saídas Secundárias:** `q` e `Ctrl+C` fecham o popup a qualquer momento.
+### 4.2 Cascading Escape Unwinding in Lazygitrs
+To prevent accidental dismissal while inspecting a diff or composing a commit message:
+1. **Diff / Submenu Focus:** `Esc` unwinds focus back to the parent file list (*Files [2]*).
+2. **Root File List Focus:** `Esc` dismisses the popup instantly.
+3. **Secondary Exits:** `q` and `Ctrl+C` terminate the popup unconditionally.
 
 ---
 
-## 📊 5. Matriz Comparativa de Ganhos de Interação
+## 📊 5. Quantitative Interaction Efficiency Gains
 
-| Operação / Fluxo | Setup Convencional | Setup Otimizado dos Dotfiles | Ganho Ergonômico |
+| Operation / Flow | Conventional Setup | Optimized Dotfiles Architecture | Ergonomic / Latency Gain |
 | :--- | :--- | :--- | :---: |
-| **Abrir / Fechar Git** | Digitar `lazygit` $\rightarrow$ `q` | `Ctrl+G` $\rightarrow$ `Esc` (Modal 90x88%) | **-75% de esforço motor** |
-| **Navegação Sesh** | Acordes `Ctrl+A/T/X` | Teclas diretas `a`, `t`, `x` no modo Nav | **-50% no custo KLM ($120\text{ ms}$)** |
-| **Seleção de Janela** | `prefix + w` (Lista nativa) | `prefix + s` (Matchmaker 40/60 com IA) | **-80% de carga cognitiva** |
-| **Flicker em Scroll** | Stutter visual branco | Double Buffering (`delay_clear = true`) | **Zero-Flicker (60 FPS contínuo)** |
-| **Alerta Vazio de IA** | Modal congelado 1.5s | `display-message` HUD (<1ms) | **-99% latência (Doherty <100ms)** |
-| **Reconhecimento de Modal**| Leitura de texto de cabeçalho | Cor semântica + Ícone puro | **-90% tempo de decodificação (<15ms)** |
+| **Open / Close Git** | Type `lazygit` $\rightarrow$ `q` | `Ctrl+G` $\rightarrow$ `Esc` (Modal 90x88%) | **-75% motor effort** |
+| **Sesh Navigation** | `Ctrl+A/T/X` chords | Direct single keys `a`, `t`, `x` in Nav mode | **-50% KLM cost ($120\text{ ms}$)** |
+| **Window Selection** | `prefix + w` (Native vertical list) | `prefix + s` (Matchmaker 40/60 with AI states)| **-80% cognitive load** |
+| **Scroll Stutter** | White visual flash | Double Buffering (`delay_clear = true`) | **Zero-Flicker (60 FPS fluid)** |
+| **Empty AI Bell** | 1.5s frozen modal | `display-message` HUD (<1ms) | **-99% latency (Doherty <100ms)** |
+| **Modal Recognition**| Reading verbal title strings | Semantic border color + Pure icon badge | **-90% decoding time (<15ms)** |
 
 ---
 
-## 🔗 Arquivos Relacionados no Repositório
-* [`tmux/.config/tmux/window-picker.sh`](../../tmux/.config/tmux/window-picker.sh): Script do seletor de janelas áureo com badge `󱂬`.
-* [`tmux/.config/tmux/sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh): Script do seletor de sessões Sesh com badge `⚡`.
-* [`tmux/.config/tmux/lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh): Script do popup do Lazygit com badge `󰊢` e Git orange.
-* [`tmux/.config/tmux/ai-agent-bell-popup.sh`](../../tmux/.config/tmux/ai-agent-bell-popup.sh): Despachador de notificações com badge `󰮯`.
-* [`matchmaker/.config/matchmaker/presets/jump.toml`](../../matchmaker/.config/matchmaker/presets/jump.toml): Preset do Matchmaker Jump.
-* [`docs/tmux/popup-isolation-and-debounce.md`](popup-isolation-and-debounce.md): Snapshot backdrops e debounce no ACPD.
+## 🔗 Related Repository Files
+* [`tmux/.config/tmux/window-picker.sh`](../../tmux/.config/tmux/window-picker.sh): Golden ratio window picker with `󱂬` badge.
+* [`tmux/.config/tmux/sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh): Sesh picker with `⚡` badge.
+* [`tmux/.config/tmux/lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh): Lazygitrs popup with `󰊢` badge and Git orange theme.
+* [`tmux/.config/tmux/ai-agent-bell-popup.sh`](../../tmux/.config/tmux/ai-agent-bell-popup.sh): Reactive notification dispatcher with `󰮯` badge.
+* [`matchmaker/.config/matchmaker/presets/jump.toml`](../../matchmaker/.config/matchmaker/presets/jump.toml): Matchmaker Jump preset.
+* [`docs/tmux/popup-isolation-and-debounce.md`](popup-isolation-and-debounce.md): Snapshot backdrops and ACPD event debounce.

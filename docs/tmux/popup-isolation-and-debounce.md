@@ -1,120 +1,120 @@
 # Tmux Popup Isolation, ACPD Debounce & Event-Driven Architecture
 
-Este documento registra os problemas identificados de oscilação visual, colisão de renderização em popups flutuantes durante streaming de IA, e as soluções arquiteturais definitivas aplicadas no `tmux` e no daemon `acpd`.
+This document records the identified issues of visual flicker, rendering collisions in floating popups during active AI streaming, and the definitive architectural solutions implemented in `tmux` and the `acpd` daemon.
 
 ---
 
-## 1. Problemas Identificados (Root Causes)
+## 1. Root Cause Analysis
 
-### 🔴 Problema A: Trepidação do Ícone de Status (Flicker / Bounce)
-- **Causa:** Durante execuções de IA (como Antigravity / OpenCode), tarefas encadeadas disparam eventos de ciclo de vida rápidos: `PostInvocation` (`idle`) seguido de `PreInvocation` (`working`) em intervalos de 20ms a 100ms a cada leitura de arquivo ou comando executado.
-- **Efeito Visual:** O ícone e o pill da aba no topo do tmux ficavam piscando e oscilando freneticamente entre amarelo (`󰑮` working) e azul (`󱥂` idle) várias vezes por segundo durante uma única resposta da IA.
+### 🔴 Issue A: Status Pill Flicker & Rapid State Bouncing
+- **Cause:** During active AI executions (such as Antigravity / OpenCode), chained tasks emit rapid lifecycle events: `PostInvocation` (`idle`) followed immediately by `PreInvocation` (`working`) within 20ms to 100ms intervals on each file read, search, or executed command.
+- **Visual Impact:** The window status tab and pill at the top of tmux rapidly flickered between yellow (`󰑮` working) and blue/teal (`󱥂` idle) multiple times per second during a single AI response turn.
 
-### 🔴 Problema B: Borda Superior e Linha de Input Desaparecendo em Popups
-- **Causa:** O comando `display-popup` do tmux renderiza uma camada flutuante por cima do painel ativo. Enquanto a IA está respondendo, o painel de fundo cospe dezenas de linhas de texto e escape codes de rolagem por segundo. No motor do tmux, a rotina `server_client_draw_pane` atualiza as células modificadas do painel de fundo diretamente no terminal, sobrescrevendo a camada do popup.
-- **Efeito Visual:** A moldura superior arredondada (`╭─── Sesh ───╮`) e o campo de busca (`⚡ ` / ` `) sumiam da tela enquanto a IA estava gerando respostas, só reaparecendo quando a IA finalizava.
+### 🔴 Issue B: Popup Top Border & Search Input Disappearing
+- **Cause:** Tmux's `display-popup` command renders a floating overlay directly over the active pane. While the AI agent outputs text, the background pane rapidly outputs dozens of lines of text and ANSI scroll escapes per second. In the tmux core engine, `server_client_draw_pane` redraws updated background cells directly to the terminal, clobbering and overwriting the popup's top frame.
+- **Visual Impact:** The rounded top border (`╭─── Sesh ───╮`) and search input line (`⚡ ` / ` `) vanished while the agent streamed tokens, only reappearing after the agent concluded execution.
 
-### 🔴 Problema C: Perda de Navegação ao Selecionar Sessão/Janela
-- **Causa:** Scripts de popup que capturavam o estado anterior executavam um `tmux switch-client -t ""` incondicional no retorno, forçando o cliente de volta para onde o popup foi aberto e anulando a seleção de uma nova sessão ou janela.
+### 🔴 Issue C: Navigation Loss Upon Selecting a Session or Window
+- **Cause:** Earlier popup wrapper scripts captured the prior active window/session and executed an unconditional `tmux switch-client -t "$ORIG_TARGET"` upon closing. This forced the client back to the invoking pane, discarding the user's new session/window selection.
 
-### 🔴 Problema D: Polling Periódico Inútil (`status-interval 1`)
-- **Causa:** O tmux acordava 60 vezes por minuto para reavaliar formatos e executar subprocessos de formatação em segundo plano, mesmo com o terminal ocioso.
+### 🔴 Issue D: Useless Periodic Polling (`status-interval 1`)
+- **Cause:** Tmux was waking up 60 times per minute to re-evaluate format strings and spawn shell format processes, even when the terminal and system were completely idle.
 
 ---
 
-## 2. Soluções Implementadas (Architectural Fixes)
+## 2. Architectural Solutions Implemented
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           ARQUITETURA FINAL                             │
+│                          TARGET ARCHITECTURE                            │
 ├────────────────────────────────┬────────────────────────────────────────┤
-│ IA Ociosa / Terminal Estático  │ Abertura Direta & Nativa               │
-│                                │ (display-popup imediato sem backdrop)  │
+│ Idle Agent / Static Terminal   │ Direct & Native Display Popup          │
+│                                │ (Immediate popup without backdrop)     │
 ├────────────────────────────────┼────────────────────────────────────────┤
-│ IA Respondendo / Executando    │ Backdrop com Snapshot Transparente     │
+│ Active Streaming Agent         │ Frozen Transparent Snapshot Backdrop   │
 │ (@ai_agent_state_raw = busy)   │ (tmux capture-pane -ep -> _popups)     │
 ├────────────────────────────────┼────────────────────────────────────────┤
-│ Transições de Ferramentas IA   │ Debounce de 400ms no ACPD              │
-│ (Tool Calls em sequência)      │ (Cancela idles intermediários)         │
+│ Rapid AI Tool Transitions      │ 400ms Idle Debounce in ACPD            │
+│ (Sequential tool calls)        │ (Cancels intermediate idle state flips)│
 ├────────────────────────────────┼────────────────────────────────────────┤
-│ Consumo de CPU & Bateria       │ status-interval 0 (100% Event-Driven)  │
-│                                │ (Atualizações via ACPD / Tmux Events)  │
+│ CPU & Battery Consumption      │ status-interval 0 (100% Event-Driven)  │
+│                                │ (Reactive updates via ACPD IPC events) │
 └────────────────────────────────┴────────────────────────────────────────┘
 ```
 
 ---
 
-### 🛡️ 1. Debounce de 400ms e Deduplicação no ACPD (`dev/github/acpd`)
-No arquivo `src/adapters.rs` do daemon `acpd`:
-- **Debounce de 400ms para `AgentState::Idle`:**
+### 🛡️ 1. 400ms Debounce & Deduplication in ACPD
+Inside the `acpd` daemon (`adapters.rs`):
+- **400ms Debounce for `AgentState::Idle`:**
   ```rust
-  // Se o estado for Idle, agenda uma tarefa assíncrona de 400ms
+  // When state transitions to Idle, schedule a 400ms async cancellation window
   let task = tokio::spawn(async move {
       tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
-      // Atualiza para Idle apenas se nenhuma nova tool call entrou no período
+      // Commit Idle only if no new tool call arrived during the window
       set_tmux_option(&pane_id, "@ai_agent_state", &t.icon).await;
       set_tmux_option(&pane_id, "@ai_agent_state_raw", "idle").await;
       refresh_tmux_client().await;
   });
   ```
-- **Cancelamento Imediato:** Qualquer novo evento `Working` cancela a tarefa pendente de `Idle`, mantendo o spinner girando sem interrupção.
-- **Deduplicação de Estados (`pane_states`):** Evita chamadas repetidas a comandos do tmux quando o estado do painel não foi alterado.
+- **Instant Cancellation:** Any incoming `Working` event immediately aborts the pending `Idle` task, keeping the spinner animating smoothly without flicker.
+- **State Deduplication (`pane_states`):** Eliminates redundant tmux IPC writes when pane status remains unchanged.
 
 ---
 
-### 🪄 2. Backdrop com Snapshot Transparente Congelado
-Nos scripts dos popups (`sesh-picker.sh`, `window-picker.sh`, `lazygitrs-popup.sh`):
+### 🪄 2. Frozen Transparent Snapshot Backdrop
+Inside the popup launcher scripts (`sesh-picker.sh`, `window-picker.sh`, `lazygitrs-popup.sh`):
 
 ```bash
-AI_STATE=idle
-if [ "" = "busy" ] || [ "" = "working" ]; then
-    CURRENT_PANE=%2
-    ORIG_TARGET=_dotfiles/main:0
+AI_STATE=$(tmux show-options -pqv -t "$TARGET_PANE" @ai_agent_state_raw)
+if [ "$AI_STATE" = "busy" ] || [ "$AI_STATE" = "working" ]; then
+    CURRENT_PANE=$(tmux display-message -p '#{pane_id}')
+    ORIG_TARGET=$(tmux display-message -p '#{session_name}:#{window_index}')
     
-    # 1. Tira um snapshot visual do buffer com cores ANSI (<1ms)
-    tmux capture-pane -ep -t "" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
+    # 1. Capture a frozen visual snapshot of the buffer with ANSI colors (<1ms)
+    tmux capture-pane -ep -t "$CURRENT_PANE" > /tmp/tmux-backdrop.ansi 2>/dev/null || true
 
-    # 2. Carrega o snapshot na janela de fundo estática
+    # 2. Render the snapshot into a static background pane in the dedicated _popups session
     if ! tmux list-windows -t "_popups" -F '#W' 2>/dev/null | grep -q "^backdrop$"; then
         tmux new-window -d -t "_popups" -n "backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
     else
         tmux respawn-window -k -t "_popups:backdrop" "cat /tmp/tmux-backdrop.ansi; tail -f /dev/null"
     fi
 
-    # 3. Alterna o cliente para o backdrop limpo e abre o popup
+    # 3. Switch client to clean static backdrop and open popup
     tmux switch-client -t "_popups:backdrop" 2>/dev/null || true
-    tmux display-popup -b rounded -T " Titulo " -w 80% -h 35% -y 34 -E "..."
+    tmux display-popup -b rounded -T " Title " -w 80% -h 35% -y 34 -E "..."
 
-    # 4. Restauração inteligente: apenas se o usuário cancelou (ainda em _popups)
-    CURRENT_SESS=_dotfiles/main
-    if [ "" = "_popups" ]; then
-        tmux switch-client -t "" 2>/dev/null || true
+    # 4. Intelligent restore: switch back only if the user cancelled (still inside _popups)
+    CURRENT_SESS=$(tmux display-message -p '#{session_name}')
+    if [ "$CURRENT_SESS" = "_popups" ]; then
+        tmux switch-client -t "$ORIG_TARGET" 2>/dev/null || true
     fi
     exit 0
 else
-    # Terminal limpo/estático: abre o popup nativo direto sem backdrop
-    exec tmux display-popup -b rounded -T " Titulo " -w 80% -h 35% -y 34 -E "..."
+    # Clean/static terminal: invoke native popup directly without backdrop overhead
+    exec tmux display-popup -b rounded -T " Title " -w 80% -h 35% -y 34 -E "..."
 fi
 ```
 
 ---
 
-### ⚡ 3. Barra de Status 100% Orientada a Eventos (`status-interval 0`)
-No `tmux.conf`:
+### ⚡ 3. 100% Event-Driven Status Bar (`status-interval 0`)
+In `tmux.conf`:
 ```tmux
-# Event-driven status bar (sem polling de relógio no fundo — acionado por eventos e acpd)
+# Event-driven status bar (zero background clock polling; driven exclusively by events and acpd)
 set -g status-interval 0
 ```
-- **Vantagens:** 0.0% de uso de CPU em repouso, sem forks de processos desnecessários.
-- **Animação do Spinner:** Continua rodando a 12 FPS (83ms) pelo daemon `acpd` via `refresh_tmux_client()`.
+- **Advantages:** 0.0% background idle CPU usage, zero shell fork overhead.
+- **Spinner Animation:** Maintained at 12 FPS (83ms) by the `acpd` daemon via `refresh_tmux_client()` exclusively when an agent is actively running.
 
 ---
 
-## 3. Arquivos Envolvidos e Referências
+## 3. Related Files & Documentation
 
-- [`acpd/src/adapters.rs`](../../dev/github/acpd/src/adapters.rs): Implementação do debounce de 400ms e deduplicação de estado.
-- [`tmux/.config/tmux/tmux.conf`](../../tmux/.config/tmux/tmux.conf): Configuração de `status-interval 0` e popups ergonômicos no terço inferior.
-- [`tmux/.config/tmux/sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh): Seletor de sessões com backdrop inteligente e preservação de navegação.
-- [`tmux/.config/tmux/window-picker.sh`](../../tmux/.config/tmux/window-picker.sh): Seletor de janelas Matchmaker com backdrop inteligente.
-- [`tmux/.config/tmux/lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh): Popup do Lazygitrs posicionado no rodapé (`-y 28 -h 45%`).
-- [`docs/tmux/ai-status-bar.md`](ai-status-bar.md): Documentação geral do status bar e estados dos agentes de IA.
+- `acpd/src/adapters.rs`: Implementation of the 400ms async debounce and state deduplication.
+- [`tmux/.config/tmux/tmux.conf`](../../tmux/.config/tmux/tmux.conf): Configuration of `status-interval 0` and ergonomic popups.
+- [`tmux/.config/tmux/sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh): Session picker with intelligent backdrop and navigation preservation.
+- [`tmux/.config/tmux/window-picker.sh`](../../tmux/.config/tmux/window-picker.sh): Matchmaker window picker with intelligent backdrop.
+- [`tmux/.config/tmux/lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh): Lazygitrs popup with smart `--commits` detection and backdrop handling.
+- [`docs/tmux/ai-status-bar.md`](ai-status-bar.md): Comprehensive guide to AI agent status pills and state animations.

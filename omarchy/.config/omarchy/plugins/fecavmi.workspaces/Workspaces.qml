@@ -82,7 +82,8 @@ BarWidget {
     "whatsapp": "󰖣",
     "chatgpt": "󰚩",
     "grok": "󰚩",
-    "google messages": "󰭹"
+    "google messages": "󰭹",
+    "linkedin": "󰌻"
   })
 
   function getGlyphOrFallback(data) {
@@ -146,6 +147,7 @@ BarWidget {
         "pull request", "pull requests", "issues ·", "issue #", "commits ·", "commit ·",
         "releases ·", "release ·", "actions ·"
       ],                                                     icon: "󰊤" },
+    { patterns: ["linkedin"],                               icon: "󰌻" },
     { patterns: ["chatgpt", "grok"],                        icon: "󰚩" },
     { patterns: ["whatsapp"],                               icon: "󰖣" },
     { patterns: ["google messages"],                        icon: "󰭹" },

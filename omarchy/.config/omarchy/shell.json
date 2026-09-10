@@ -26,6 +26,9 @@
           "id": "omarchy.tray"
         },
         {
+          "id": "akitaonrails.ai-usagebar"
+        },
+        {
           "format": "dddd HH:mm",
           "formatAlt": "d MMMM 'W'ww yyyy",
           "id": "omarchy.clock",
@@ -33,9 +36,6 @@
         },
         {
           "id": "omarchy.weather"
-        },
-        {
-          "id": "omarchy.agents"
         },
         {
           "id": "omarchy.bluetooth"

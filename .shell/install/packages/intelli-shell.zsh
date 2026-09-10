@@ -3,6 +3,10 @@
 # https://github.com/lasantosr/intelli-shell
 
 if command -v intelli-shell &>/dev/null; then
+  local custom_commands="${HOME}/.config/intelli-shell/custom.commands"
+  if [[ -f "$custom_commands" ]]; then
+    intelli-shell import - < "$custom_commands" &>/dev/null || true
+  fi
   print -P "  %F{cyan}✓%f %Bintelli-shell%b already installed"
   return 0
 fi
@@ -11,6 +15,11 @@ _fetch_initial_tldr() {
   if [[ ! -f "${HOME}/.local/share/intelli-shell/storage.db3" ]]; then
     print -P "%F{blue}  →%f Populating initial tldr command templates..."
     intelli-shell tldr fetch &>/dev/null || true
+  fi
+  local custom_commands="${HOME}/.config/intelli-shell/custom.commands"
+  if [[ -f "$custom_commands" ]]; then
+    print -P "%F{blue}  →%f Importing custom dotfiles command templates..."
+    intelli-shell import - < "$custom_commands" &>/dev/null || true
   fi
 }
 

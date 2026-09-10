@@ -8,7 +8,10 @@ source "${HOME}/.zsh/helpers.zsh"
 # printf '\n%.0s' {1..75}
 # clear
 
-# Source Order: Utils → Packages → Completion → Plugins → Binds
+# Initialize the zsh completion system before packages and plugins
+autoload -Uz compinit && compinit
+
+# Source Order: Utils → Completion → Packages → Plugins → Binds
 source_utils \
 	history \
 	aliases \
@@ -31,9 +34,6 @@ source_packages \
 	intelli-shell
 
 source_if_exists packages fed cargo
-
-# Initialize the zsh completion system before plugins
-autoload -Uz compinit && compinit
 
 source_plugins \
 	zsh-vi-mode \

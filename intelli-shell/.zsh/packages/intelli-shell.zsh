@@ -15,6 +15,9 @@ export INTELLI_VARIABLE_HOTKEY="^Xv"
 export INTELLI_FIX_HOTKEY="^Xx"
 
 if (( $+commands[intelli-shell] )); then
+  # Ensure completion system is loaded so compdef is available
+  (( $+functions[compdef] )) || { autoload -Uz compinit && compinit -C; }
+
   eval "$(intelli-shell init zsh)"
 
   # Ensure bindings are registered in zsh-vi-mode if active
@@ -25,4 +28,7 @@ if (( $+commands[intelli-shell] )); then
     fi
   }
   zvm_after_init_commands+=('_intelli_zvm_setup')
+
+  # Helper alias to sync version-controlled custom.commands
+  alias intelli-sync="intelli-shell import - < ~/.config/intelli-shell/custom.commands"
 fi

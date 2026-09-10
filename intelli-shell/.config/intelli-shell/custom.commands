@@ -1,0 +1,71 @@
+# Open interactive Matchmaker worktree dashboard
+awt
+
+# Launch 5-step Conventional Commits creation wizard
+awt -c
+
+# Create worktree from explicit base branch
+awt -c {{branch}} {{base}}
+
+# Switch to existing worktree session (or auto-create from HEAD)
+awt switch {{branch}}
+
+# Open floating AWT modal in Tmux (85% × 75%)
+awt popup
+
+# Clone repository into .bare container layout
+awt clone {{repo_url}} {{target_dir}}
+
+# Delete worktree, Git branch, and kill Tmux session
+awt rm {{branch}}
+
+# Force delete dirty worktree, Git branch, and Tmux session
+awt rm -f {{branch}}
+
+# Rebase active worktree onto base branch with auto-stash
+awt rebase {{base}}
+
+# Merge active worktree into base branch with hooks
+awt merge {{branch}}
+
+# Dry-run GNU Stow symlink validation
+./stow.sh -n
+
+# Inspect status of all stowed dotfile packages
+./stow.sh -s
+
+# Restow a specific package
+./stow.sh -r {{package}}
+
+# Stow a new package to home directory
+./stow.sh {{package}}
+
+# Delete or unstow a package from home directory
+./stow.sh -d {{package}}
+
+# Audit documentation integrity, broken links, and root cleanliness
+./scripts/docs-lint.sh
+
+# Interactive Matchmaker Jump widget (frecency & tree navigation)
+mm -o jump
+
+# List frecency directories ranked by usage
+mm list --dirs
+
+# List bookmarked directories and files
+mm list --bookmarks
+
+# Add directory manually to frecency database
+mm add {{dir}}
+
+# Connect to or create a session with Sesh
+sesh connect {{session}}
+
+# List active sessions and configured paths
+sesh list
+
+$ (awt) branch: git branch --format='%(refname:short)' 2>/dev/null
+$ (awt) base: git branch --format='%(refname:short)' 2>/dev/null
+$ (stow.sh) package: find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' -printf '%f\n' 2>/dev/null
+$ (./stow.sh) package: find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' -printf '%f\n' 2>/dev/null
+$ (sesh) session: sesh list 2>/dev/null

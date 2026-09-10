@@ -172,6 +172,120 @@ chpwd() {
     printf "\033]7;file://%s%s\033\\" "${HOST:-$HOSTNAME}" "${PWD}"
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Matchmaker Smart Frecency Tracking & Jump (Zero-Friction 2.0)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Smart Sanitized chpwd hook: records directory visits in Matchmaker frecency.
+# Ephemeral, system, build, and noise directories are ignored to prevent database pollution.
+mm_smart_chpwd() {
+    (( $+commands[mm] )) || return 0
+
+    case "$PWD" in
+        /tmp*|/proc*|/sys*|*/.git*|*/node_modules*|*/target/debug*|*/target/release*|*/.direnv*)
+            return 0
+            ;;
+        *)
+            mm add "$PWD" >/dev/null 2>&1 &!
+            ;;
+    esac
+}
+
+autoload -Uz add-zsh-hook
+# Disarm un-sanitized hook if previously registered by external scripts
+add-zsh-hook -d chpwd mm_chpwd 2>/dev/null
+add-zsh-hook chpwd mm_smart_chpwd
+
+# j - Rapid directory jump with Zero-Friction Frecency 2.0
+# Usage:
+#   j           -> Jump to $HOME (rapid muscle memory)
+#   j <dir>     -> Jump to literal directory if exists (or '-' for previous dir)
+#   j <query>   -> Jump to highest-ranked frecency directory matching query
+#   Fallback    -> Launch Matchmaker interactive Jump Mode with query
+j() {
+    if (( $# == 0 )); then
+        cd ~ || return 1
+        return 0
+    elif (( $# == 1 )); then
+        local direct="${1/#\~/$HOME}"
+        if [[ -d "$direct" || "$1" == "-" ]]; then
+            cd "$direct" || return 1
+            return 0
+        fi
+    fi
+
+    (( $+commands[mm] )) || {
+        echo "j: 'mm' (Matchmaker) não encontrado no PATH."
+        return 1
+    }
+
+    local target
+    target="$(mm list --dirs "$@" 2>/dev/null | head -n 1)"
+    if [[ -n "$target" ]]; then
+        target="${target%%$'\n'*}"
+        target="${target/#\~/$HOME}"
+        target="$(realpath "$target" 2>/dev/null || echo "$target")"
+        if [[ -f "$target" ]]; then
+            target="${target:h}"
+        fi
+        if [[ -d "$target" ]]; then
+            cd "$target" || return 1
+            return 0
+        fi
+    fi
+
+    # Fallback: interactive jump with initial query
+    target="$(mm -o jump query.initial="$*" 2>/dev/null)"
+    if [[ -n "$target" ]]; then
+        target="${target%%$'\n'*}"
+        target="${target/#\~/$HOME}"
+        target="$(realpath "$target" 2>/dev/null || echo "$target")"
+        if [[ -f "$target" ]]; then
+            target="${target:h}"
+        fi
+        if [[ -d "$target" ]]; then
+            cd "$target" || return 1
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+# ji - Interactive directory jump using Matchmaker Jump Mode
+# Usage: ji [query]
+ji() {
+    (( $+commands[mm] )) || {
+        echo "ji: 'mm' (Matchmaker) não encontrado no PATH."
+        return 1
+    }
+
+    local -a mm_args=(-o jump)
+    if (( $# > 0 )); then
+        mm_args+=(query.initial="$*")
+    fi
+    local target
+    target="$(mm "${mm_args[@]}" 2>/dev/null)"
+    if [[ -n "$target" ]]; then
+        target="${target%%$'\n'*}"
+        target="${target/#\~/$HOME}"
+        target="$(realpath "$target" 2>/dev/null || echo "$target")"
+        if [[ -f "$target" ]]; then
+            target="${target:h}"
+        fi
+        if [[ -d "$target" ]]; then
+            cd "$target" || return 1
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+alias z='j' 2>/dev/null
+alias zi='ji' 2>/dev/null
+
+
 # ai-fix - Capture last command, terminal error output, git status/diff, and dispatch to AI agent
 # Usage: ai-fix [optional note]
 ai-fix() {
@@ -312,11 +426,54 @@ acpd() {
             ;;
     esac
 }
+# ─────────────────────────────────────────────────────────────────────────────
+# Zero-Friction File Transfer (PasteTo & MoveTo 2.0)
+# ─────────────────────────────────────────────────────────────────────────────
+
+typeset -g _MM_LAST_TARGET=""
+
 # pasteto - Copy files to any frecency/project directory without leaving current context
-# Usage: pasteto [files...] or pt [files...]
+# Usage: pasteto [-g|--go] [-l|--last] [files...] or pt [files...]
+# Options:
+#   -g, --go    Navigate directly to destination directory after copying
+#   -l, --last  Paste directly into last target (_MM_LAST_TARGET) without opening picker
 # If no files are passed, opens Matchmaker to visually select files in current directory.
 pasteto() {
-    local -a sources=("$@")
+    local go=0
+    local use_last=0
+    local -a sources=()
+
+    while (( $# > 0 )); do
+        case "$1" in
+            -g|--go)
+                go=1
+                shift
+                ;;
+            -l|--last)
+                use_last=1
+                shift
+                ;;
+            --)
+                shift
+                sources+=("$@")
+                break
+                ;;
+            -*)
+                if [[ "$1" =~ ^-[gl]+$ ]]; then
+                    [[ "$1" == *g* ]] && go=1
+                    [[ "$1" == *l* ]] && use_last=1
+                    shift
+                else
+                    sources+=("$1")
+                    shift
+                fi
+                ;;
+            *)
+                sources+=("$1")
+                shift
+                ;;
+        esac
+    done
 
     # 1. Visual selection if no arguments passed
     if (( ${#sources} == 0 )); then
@@ -334,35 +491,99 @@ pasteto() {
         return 1
     fi
 
-    # 2. Select target destination directory using Matchmaker Frecency
-    local target_dir
-    target_dir=$(mm list --dirs 2>/dev/null | mm -o jump --header "PASTE TO (Escolha o Destino)")
-    [[ -z "$target_dir" ]] && return 0
+    # 2. Check that all source items exist
+    local src
+    for src in "${sources[@]}"; do
+        if [[ ! -e "$src" && ! -L "$src" ]]; then
+            echo "pasteto: Arquivo não encontrado: $src"
+            return 1
+        fi
+    done
 
+    # 3. Resolve destination directory (picker or cached last target)
+    local target_dir=""
+    if (( use_last )); then
+        if [[ -z "$_MM_LAST_TARGET" ]]; then
+            echo "pasteto: Nenhum destino anterior gravado (_MM_LAST_TARGET está vazio)."
+            return 1
+        fi
+        target_dir="$_MM_LAST_TARGET"
+    else
+        target_dir=$(mm list --dirs 2>/dev/null | mm -o jump header.content="PASTE TO (Escolha o Destino)")
+        [[ -z "$target_dir" ]] && return 0
+    fi
+
+    target_dir="${target_dir%%$'\n'*}"
     target_dir="${target_dir/#\~/$HOME}"
     target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
+    if [[ -f "$target_dir" ]]; then
+        target_dir="${target_dir:h}"
+    fi
 
     if [[ ! -d "$target_dir" ]]; then
         echo "pasteto: Diretório de destino inválido: $target_dir"
+        _MM_LAST_TARGET=""
         return 1
     fi
 
-    # 3. Perform copy
+    # 4. Perform copy
     cp -a -- "${sources[@]}" "$target_dir/" || return 1
     echo "✓ ${#sources[@]} item(ns) copiado(s) para $target_dir"
 
-    # 4. Optional 1-key jump to destination
-    read -q "choice?Ir para o destino agora? [y/N] "
-    echo
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        cd "$target_dir"
+    # Cache last target
+    _MM_LAST_TARGET="$target_dir"
+
+    # 5. Automatically boost destination in frecency
+    mm add "$target_dir" >/dev/null 2>&1 &!
+
+    # 6. Navigate if -g / --go requested
+    if (( go )); then
+        cd "$target_dir" || return 1
     fi
 }
 
 # moveto - Move files to any frecency/project directory without leaving current context
-# Usage: moveto [files...] or mt [files...]
+# Usage: moveto [-g|--go] [-l|--last] [files...] or mt [files...]
+# Options:
+#   -g, --go    Navigate directly to destination directory after moving
+#   -l, --last  Move directly into last target (_MM_LAST_TARGET) without opening picker
+# If no files are passed, opens Matchmaker to visually select files in current directory.
 moveto() {
-    local -a sources=("$@")
+    local go=0
+    local use_last=0
+    local -a sources=()
+
+    while (( $# > 0 )); do
+        case "$1" in
+            -g|--go)
+                go=1
+                shift
+                ;;
+            -l|--last)
+                use_last=1
+                shift
+                ;;
+            --)
+                shift
+                sources+=("$@")
+                break
+                ;;
+            -*)
+                if [[ "$1" =~ ^-[gl]+$ ]]; then
+                    [[ "$1" == *g* ]] && go=1
+                    [[ "$1" == *l* ]] && use_last=1
+                    shift
+                else
+                    sources+=("$1")
+                    shift
+                fi
+                ;;
+            *)
+                sources+=("$1")
+                shift
+                ;;
+        esac
+    done
 
     # 1. Visual selection if no arguments passed
     if (( ${#sources} == 0 )); then
@@ -380,30 +601,64 @@ moveto() {
         return 1
     fi
 
-    # 2. Select target destination directory using Matchmaker Frecency
-    local target_dir
-    target_dir=$(mm list --dirs 2>/dev/null | mm -o jump --header "MOVE TO (Escolha o Destino)")
-    [[ -z "$target_dir" ]] && return 0
+    # 2. Check that all source items exist
+    local src
+    for src in "${sources[@]}"; do
+        if [[ ! -e "$src" && ! -L "$src" ]]; then
+            echo "moveto: Arquivo não encontrado: $src"
+            return 1
+        fi
+    done
 
+    # 3. Resolve destination directory (picker or cached last target)
+    local target_dir=""
+    if (( use_last )); then
+        if [[ -z "$_MM_LAST_TARGET" ]]; then
+            echo "moveto: Nenhum destino anterior gravado (_MM_LAST_TARGET está vazio)."
+            return 1
+        fi
+        target_dir="$_MM_LAST_TARGET"
+    else
+        target_dir=$(mm list --dirs 2>/dev/null | mm -o jump header.content="MOVE TO (Escolha o Destino)")
+        [[ -z "$target_dir" ]] && return 0
+    fi
+
+    target_dir="${target_dir%%$'\n'*}"
     target_dir="${target_dir/#\~/$HOME}"
     target_dir=$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")
+    if [[ -f "$target_dir" ]]; then
+        target_dir="${target_dir:h}"
+    fi
 
     if [[ ! -d "$target_dir" ]]; then
         echo "moveto: Diretório de destino inválido: $target_dir"
+        _MM_LAST_TARGET=""
         return 1
     fi
 
-    # 3. Perform move
+    # 4. Perform move
     mv -- "${sources[@]}" "$target_dir/" || return 1
     echo "✓ ${#sources[@]} item(ns) movido(s) para $target_dir"
 
-    # 4. Optional 1-key jump to destination
-    read -q "choice?Ir para o destino agora? [y/N] "
-    echo
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        cd "$target_dir"
+    # Cache last target
+    _MM_LAST_TARGET="$target_dir"
+
+    # 5. Automatically boost destination in frecency
+    mm add "$target_dir" >/dev/null 2>&1 &!
+
+    # 6. Navigate if -g / --go requested
+    if (( go )); then
+        cd "$target_dir" || return 1
     fi
 }
+
+alias pt='pasteto' 2>/dev/null
+alias ptg='pasteto -g' 2>/dev/null
+alias ptl='pasteto -l' 2>/dev/null
+alias mt='moveto' 2>/dev/null
+alias mtg='moveto -g' 2>/dev/null
+alias mtl='moveto -l' 2>/dev/null
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AI Agent Worktree & Sesh Orchestration

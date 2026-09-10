@@ -23,10 +23,19 @@ alias acpd-start='systemctl --user start acpd.service'
 alias acpd-status='systemctl --user status acpd.service'
 alias acpd-logs='journalctl --user -u acpd.service -f'
 
-# Zero-Friction File Transfer helpers
+# Zero-Friction File Transfer helpers (Workflow Frecency 2.0)
 alias pt='pasteto'
+alias ptg='pasteto -g'
+alias ptl='pasteto -l'
 alias mt='moveto'
+alias mtg='moveto -g'
+alias mtl='moveto -l'
+
+# Frecency Jump aliases
+alias z='j'
+alias zi='ji'
 
 # Agent Worktree (AWT) Ergonomic Aliases
 alias awc='awt -c'
 alias awp='awt popup'
+

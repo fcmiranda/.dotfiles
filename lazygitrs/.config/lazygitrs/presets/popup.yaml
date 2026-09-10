@@ -72,7 +72,6 @@ keybinding:
     scrollDownMain-alt1: J
     undo: z
     redo: <c-z>
-    filteringMenu: <c-s>
     diffingMenu: W
     copyToClipboard: <c-o>
     refresh: R
@@ -119,7 +118,7 @@ keybinding:
     renameCommit: r
     renameCommitWithEditor: R
     viewResetOptions: g
-    markCommitAsFixup: f
+    markCommitAsFixup: <c-f>
     createFixupCommit: F
     squashAboveCommits: S
     moveDownCommit: <c-j>
@@ -132,7 +131,7 @@ keybinding:
     tagCommit: T
     checkoutCommit: <space>
     resetCherryPick: <c-q>
-    openLogMenu: <c-l>
+    openLogMenu: <c-s>
     viewBisectOptions: b
     interactiveRebase: i
   stash:

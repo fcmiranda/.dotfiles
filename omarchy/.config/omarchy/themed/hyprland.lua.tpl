@@ -1,5 +1,5 @@
--- Solar Dawn (Accent + Yellow)
-local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ yellow_strip }}ee)" }, angle = 45 }
+-- Tricolor Spectrum (Accent + Yellow + Magenta)
+local active_border_color = { colors = { "rgba({{ accent_strip }}ee)", "rgba({{ yellow_strip }}ee)", "rgba({{ magenta_strip }}ee)" }, angle = 45 }
 local inactive_border_color = "rgba(595959aa)"
 
 hl.config({

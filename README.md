@@ -57,6 +57,7 @@ See the [**Documentation Index (`docs/README.md`)**](docs/README.md) for the com
 - 🖥️ [**System & Hardware (`docs/desktop/system-and-hardware.md`)**](docs/desktop/system-and-hardware.md) — Kanshi display hotplug profiles, Ghostty terminal enhancements, and battery threshold / CPU power profiles.
 - 🎨 [**System Theme (`docs/SYSTEM_THEME.md`)**](docs/SYSTEM_THEME.md) — Omarchy theme rendering pipeline from `colors.toml`.
 - 🧠 [**Smart Patterns & Architecture Roadmap (`docs/SMART_PATTERNS_ROADMAP.md`)**](docs/SMART_PATTERNS_ROADMAP.md) — Architectural catalog of active event-driven intelligence and future roadmap.
+- 🔬 [**Workflow Keybindings Matrix (`docs/architecture/workflow-keybindings-matrix.md`)**](docs/architecture/workflow-keybindings-matrix.md) — Comprehensive KLM biomechanical audit, 5-layer interaction matrix (Global, Tmux, Zsh, Matchmaker, Lazygitrs), and dynamic status bar synchronicity.
 - ⚡ [**Utils & Command Reference (`docs/UTILS.md`)**](docs/UTILS.md) — Repository helpers (`stow-it`, `killport`, `dotadd`, `wtr`, `battery-threshold`, `perf-toggle`, refresh scripts).
 
 ## Useful references

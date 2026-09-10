@@ -10,14 +10,14 @@ The `_smart_tab` widget detects command-line state and dynamically routes the ta
 
 ```mermaid
 flowchart TD
-    A["User presses <Tab>"] --> B{"Is ghost text active AND cursor at end of line?"}
-    B -- "Yes ($CURSOR == $#BUFFER)" --> C["Accept autosuggestion (autosuggest-accept)"]
-    B -- "No" --> D{"Is command buffer empty?"}
-    D -- "Yes" --> E["Do nothing (neutral, no intrusive popups)"]
+    A["User presses <Tab>"] --> B{"Is command buffer empty?"}
+    B -- "Yes (empty or whitespace)" --> C["Object-First Jump (_jump_widget / mm -o jump)"]
+    B -- "No" --> D{"Is ghost text active AND cursor at end of line?"}
+    D -- "Yes ($CURSOR == $#BUFFER)" --> E["Accept autosuggestion (autosuggest-accept)"]
     D -- "No (Mid-command or arguments)" --> F["Auto-space & trigger Matchmaker completion (mm-ftb)"]
 ```
 
-- **Empty Line (`<Tab>`)**: Neutral; does nothing to prevent accidental popups when idle.
+- **Empty Line (`<Tab>`)**: Triggers Matchmaker Jump (`_jump_widget`) with **Object-First buffer insertion** (`BUFFER=" $target"`, `CURSOR=0`), or immediate `cd` if a single directory is selected.
 - **Autosuggestions at End of Line**: If ghost text is visible and the cursor is at the end of the line (`$CURSOR -eq $#BUFFER`), `<Tab>` accepts the suggestion immediately (`autosuggest-accept`).
 - **Middle-of-Line / Arguments (`<Tab>` with text)**: When editing in the middle of a command, `<Tab>` bypasses ghost text and opens Matchmaker-powered tab completion (`mm-ftb`) for the specific argument at the cursor.
 - **Direct Hotkey (`Ctrl+F`)**: Opens the Matchmaker Jump directory interface (`mm -o jump`) at any prompt state.
@@ -125,7 +125,7 @@ $ cargo test --package match█ --test integration ░--package matchmaker-lib -
 
 | Posição do Cursor | Intenção do Desenvolvedor | Ação Executada |
 | :--- | :--- | :--- |
-| **Linha Vazia (`$#BUFFER == 0`)** | Sem ação intrusiva (neutro) | Mantém o prompt limpo sem abrir popups acidentais (use **`Ctrl+F`** para o Matchmaker Jump). |
+| **Linha Vazia (`$#BUFFER == 0`)** | Navegação rápida (Object-First) | Dispara o **Matchmaker Jump (`_jump_widget`)** com buffer prepended (`BUFFER=" $target"`, `CURSOR=0`) ou `cd` imediato se pasta única. |
 | **Fim da Linha (`$CURSOR == $#BUFFER`)** | Aceitar a sugestão do histórico | Executa **`autosuggest-accept`** instantaneamente. |
 | **Meio do Comando (`$CURSOR < $#BUFFER`)** | Autocompletar o argumento/pasta sob o cursor | Abre o **`fzf-tab` com Matchmaker (`mm-ftb`)** sem poluir o restante da linha. |
 

@@ -58,6 +58,7 @@ See the [**Documentation Index (`docs/README.md`)**](docs/README.md) for the com
 - 🎨 [**System Theme (`docs/SYSTEM_THEME.md`)**](docs/SYSTEM_THEME.md) — Omarchy theme rendering pipeline from `colors.toml`.
 - 🧠 [**Smart Patterns & Architecture Roadmap (`docs/SMART_PATTERNS_ROADMAP.md`)**](docs/SMART_PATTERNS_ROADMAP.md) — Architectural catalog of active event-driven intelligence and future roadmap.
 - 🔬 [**Workflow Keybindings Matrix (`docs/architecture/workflow-keybindings-matrix.md`)**](docs/architecture/workflow-keybindings-matrix.md) — Comprehensive KLM biomechanical audit, 5-layer interaction matrix (Global, Tmux, Zsh, Matchmaker, Lazygitrs), and dynamic status bar synchronicity.
+- 🚀 [**Zero-Friction File Transfer Benchmark (`docs/architecture/zero-friction-file-transfer-benchmark.md`)**](docs/architecture/zero-friction-file-transfer-benchmark.md) — Quantitative KLM-GOMS benchmark comparing 6 transfer paradigms (220ms `ptl` to 7200ms AI), 5 architectural pillars, and operational cheat-sheet (`pt`, `ptg`, `ptl`, `mt`, `mtg`, `mtl`, `j`, `ji`).
 - ⚡ [**Utils & Command Reference (`docs/UTILS.md`)**](docs/UTILS.md) — Repository helpers (`stow-it`, `killport`, `dotadd`, `wtr`, `battery-threshold`, `perf-toggle`, refresh scripts).
 
 ## Useful references

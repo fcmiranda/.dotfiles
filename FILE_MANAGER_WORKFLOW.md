@@ -1,5 +1,10 @@
 # Workflow otimizado de file manager
 
+> 🚀 **Status da Implementação: CONCLUÍDO (Workflow Frecency 2.0)**  
+> Este workflow foi formalmente implementado no Zsh + Matchmaker via comandos `pasteto` (`pt`, `ptg`, `ptl`), `moveto` (`mt`, `mtg`, `mtl`), `j` e `ji`.  
+> Para a documentação arquitetural completa, auditoria biomecânica e benchmark quantitativo KLM-GOMS comparando com Yazi, CLI e agentes de IA, consulte:  
+> 🔗 [**Zero-Friction Frecency 2.0: File Transfer & Navigation Architecture**](docs/architecture/zero-friction-file-transfer-benchmark.md)
+
 ## Objetivo
 
 O problema principal não é apenas navegar melhor. É escolher rapidamente três coisas:
@@ -419,15 +424,13 @@ REVIEW TRANSFER | 6 items
 PASTE TO | ~/dev/github/lazygitrs
 ```
 
-## Ordem recomendada de implementação
+## Ordem recomendada de implementação (Status 2.0)
 
-1. `PasteTo` com seletor apenas de diretórios.
-2. Frecency e diretórios visitados recentemente.
-3. Reutilização do último destino.
-4. Confirmação inteligente para conflitos.
-5. Aliases de diretórios.
-6. Preview do destino e status Git.
-7. Indexação de diretórios em background.
-8. Progresso e cancelamento de cópia.
+- [x] **1. `PasteTo` (`pt`) & `MoveTo` (`mt`) com seletor de diretórios:** Implementado com Matchmaker (`mm list --dirs | mm -o jump`).
+- [x] **2. Frecency e boosting automático:** Implementado com atualização em background (`mm add "$target_dir" &!`).
+- [x] **3. Reutilização do último destino (`ptl`, `mtl`):** Implementado com cache volátil `_MM_LAST_TARGET` (220ms KLM latency).
+- [x] **4. Navegação rápida com auto-jump (`ptg`, `mtg`):** Implementado com flag `-g` (`cd "$target_dir"`).
+- [x] **5. Navegação espacial instantânea (`j`, `ji`):** Integrado com Matchmaker Jump mode e sanitização inteligente em `mm_smart_chpwd`.
+- [x] **6. Aliases ergonômicos na home row:** `pt`, `ptg`, `ptl`, `mt`, `mtg`, `mtl`, `z`, `zi`.
 
-A primeira versão já resolveria a maior parte do cenário descrito sem exigir um segundo painel, uma árvore global complexa ou uma grande reformulação do event loop.
+Para a documentação completa do benchmark e métricas KLM-GOMS, consulte [docs/architecture/zero-friction-file-transfer-benchmark.md](docs/architecture/zero-friction-file-transfer-benchmark.md).

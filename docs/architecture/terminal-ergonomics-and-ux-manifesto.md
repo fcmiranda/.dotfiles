@@ -161,6 +161,7 @@ permission = "~/.local/share/sounds/ai/06-cyber-pulse.wav"    # High-priority ap
 
 ## 📚 Related Documentation Links
 * [`docs/architecture/workflow-keybindings-matrix.md`](workflow-keybindings-matrix.md): Comprehensive keybinding audit, interaction matrix, and KLM timing reference.
+* [`docs/architecture/zero-friction-file-transfer-benchmark.md`](zero-friction-file-transfer-benchmark.md): Quantitative KLM-GOMS benchmark and architectural guide for Zero-Friction Frecency 2.0 file transfer and navigation.
 * [`docs/tmux/popups-ergonomics-and-golden-ratio.md`](../tmux/popups-ergonomics-and-golden-ratio.md): Detailed reference, formulas, and benchmarks.
 * [`docs/tmux/popup-isolation-and-debounce.md`](../tmux/popup-isolation-and-debounce.md): Backdrop snapshots and event-driven architecture.
 * [`docs/shell/completion.md`](../shell/completion.md): Matchmaker smart completions.

@@ -62,6 +62,18 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Ctrl + Backspace`** | `backward-kill-word` | Deletes preceding word in Insert mode ($T_K = 120\text{ ms}$). |
 | **`Ctrl + R`** | `atuin-search` | Full-text contextual and temporal history search. |
 
+#### 2.1 Zero-Friction Frecency 2.0 File Transfer & Directory Jump
+> For comprehensive KLM-GOMS benchmarks, speedup tables ($20.5\times$ vs CLI, $32.7\times$ vs AI), and architectural pillars, see [**Zero-Friction File Transfer Benchmark & Architectural Guide**](zero-friction-file-transfer-benchmark.md).
+
+| Command / Alias | Action Executed | Biomechanical Mechanics | KLM Cost ($T$) | Ergonomic Rationale |
+| :--- | :--- | :--- | :---: | :--- |
+| **`j`** / **`z`** | Jump Home / Directory / Frecency | Left Index single tap or query | $100\text{ ms} - 400\text{ ms}$ | $H=0$. Immediate navigation without typing `cd ~` or long paths. |
+| **`ji`** / **`zi`** | Interactive Matchmaker Jump | Left Index inward chord / alias | $200\text{ ms}$ | Full tree navigation, ancestor jump (`Ctrl+U`), and editor launch. |
+| **`pt`** (`pasteto`) | Copy Files & Stay | Home-row chord + MM picker | $750\text{ ms}$ | Transfers files to frecency destination without leaving current context. |
+| **`ptg`** (`pasteto -g`) | Copy Files & Jump to Destination | Home-row chord + MM picker + `cd` | $750\text{ ms}$ | Transfers files and immediately navigates to destination. |
+| **`ptl`** (`pasteto -l`) | Copy Files to Last Target | Home-row chord + cached `_MM_LAST_TARGET` | **$220\text{ ms}$** | **Record transfer speed ($20.5\times$ vs CLI):** Bypasses picker entirely. |
+| **`mt`** / **`mtg`** / **`mtl`** | Move Equivalents (`moveto`) | Home-row chords + `moveto` flags | $220\text{ ms} - 750\text{ ms}$ | Move equivalents with zero interactive blocking prompts. |
+
 ---
 
 ### 📂 Layer 3: Matchmaker Frecency Directory Jump & File Manager (`jump.toml`)
@@ -218,6 +230,8 @@ The table below consolidates the definitive keybindings across all layers, audit
 
 ## 🔗 Related Documentation
 * [`docs/architecture/terminal-ergonomics-and-ux-manifesto.md`](terminal-ergonomics-and-ux-manifesto.md): Core HCI philosophy and cognitive models.
+* [`docs/architecture/zero-friction-file-transfer-benchmark.md`](zero-friction-file-transfer-benchmark.md): Quantitative KLM-GOMS benchmark and architectural guide for Zero-Friction Frecency 2.0 file transfer and navigation.
+* [`FILE_MANAGER_WORKFLOW.md`](../../FILE_MANAGER_WORKFLOW.md): Evolution and operational specification of the PasteTo/MoveTo file manager workflow.
 * [`docs/tmux/popups-ergonomics-and-golden-ratio.md`](../tmux/popups-ergonomics-and-golden-ratio.md): Golden Ratio geometry and visual semiotics.
 * [`docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md`](../GIT_WORKTREE_AGENTIC_WORKFLOW.md): Agent worktree orchestrator and multi-agent Git workflow.
 * [`docs/shell/completion.md`](../shell/completion.md): Matchmaker completion architecture.

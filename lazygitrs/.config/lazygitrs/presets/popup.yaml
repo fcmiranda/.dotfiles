@@ -88,6 +88,7 @@ keybinding:
     sidePanelFull: <a-k>
     mainPanelFull: <a-j>
     resetSidePanel: <a-r>
+    toggleWorkingTreeAndHead: <c-g>
   status:
     checkForUpdate: u
     recentRepos: <enter>

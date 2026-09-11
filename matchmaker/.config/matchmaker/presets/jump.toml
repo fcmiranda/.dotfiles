@@ -167,13 +167,18 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "esc"           = "Quit"
 "q"             = "Quit"
 
-# Navegação do cursor
+# Navegação do cursor e preview
 "j"             = "Down"
 "k"             = "Up"
 "ctrl-j"        = "Down"
 "ctrl-k"        = "Up"
 "alt-j"         = "Down"
 "alt-k"         = "Up"
+"J"             = "PreviewDown(5)"
+"K"             = "PreviewUp(5)"
+"shift-j"       = "PreviewDown(5)"
+"shift-k"       = "PreviewUp(5)"
+"ctrl-d"        = "PreviewHalfPageDown"
 
 # Navegação de diretórios (entrar / descer)
 "l"             = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]

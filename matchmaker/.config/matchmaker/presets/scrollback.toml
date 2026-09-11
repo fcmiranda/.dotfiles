@@ -1,0 +1,127 @@
+# Matchmaker Scrollback Extractor (`mm -o scrollback`)
+# Extrakto-style: stdin = all-list (recent-first); Tab cycles explicit filter
+# modes (all -> url -> path -> sha -> all) via mode-specific binds + SetMode.
+# (Deliberately NOT @reloadnext/additional_commands: cycle state lives in the
+# mode, each Tab does Reload(<filter file>) + SetPrompt + SetMode.)
+# Enter copies (stdout -> wl-copy by the caller), Ctrl+V inserts the current
+# token into the origin pane (extrakto insert_key). Space multi-selects.
+# Keymap mirrors jump.toml; nav starts in filter; preview shows the token's
+# scrollback context with highlight (toggle with Ctrl+P).
+
+[ui]
+nav_mode = true
+nav_focus_on_start = "filter"
+nav_bar = "Plain"
+nav_color = "Darkgray"
+nav_hints = true
+nav_hints_columns = 3
+
+[tui]
+percentage = 100
+max = 9999
+
+[start]
+sort = false
+mode = "all"
+command = "cat /tmp/scrollback-extract-all.txt"
+additional_commands = [
+  "cat /tmp/scrollback-extract-url.txt",
+  "cat /tmp/scrollback-extract-path.txt",
+  "cat /tmp/scrollback-extract-sha.txt",
+  "cat /tmp/scrollback-extract-all.txt",
+]
+
+[matcher]
+sort_threshold = false
+
+[query]
+prompt = "> "
+status_inline = true
+
+[results]
+scroll_wrap = true
+max = 15
+row_connection = "Full"
+
+[results.current_style]
+fg = "black"
+bg = "Darkgray"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "white"
+
+[preview]
+show = true
+wrap = true
+scrollbar = true
+
+[[preview.layout]]
+command = 'grep -n -C 2 -F -m 3 --color=always {} /tmp/scrollback-extract-src.txt | head -40'
+side = "right"
+percentage = 60
+
+[[preview.layout]]
+command = 'grep -n -C 2 -F -m 3 --color=always {} /tmp/scrollback-extract-src.txt | head -40'
+side = "right"
+percentage = 95
+
+[preview.border]
+sides = "LEFT"
+color = "Gray"
+
+[previewer]
+debounce_ms = 200
+delay_clear = true
+
+[footer]
+content = " {cyan,bold:[enter]} {darkgray:copiar} {cyan,bold:[C-v]} {darkgray:inserir} {cyan,bold:[C-e]} {darkgray:abrir} {cyan,bold:[tab]} {darkgray:filtro} {cyan,bold:[spc]} {darkgray:multi}"
+match_indent = false
+
+[exit]
+abort_empty = true
+
+[binds]
+"enter" = "Accept"
+"esc" = "ToggleFocus"
+"ctrl-c" = "Quit"
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"ctrl-p" = "CyclePreview"
+"ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
+"ctrl-e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
+"tab" = ["SetPrompt(url> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-url.txt)", "SetMode(url)", "Pos(0)"]
+"shift-backtab" = ["SetPrompt(sha> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-sha.txt)", "SetMode(sha)", "Pos(0)"]
+"backtab" = ["SetPrompt(sha> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-sha.txt)", "SetMode(sha)", "Pos(0)"]
+
+# Filter modes: Tab advances, Shift-Tab goes back. Each state reloads its own
+# file explicitly — no dependence on additional_commands cycling.
+"all^^tab" = ["SetPrompt(url> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-url.txt)", "SetMode(url)", "Pos(0)"]
+"all^^shift-backtab" = ["SetPrompt(sha> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-sha.txt)", "SetMode(sha)", "Pos(0)"]
+"all^^backtab" = ["SetPrompt(sha> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-sha.txt)", "SetMode(sha)", "Pos(0)"]
+"url^^tab" = ["SetPrompt(path> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-path.txt)", "SetMode(path)", "Pos(0)"]
+"url^^shift-backtab" = ["SetPrompt(> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-all.txt)", "SetMode(all)", "Pos(0)"]
+"url^^backtab" = ["SetPrompt(> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-all.txt)", "SetMode(all)", "Pos(0)"]
+"path^^tab" = ["SetPrompt(sha> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-sha.txt)", "SetMode(sha)", "Pos(0)"]
+"path^^shift-backtab" = ["SetPrompt(url> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-url.txt)", "SetMode(url)", "Pos(0)"]
+"path^^backtab" = ["SetPrompt(url> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-url.txt)", "SetMode(url)", "Pos(0)"]
+"sha^^tab" = ["SetPrompt(> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-all.txt)", "SetMode(all)", "Pos(0)"]
+"sha^^shift-backtab" = ["SetPrompt(path> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-path.txt)", "SetMode(path)", "Pos(0)"]
+"sha^^backtab" = ["SetPrompt(path> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-path.txt)", "SetMode(path)", "Pos(0)"]
+
+[ui.nav_binds]
+"enter" = "Accept"
+"esc" = "Quit"
+"q" = "Quit"
+"/" = "FocusFilter"
+"ctrl-c" = "Quit"
+"ctrl-p" = "CyclePreview"
+"P" = "CyclePreview"
+"p" = "CyclePreview"
+"ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
+"j" = "Down"
+"k" = "Up"
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+" " = "Toggle"
+"e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'

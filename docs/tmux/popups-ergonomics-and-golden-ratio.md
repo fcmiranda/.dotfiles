@@ -83,6 +83,8 @@ Whenever the system theme switches (`omarchy theme set <name>`), 100% of termina
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **1. Ephemeral** | [`window-picker.sh`](../../tmux/.config/tmux/window-picker.sh) | `magenta` / `accent` | `#cba6f7` | ` 󱂬 ` | `75% × 60%` | `Esc` (1 tap) |
 | **1. Ephemeral** | [`sesh-picker.sh`](../../tmux/.config/tmux/sesh-picker.sh) | `cyan` / `blue` | `#89dceb` | ` ⚡ ` | `75% × 60%` | `Esc` (1 tap) |
+| **1. Ephemeral** | [`scrollback-extract.sh`](../../tmux/.config/tmux/scrollback-extract.sh) | `green` | `#a6e3a1` | ` 󰅍 ` | `75% × 60%` | `Esc` (1 tap) |
+| **1. Ephemeral** | [`dir-peek.sh`](../../tmux/.config/tmux/dir-peek.sh) | `blue` / `cyan` | `#89b4fa` | ` 󰈞 ` | `75% × 60%` / `95% × 90%` | `Esc` (1 tap) |
 | **1. Ephemeral** | [`awt-popup.sh`](../../awt/.config/tmux/awt-popup.sh) | `orange` / `peach` | `#e84d31` | `  ` | `85% × 75%` | `Esc` / `q` |
 | **2. Persistent** | [`lazygitrs-popup.sh`](../../tmux/.config/tmux/lazygitrs-popup.sh)| `orange` / `peach` | `#e84d31` | ` 󰊢 ` | `90% × 88%` | `Esc` (Files) / `q` |
 | **2. Persistent** | Floating Agent Overlay | `accent` / `blue` | `#b4befe` | ` 󱜻 ` | `85% × 85%` | `Ctrl+C` / `exit` |

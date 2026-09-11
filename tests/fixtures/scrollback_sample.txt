@@ -1,0 +1,7 @@
+  Test Store  ~/projetos/api  git log --oneline
+abc1234def5678 corrige auth (2h atrás)
+
+deploy em https://api.exemplo.com/v2/jobs?x=1 feito
+edite ~/.config/tmux/tmux.conf ou ./rel/path e /tmp/x fim
+ping 192.168.0.10:8080 ok
+duplicado https://api.exemplo.com/v2/jobs?x=1 de novo

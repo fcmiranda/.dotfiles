@@ -1,0 +1,108 @@
+# Matchmaker Files Peek Preset (`mm -o files`)
+# Optimized for quick inspection of workspace files and AI-generated content.
+# Supports 60% Golden Ratio split and 95% Full-Modal preview toggle via Ctrl+P.
+# Supports Ctrl+V to insert the file path directly into the origin pane/AI prompt.
+
+[ui]
+nav_mode = true
+nav_focus_on_start = "filter"
+nav_bar = "Plain"
+nav_color = "Darkgray"
+nav_hints = true
+nav_hints_columns = 4
+
+[tui]
+percentage = 100
+max = 9999
+
+[query]
+prompt = "󰈞 "
+prompt_style.fg = "Cyan"
+status_inline = true
+
+[matcher]
+sort = "smart"
+sort_cap = 2000
+depth_penalty = 15
+frecency = true
+frecency_weight = 2
+typo_tolerance = true
+dir_first = true
+
+[results]
+icons = true
+scroll_wrap = true
+row_connection = "Full"
+
+[results.current_style]
+fg = "black"
+bg = "Darkgray"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "white"
+
+[previewer]
+debounce_ms = 40
+delay_clear = true
+
+[preview]
+show = true
+wrap = true
+scrollbar = true
+media = true
+media_fit = "fit"
+
+# Layout 0: Proporção Áurea padrão (60% preview, 40% lista)
+[[preview.layout]]
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; fi; else bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+side = "right"
+percentage = 60
+
+# Layout 1: Preview Quase Total (95% do modal para visualização full/leitura imersiva)
+[[preview.layout]]
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; fi; else bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+side = "right"
+percentage = 95
+
+[preview.border]
+sides = "LEFT"
+color = "Gray"
+
+[footer]
+content = " {cyan,bold:[enter]} {darkgray:copiar} {cyan,bold:[C-v]} {darkgray:inserir} {cyan,bold:[C-p]} {darkgray:expandir} {cyan,bold:[C-e]} {darkgray:editar} {cyan,bold:[l/h]} {darkgray:entrar/voltar}"
+match_indent = false
+
+[exit]
+abort_empty = true
+
+[binds]
+"enter" = "Accept"
+"esc" = "ToggleFocus"
+"ctrl-c" = "Quit"
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"ctrl-p" = "CyclePreview"
+"ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
+"ctrl-e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
+"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"ctrl-h" = ["ChDir(..)", "Cancel", "Reload"]
+
+[ui.nav_binds]
+"enter" = "Accept"
+"esc" = "Quit"
+"q" = "Quit"
+"/" = "FocusFilter"
+"ctrl-c" = "Quit"
+"ctrl-p" = "CyclePreview"
+"P" = "CyclePreview"
+"p" = "CyclePreview"
+"ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
+"j" = "Down"
+"k" = "Up"
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+" " = "Toggle"
+"e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
+"l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+"h" = ["ChDir(..)", "Cancel", "Reload"]

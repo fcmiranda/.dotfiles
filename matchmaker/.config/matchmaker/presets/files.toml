@@ -79,7 +79,7 @@ sides = "LEFT"
 color = "Gray"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[y]} {darkgray:copy} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[C-d]} {darkgray:diagram} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
+content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[y]} {darkgray:copy} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[C-d]} {darkgray:diagram} {cyan,bold:[i]} {darkgray:mcat} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
 match_indent = false
 row_connection = "Full"
 
@@ -94,6 +94,7 @@ abort_empty = true
 "ctrl-k" = "Up"
 "ctrl-y" = "Accept"
 "ctrl-d" = "ToggleDiagram"
+"ctrl-o" = 'Execute(mcat -I {})'
 "ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 "ctrl-e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 "ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
@@ -128,6 +129,8 @@ abort_empty = true
 "0" = "DiagramResetZoom"
 "z" = "DiagramResetZoom"
 " " = "Toggle"
+"i" = 'Execute(mcat -I {})'
+"ctrl-o" = 'Execute(mcat -I {})'
 "e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 "l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
 "h" = ["ChDir(..)", "Cancel", "Reload"]

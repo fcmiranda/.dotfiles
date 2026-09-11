@@ -56,15 +56,19 @@ markdown = true
 
 # Layout 0: Standard split (60% preview, 40% list)
 [[preview.layout]]
-command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; fi; else bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; fi; elif [[ "$p" == *.md || "$p" == *.markdown || "$p" == *.mmd ]]; then mm md "$p" 2>/dev/null || bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; else bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; fi; fi'''
 side = "right"
 percentage = 60
 
 # Layout 1: Exclusive Fullscreen Preview (100% modal for preview, list hidden)
 [[preview.layout]]
-command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; fi; else bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --format=symbols --symbols=vhalf+hhalf+quad+half+block --color-space=din99d "$p" 2>/dev/null; fi; elif [[ "$p" == *.md || "$p" == *.markdown || "$p" == *.mmd ]]; then mm md "$p" 2>/dev/null || bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; else bat --style=numbers,changes --color=always --line-range=:500 "$p" 2>/dev/null || cat "$p"; fi; fi'''
 side = "right"
 percentage = 100
+
+# Layout 2: Overrides and disables the 3rd layout from base config (strictly toggles 60% <-> 100%)
+[[preview.layout]]
+max = 0
 
 [preview.border]
 sides = "LEFT"

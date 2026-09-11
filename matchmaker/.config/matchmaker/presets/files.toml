@@ -75,33 +75,31 @@ sides = "LEFT"
 color = "Gray"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:copy} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[C-p/p]} {darkgray:fullscreen} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[d]} {darkgray:diagram} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
+content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[y]} {darkgray:copy} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[d]} {darkgray:diagram} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
 match_indent = false
 
 [exit]
 abort_empty = true
 
 [binds]
-"enter" = "Accept"
+"enter" = "CyclePreview"
 "esc" = "ToggleFocus"
 "ctrl-c" = "Quit"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
-"ctrl-p" = "CyclePreview"
+"ctrl-y" = "Accept"
 "ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 "ctrl-e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 "ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
 "ctrl-h" = ["ChDir(..)", "Cancel", "Reload"]
 
 [ui.nav_binds]
-"enter" = "Accept"
+"enter" = "CyclePreview"
 "esc" = "Quit"
 "q" = "Quit"
 "/" = "FocusFilter"
 "ctrl-c" = "Quit"
-"ctrl-p" = "CyclePreview"
-"P" = "CyclePreview"
-"p" = "CyclePreview"
+"y" = "Accept"
 "ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 "j" = "Down"
 "k" = "Up"

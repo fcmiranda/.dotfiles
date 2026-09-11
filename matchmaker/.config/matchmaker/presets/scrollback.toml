@@ -61,10 +61,9 @@ command = 'grep -n -C 2 -F -m 3 --color=always {} /tmp/scrollback-extract-src.tx
 side = "right"
 percentage = 60
 
+# Layout 1: Overrides and disables subsequent layouts (no fullscreen preview in yank popup)
 [[preview.layout]]
-command = 'grep -n -C 2 -F -m 3 --color=always {} /tmp/scrollback-extract-src.txt | head -40'
-side = "right"
-percentage = 95
+max = 0
 
 [preview.border]
 sides = "LEFT"
@@ -75,7 +74,7 @@ debounce_ms = 200
 delay_clear = true
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:yank} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[C-p]} {darkgray:expand} {cyan,bold:[C-e]} {darkgray:open} {cyan,bold:[tab]} {darkgray:filter} {cyan,bold:[spc]} {darkgray:multi}"
+content = " {cyan,bold:[enter]} {darkgray:yank} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[C-e]} {darkgray:open} {cyan,bold:[tab]} {darkgray:filter} {cyan,bold:[spc]} {darkgray:multi}"
 match_indent = false
 
 [exit]
@@ -87,7 +86,6 @@ abort_empty = true
 "ctrl-c" = "Quit"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
-"ctrl-p" = "CyclePreview"
 "ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 "ctrl-e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 "tab" = ["SetPrompt(url> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-url.txt)", "SetMode(url)", "Pos(0)"]
@@ -115,9 +113,6 @@ abort_empty = true
 "q" = "Quit"
 "/" = "FocusFilter"
 "ctrl-c" = "Quit"
-"ctrl-p" = "CyclePreview"
-"P" = "CyclePreview"
-"p" = "CyclePreview"
 "ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 "j" = "Down"
 "k" = "Up"

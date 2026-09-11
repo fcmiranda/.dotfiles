@@ -89,14 +89,6 @@ fi
 tmux set -p allow-passthrough all 2>/dev/null || true
 tmux set -g allow-passthrough all 2>/dev/null || true
 
-cleanup_graphics() {
-  if [ -n "${TMUX:-}" ]; then
-    printf '\033Ptmux;\033\033_Ga=d,d=A\033\033\\\033\\'
-  else
-    printf '\033_Ga=d,d=A\033\\'
-  fi
-}
-trap cleanup_graphics EXIT INT TERM
 
 chosen="$(cd "$CWD" && "$MM_BIN" -o "$PRESET")" || exit 0
 [ -n "$chosen" ] || exit 0

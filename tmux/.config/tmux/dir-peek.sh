@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # dir-peek.sh — browse workspace/origin pane's cwd in a popup via mm -o files.
-# Invoke: prefix+v -> run-shell "dir-peek.sh '#{pane_id}' '#{pane_current_path}'"
+# Invoke: prefix+C-v -> run-shell "dir-peek.sh '#{pane_id}' '#{pane_current_path}'"
 # Enter copies the selected path(s) to the clipboard;
 # Ctrl+V inserts the path directly into the origin pane (AI prompt);
 # Ctrl+P / P cycles preview between 60% Golden Ratio and 95% Full-Modal view;

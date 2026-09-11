@@ -47,10 +47,10 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Prefix + -`** | **Horizontal Split Window** | Intuitive visual divider symbol. |
 | **`Prefix + h` / `l`**| **Previous / Next Window** | Vim standard directional motions. |
 | **`Prefix + Tab`** | **Last Active Window (MRU Toggle)** | Instant toggle between the two most recent windows. |
-| **`Prefix + e`** / **`y`** | **Token Extract / Yank (`75% × 60%`)** | `e` = **E**xtract tokens, URLs, hashes, paths via Matchmaker. Inward chord ($H=0$). |
+| **`Prefix + y`** | **Token Extract / Yank (`75% × 60%`)** | `y` = **Y**ank tokens, URLs, hashes, paths via Matchmaker. Inward chord ($H=0$). |
 | **`Prefix + E`** / **`C-e`** | **Full Scrollback in Neovim** | Captures complete ANSI scrollback history into read-only Neovim buffer. |
-| **`Prefix + v`** | **Workspace Files Peek (`75% × 60%`)** | `v` = **V**iew files. Golden ratio modal with 60%/95% preview (`Ctrl+P`) and AI prompt insert (`Ctrl+V`). |
-| **`Prefix + V`** | **Fullscreen Files Peek (`95% × 90%`)** | Shift+V opens maximized files modal for deep inspection. |
+| **`Prefix + C-v`** | **Workspace Files Peek (`75% × 60%`)** | Fluid inward roll with prefix (`C-Space` $\rightarrow$ `C-v`). Golden ratio modal with 60%/95% preview (`Ctrl+P`) and AI prompt insert (`Ctrl+V`). |
+| **`Prefix + V`** / **`C-V`** | **Fullscreen Files Peek (`95% × 90%`)** | Maximized files modal for deep inspection. |
 ### 🐚 Layer 2: Smart Shell (`zsh`) & Object-First Navigation Widgets
 
 | Keybinding | Widget / Function | Behavior & Context Awareness |

@@ -86,6 +86,15 @@ else
   PRESET="jump"
 fi
 
+cleanup_graphics() {
+  if [ -n "${TMUX:-}" ]; then
+    printf '\033Ptmux;\033\033_Ga=d,d=A\033\033\\\033\\'
+  else
+    printf '\033_Ga=d,d=A\033\\'
+  fi
+}
+trap cleanup_graphics EXIT INT TERM
+
 chosen="$(cd "$CWD" && "$MM_BIN" -o "$PRESET")" || exit 0
 [ -n "$chosen" ] || exit 0
 

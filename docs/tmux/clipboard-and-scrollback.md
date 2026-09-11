@@ -89,7 +89,7 @@ Bind ([`tmux.conf`](../../tmux/.config/tmux/tmux.conf)):
 
 Architecture ([`dir-peek.sh`](../../tmux/.config/tmux/dir-peek.sh) and preset [`files.toml`](../../matchmaker/.config/matchmaker/presets/files.toml)):
 1. **Themed Popup & Pure Icon Badge**: Uses theme blue/cyan border with pure icon badge ` 󰈞 `, with frozen backdrop protection when an agent streams.
-2. **Native Markdown & Mermaid Rendering**: Automatically routes `.md`, `.markdown`, `.mmd` files through `mm md --text`, rendering styled headers, tables, task lists, and vector Unicode Mermaid diagrams natively at 60 FPS.
+2. **Native Markdown & Mermaid Rendering**: Automatically routes `.md`, `.markdown`, `.mmd` files through `mm md --text`, rendering styled headers, tables, task lists, and vector Unicode Mermaid diagrams. Supports high-resolution Kitty Graphics Protocol rendering with `allow-passthrough all` enabled in tmux to pass diagram imagery seamlessly into popups without clipping or overflow.
 3. **Dynamic Exclusive Fullscreen Preview (`Ctrl+P` / `P`)**:
    - Layout 0: Standard Golden Ratio split (**40% list / 60% preview**).
    - Layout 1: Exclusive 100% fullscreen preview mode (**0% list / 100% preview**) displaying only the preview content and dedicated navigation shortcuts in the footer (`[j/k]` scroll, `[J/K]` jump 5, `[C-d/u]` half page, `[n/N]` diagram jump, `[+/-/0]` zoom, `[d]` text/image toggle, `[esc]` back).

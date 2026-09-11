@@ -16,7 +16,7 @@ percentage = 100
 max = 9999
 
 [query]
-prompt = "󰈞 "
+prompt = "> "
 prompt_style.fg = "Cyan"
 status_inline = true
 

@@ -76,21 +76,22 @@ Bind ([`tmux.conf`](../../tmux/.config/tmux/tmux.conf)): `Prefix` then `y` (yank
 3. `mm -o scrollback` ([preset](../../matchmaker/.config/matchmaker/presets/scrollback.toml): nav mode starting in filter, jump-style keymap) with items from `[start] command`. Keys: `Enter` copies, `Ctrl+V` inserts the current token directly into the origin pane (`MM_ORIGIN_PANE`), `Ctrl+E` (filter) / `e` (nav) opens a `path[:line[:col]]` token in `$EDITOR` via [`scrollback-open.sh`](../../tmux/.config/tmux/scrollback-open.sh), `Tab`/`Shift-Tab` cycle explicit filter modes (all→url→path→sha→all), `Space` multi-selects, `Esc` cascades filter→nav→quit, `Ctrl+P` / `P` cycles between 60% and 95% full-modal preview.
 4. Copy tail runs detached (`trap '' HUP`, `&`) to `wl-copy` (fallback `xclip`, then tmux buffer) with a `tmux display-message` confirm, so the popup closes the instant `Enter` is pressed; stages are timestamped in `/tmp/scrollback-mm.log`. Covered by `tests/scrollback_extract.test.sh`.
 
-Rule of thumb: `Prefix + E` / `Prefix + C-e` = **read** (long-form inspection in Neovim), `Prefix + y` = **yank/extract** (one token to clipboard in ~3 keystrokes).
+Rule of thumb: `Prefix + E` = **read** (long-form inspection in Neovim), `Prefix + e` / `Prefix + C-e` = **explore** (workspace files popup), `Prefix + y` = **yank/extract** (one token to clipboard in ~3 keystrokes).
 
 ---
 
-## 4. Workspace Files Peek (`Prefix + C-v` / `Prefix + V` / `Prefix + C-V`)
+## 4. Workspace Files Peek (`Prefix + e` / `Prefix + C-e` / `Prefix + V`)
 
-Browse workspace files and AI-generated code in a popup via `mm -o files` — inspect files with syntax-highlighted previews, tree, and media without leaving the AI chat window.
+Browse workspace files and AI-generated code in a popup via `mm -o files` — inspect files with syntax-highlighted previews, tree, and native Markdown & Mermaid rendering without leaving the AI chat window.
 
 Bind ([`tmux.conf`](../../tmux/.config/tmux/tmux.conf)):
-- `Prefix + C-v`: Opens Golden Ratio popup (`75% × 60%`) via fluid inward Ctrl roll.
-- `Prefix + V` / `Prefix + C-V`: Opens expanded fullscreen modal (`95% × 90%`).
+- `Prefix + e` / `Prefix + C-e`: Opens Golden Ratio popup (`75% × 60%`) via inward roll (`e` = Explorer).
+- `Prefix + V`: Opens expanded fullscreen modal (`95% × 90%`).
 
 Architecture ([`dir-peek.sh`](../../tmux/.config/tmux/dir-peek.sh) and preset [`files.toml`](../../matchmaker/.config/matchmaker/presets/files.toml)):
 1. **Themed Popup & Pure Icon Badge**: Uses theme blue/cyan border with pure icon badge ` 󰈞 `, with frozen backdrop protection when an agent streams.
-2. **Dual-Layout Full-Modal Preview (`Ctrl+P` / `P`)**:
+2. **Native Markdown & Mermaid Rendering**: Automatically routes `.md`, `.markdown`, `.mmd` files through `mm md --text`, rendering styled headers, tables, task lists, and vector Unicode Mermaid diagrams natively at 60 FPS.
+3. **Dual-Layout Full-Modal Preview (`Ctrl+P` / `P`)**:
    - Layout 0: Standard Golden Ratio split (**40% list / 60% preview**).
    - Layout 1: Maximize preview (**95% width**) for deep code/markdown inspection without closing the modal.
 3. **Origin Pane & AI Prompt Insertion (`Ctrl+V`)**:

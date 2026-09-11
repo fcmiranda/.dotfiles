@@ -70,7 +70,7 @@ sides = "LEFT"
 color = "Gray"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:copiar} {cyan,bold:[C-v]} {darkgray:inserir} {cyan,bold:[C-p]} {darkgray:expandir} {cyan,bold:[C-e]} {darkgray:editar} {cyan,bold:[l/h]} {darkgray:entrar/voltar}"
+content = " {cyan,bold:[enter]} {darkgray:copy} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[C-p]} {darkgray:expand} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
 match_indent = false
 
 [exit]

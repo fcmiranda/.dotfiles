@@ -47,10 +47,9 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Prefix + -`** | **Horizontal Split Window** | Intuitive visual divider symbol. |
 | **`Prefix + h` / `l`**| **Previous / Next Window** | Vim standard directional motions. |
 | **`Prefix + Tab`** | **Last Active Window (MRU Toggle)** | Instant toggle between the two most recent windows. |
-| **`Prefix + y`** | **Token Extract / Yank (`75% × 60%`)** | `y` = **Y**ank tokens, URLs, hashes, paths via Matchmaker. Inward chord ($H=0$). |
+| **`Prefix + y`** | **Token Extract / Yank (`75% × 60%`)** | `y` = **Y**ank tokens, URLs, hashes, paths via Matchmaker. Inward chord ($H=0$). Dynamic 60%/95% preview toggle (`Ctrl+P`). |
 | **`Prefix + E`** | **Full Scrollback in Neovim** | Captures complete ANSI scrollback history into read-only Neovim buffer. |
-| **`Prefix + e`** / **`C-e`** | **Workspace Files Peek (`75% × 60%`)** | `e` = **E**xplore workspace files via Matchmaker popup. Golden ratio modal with native Markdown & Mermaid preview (`Ctrl+P` expand, `Ctrl+V` AI insert). |
-| **`Prefix + V`** | **Fullscreen Files Peek (`95% × 90%`)** | Maximized files modal for deep inspection. |
+| **`Prefix + e`** / **`C-e`** | **Workspace Files Peek (`75% × 60%`)** | `e` = **E**xplore workspace files via Matchmaker popup. Dynamic 60%/95% full-modal preview toggle (`Ctrl+P` / `P`), native Markdown & Mermaid rendering, AI prompt insert (`Ctrl+V`). |
 ### 🐚 Layer 2: Smart Shell (`zsh`) & Object-First Navigation Widgets
 
 | Keybinding | Widget / Function | Behavior & Context Awareness |

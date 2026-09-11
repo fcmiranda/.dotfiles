@@ -106,7 +106,7 @@ trap '' HUP
     printf '%s' "$chosen" | tmux load-buffer -
   fi
   echo "$(date '+%T') clipboard rc=$?"
-  tmux display-message "copiado: $chosen"
+  tmux display-message "yanked: $chosen"
   echo "$(date '+%T') done"
 } >>"$LOG" 2>&1 </dev/null &
 exit 0

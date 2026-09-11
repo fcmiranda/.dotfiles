@@ -64,13 +64,13 @@ if [ -z "${TMUX_POPUP:-}" ]; then
   fi
 fi
 
-[ -n "${TMUX:-}" ] || { echo "dir-peek: fora do tmux" >&2; exit 1; }
+[ -n "${TMUX:-}" ] || { echo "dir-peek: not inside tmux" >&2; exit 1; }
 ORIGIN="${1:-}"
 if [ -z "$ORIGIN" ]; then
   ORIGIN="$(tmux display-message -p -t '{last}' '#{pane_id}' 2>/dev/null || true)"
 fi
 CWD="${2:-$HOME}"
-[ -d "$CWD" ] || { tmux display-message "dir-peek: sem diretório: $CWD"; exit 1; }
+[ -d "$CWD" ] || { tmux display-message "dir-peek: directory not found: $CWD"; exit 1; }
 
 export MM_ORIGIN_PANE="$ORIGIN"
 export MM_ORIGIN_CWD="$CWD"
@@ -100,6 +100,6 @@ trap '' HUP
     printf '%s' "$chosen" | tmux load-buffer -
   fi
   n="$(printf '%s' "$chosen" | wc -l)"
-  tmux display-message "copiado ($n): $(printf '%s' "$chosen" | head -n 1)"
+  tmux display-message "copied ($n): $(printf '%s' "$chosen" | head -n 1)"
 } >>"$LOG" 2>&1 </dev/null &
 exit 0

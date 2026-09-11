@@ -78,7 +78,7 @@ PSCRIPT="$ROOT/tmux/.config/tmux/dir-peek.sh"
 grep -q 'dir-peek.sh' "$CONF" && grep -q '@ai_agent_state_raw' "$PSCRIPT" && ok "peek bind+backdrop" || bad "peek bind+backdrop"
 grep -q "bind-key \"y\" run-shell \".*scrollback-extract.sh '#{pane_id}'" "$CONF" && ok "bind prefix+y extract" || bad "bind prefix+y extract"
 grep -q "bind-key \"e\" run-shell \".*dir-peek.sh '#{pane_id}'" "$CONF" && grep -q "bind-key C-e run-shell \".*dir-peek.sh '#{pane_id}'" "$CONF" && ok "bind prefix+e/C-e dir-peek" || bad "bind prefix+e/C-e dir-peek"
-! grep -q 'bind-key "v"' "$CONF" && ! grep -q 'bind-key C-v' "$CONF" && ok "prefix+v/C-v unbound" || bad "prefix+v/C-v still bound"
+! grep -q 'bind-key "v"' "$CONF" && ! grep -q 'bind-key C-v' "$CONF" && ! grep -q 'bind-key "V"' "$CONF" && ok "prefix+v/C-v/V unbound" || bad "prefix+v/C-v/V still bound"
 mm --dump-config -o files >/dev/null 2>&1 && ok "mm loads files preset" || bad "mm loads files preset"
 grep -q "sainnhe/tmux-fzf\|fcsonline/tmux-thumbs" "$CONF" && bad "orphan plugin lines" || ok "no orphan plugin lines"
 

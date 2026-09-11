@@ -80,21 +80,20 @@ Rule of thumb: `Prefix + E` = **read** (long-form inspection in Neovim), `Prefix
 
 ---
 
-## 4. Workspace Files Peek (`Prefix + e` / `Prefix + C-e` / `Prefix + V`)
+## 4. Workspace Files Peek (`Prefix + e` / `Prefix + C-e`)
 
 Browse workspace files and AI-generated code in a popup via `mm -o files` — inspect files with syntax-highlighted previews, tree, and native Markdown & Mermaid rendering without leaving the AI chat window.
 
 Bind ([`tmux.conf`](../../tmux/.config/tmux/tmux.conf)):
 - `Prefix + e` / `Prefix + C-e`: Opens Golden Ratio popup (`75% × 60%`) via inward roll (`e` = Explorer).
-- `Prefix + V`: Opens expanded fullscreen modal (`95% × 90%`).
 
 Architecture ([`dir-peek.sh`](../../tmux/.config/tmux/dir-peek.sh) and preset [`files.toml`](../../matchmaker/.config/matchmaker/presets/files.toml)):
 1. **Themed Popup & Pure Icon Badge**: Uses theme blue/cyan border with pure icon badge ` 󰈞 `, with frozen backdrop protection when an agent streams.
 2. **Native Markdown & Mermaid Rendering**: Automatically routes `.md`, `.markdown`, `.mmd` files through `mm md --text`, rendering styled headers, tables, task lists, and vector Unicode Mermaid diagrams natively at 60 FPS.
-3. **Dual-Layout Full-Modal Preview (`Ctrl+P` / `P`)**:
+3. **Dynamic Full-Modal Preview (`Ctrl+P` / `P`)**:
    - Layout 0: Standard Golden Ratio split (**40% list / 60% preview**).
-   - Layout 1: Maximize preview (**95% width**) for deep code/markdown inspection without closing the modal.
-3. **Origin Pane & AI Prompt Insertion (`Ctrl+V`)**:
+   - Layout 1: Dynamic expansion to maximize preview (**95% width**) for deep code/markdown inspection with 0ms latency, removing the need for a separate fullscreen keybinding.
+4. **Origin Pane & AI Prompt Insertion (`Ctrl+V`)**:
    - `Enter`: Copies path(s) to system clipboard and closes modal.
    - `Ctrl+V`: Injects the path directly into the origin pane (`MM_ORIGIN_PANE`) — instant referencing into the active AI prompt.
    - `Ctrl+E` / `e`: Opens the selected file in `$EDITOR` (Neovim).

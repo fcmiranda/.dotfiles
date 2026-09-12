@@ -57,6 +57,7 @@ scrollbar = true
 media = true
 media_fit = "fit"
 markdown = true
+diagrams = false
 
 # Layout 0: Standard split (60% preview, 40% list)
 [[preview.layout]]

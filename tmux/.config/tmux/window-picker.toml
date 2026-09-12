@@ -1,7 +1,6 @@
 [start]
 sort = false
 ansi = true
-reload_interval = 1800
 
 [matcher]
 sort_threshold = false

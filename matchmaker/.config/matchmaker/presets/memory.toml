@@ -13,12 +13,6 @@ prompt_style.modifier = "BOLD"
 show = true
 
 [[preview.layout]]
-command = '''
-file="{1}"
-if [ -f "$file" ]; then
-    bat --style=numbers --color=always --line-range=:200 "$file" 2>/dev/null || cat "$file"
-fi
-'''
 side = "right"
 percentage = 70
 

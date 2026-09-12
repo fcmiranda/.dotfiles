@@ -78,7 +78,7 @@ sides = "LEFT"
 color = "Gray"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[s]} {darkgray:diagram} {cyan,bold:[i]} {darkgray:mcat} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
+content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[s]} {darkgray:diagram} {cyan,bold:[i]} {darkgray:mcat} {cyan,bold:[I/tab]} {darkgray:mcat-i} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[C-y]} {darkgray:copy}"
 match_indent = false
 row_connection = "Full"
 
@@ -95,6 +95,11 @@ ctrl-y = "Accept"
 ctrl-d = "PreviewHalfPageDown"
 ctrl-u = "PreviewHalfPageUp"
 ctrl-s = "ToggleDiagram"
+tab = 'Execute(mcat -I {})'
+ctrl-i = 'Execute(mcat -I {})'
+i = 'Execute(mcat {})'
+I = 'Execute(mcat -I {})'
+shift-i = 'Execute(mcat -I {})'
 ctrl-o = 'Execute(mcat -I {})'
 ctrl-v = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 ctrl-e = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
@@ -132,8 +137,12 @@ ctrl-s = "ToggleDiagram"
 "0" = "DiagramResetZoom"
 "z" = "DiagramResetZoom"
 " " = "Toggle"
-"i" = 'Execute(mcat -I {})'
-"ctrl-o" = 'Execute(mcat -I {})'
-"e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
-"l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
-"h" = ["ChDir(..)", "Cancel", "Reload"]
+tab = 'Execute(mcat -I {})'
+ctrl-i = 'Execute(mcat -I {})'
+i = 'Execute(mcat {})'
+I = 'Execute(mcat -I {})'
+shift-i = 'Execute(mcat -I {})'
+ctrl-o = 'Execute(mcat -I {})'
+e = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
+l = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+h = ["ChDir(..)", "Cancel", "Reload"]

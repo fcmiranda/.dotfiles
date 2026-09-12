@@ -157,15 +157,24 @@ Two ways to define nav-mode-only binds — both work:
 
 Use `[ui.nav_binds]` when you have many nav-specific binds; `nav^^` is simpler for a few.
 
-### Preview Panel
+### Preview Panel (Native vs External Command)
+
+Matchmaker features **built-in native Rust renderers** for files, directories, markdown, and media.
+**There is no need to add an external `command = '''...'''` when `mm` supports the content natively**:
+- **Source Code & Text**: Native syntect syntax highlighting with line numbers (replaces `bat` and `cat`).
+- **Directories**: Native directory tree renderer (replaces `eza --tree` and `tree`).
+- **Markdown**: Native Ratatui Markdown parser with headers, tables, task lists, code fences, and Mermaid diagram extraction.
+- **Images & Media**: Native Kitty graphics protocol with aspect ratio fitting, pan, and zoom (replaces `chafa` and `catimg`).
 
 ```toml
 [preview]
 show = true
 wrap = true
+media = true        # enables native Kitty image/video/pdf protocol
+markdown = true     # enables native markdown rendering
 
+# Native preview (files, directories, markdown, images) — NO command needed:
 [[preview.layout]]
-command = "bat --color=always {2}"   # {2} = second column
 side = "right"
 percentage = 60
 min = 30
@@ -175,6 +184,13 @@ type = "Rounded"
 color = "Cyan"
 title_fg = "Cyan"
 ```
+
+> **When TO use `command = '''...'''`**: ONLY specify `command` for domain-specific, dynamic non-file previews that `mm` cannot produce on its own, such as:
+> - `git log` / `git diff` / `git status` (e.g. `awt.toml`)
+> - Process & Port details `ps` / `lsof` (e.g. `kill.toml`)
+> - Tmux pane inspection `tmux capture-pane` (e.g. `window-picker.toml`)
+> - External previewers like `sesh preview` (e.g. `sesh-picker.toml`)
+> - Live configuration triggers (e.g. `animations.toml` reloading Hyprland)
 
 Multiple preview layouts cycle with `ctrl-/`.
 
@@ -249,8 +265,8 @@ type = "Rounded"
 color = "Cyan"
 title_fg = "Cyan"
 
+# Native preview (omits command — mm handles syntax highlighting, markdown & media natively)
 [[preview.layout]]
-command = "bat --color=always --style=numbers {2} 2>/dev/null || cat {2}"
 side = "right"
 percentage = 60
 min = 35

@@ -78,7 +78,7 @@ sides = "LEFT"
 color = "Gray"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[C-d]} {darkgray:diagram} {cyan,bold:[i]} {darkgray:mcat} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
+content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[s]} {darkgray:diagram} {cyan,bold:[i]} {darkgray:mcat} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[l/h]} {darkgray:drill/back}"
 match_indent = false
 row_connection = "Full"
 
@@ -86,37 +86,42 @@ row_connection = "Full"
 abort_empty = true
 
 [binds]
-"enter" = "CyclePreview"
-"esc" = "ToggleFocus"
-"ctrl-c" = "Quit"
-"ctrl-j" = "Down"
-"ctrl-k" = "Up"
-"ctrl-y" = "Accept"
-"ctrl-d" = "ToggleDiagram"
-"ctrl-o" = 'Execute(mcat -I {})'
-"ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
-"ctrl-e" = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
-"ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
-"ctrl-h" = ["ChDir(..)", "Cancel", "Reload"]
+enter = "CyclePreview"
+esc = "ToggleFocus"
+ctrl-c = "Quit"
+ctrl-j = "Down"
+ctrl-k = "Up"
+ctrl-y = "Accept"
+ctrl-d = "PreviewHalfPageDown"
+ctrl-u = "PreviewHalfPageUp"
+ctrl-s = "ToggleDiagram"
+ctrl-o = 'Execute(mcat -I {})'
+ctrl-v = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
+ctrl-e = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
+ctrl-l = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
+ctrl-h = ["ChDir(..)", "Cancel", "Reload"]
 
 [ui.nav_binds]
-"enter" = "CyclePreview"
-"esc" = "Quit"
-"q" = "Quit"
+enter = "CyclePreview"
+esc = "Quit"
+q = "Quit"
 "/" = "FocusFilter"
-"ctrl-c" = "Quit"
-"ctrl-v" = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
-"j" = "Down"
-"k" = "Up"
-"ctrl-j" = "Down"
-"ctrl-k" = "Up"
-"J" = "PreviewDown(5)"
-"K" = "PreviewUp(5)"
-"shift-j" = "PreviewDown(5)"
-"shift-k" = "PreviewUp(5)"
-"ctrl-d" = "ToggleDiagram"
-"ctrl-u" = "PreviewHalfPageUp"
-"d" = "ToggleDiagram"
+ctrl-c = "Quit"
+ctrl-v = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
+j = "Down"
+k = "Up"
+ctrl-j = "Down"
+ctrl-k = "Up"
+J = "PreviewDown(5)"
+K = "PreviewUp(5)"
+shift-j = "PreviewDown(5)"
+shift-k = "PreviewUp(5)"
+d = "PreviewHalfPageDown"
+ctrl-d = "PreviewHalfPageDown"
+u = "PreviewHalfPageUp"
+ctrl-u = "PreviewHalfPageUp"
+s = "ToggleDiagram"
+ctrl-s = "ToggleDiagram"
 "n" = "NextDiagram"
 "N" = "PrevDiagram"
 "]" = "NextDiagram"

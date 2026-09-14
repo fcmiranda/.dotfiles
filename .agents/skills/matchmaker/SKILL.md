@@ -213,12 +213,12 @@ Multiple preview layouts cycle with `ctrl-/`.
 "esc"          = "Quit"
 
 # Preview & Diagram Navigation
-"s"            = "ToggleDiagram"    # Modal diagram viewer (focuses nearest diagram to preview scroll)
-"ctrl-s"       = "ToggleDiagram"
+"ctrl-s"       = "ToggleDiagram"    # Modal diagram viewer (focuses nearest diagram; in nav mode use 's')
 "0"            = "DiagramResetZoom" # Reset diagram zoom (0 dedicated reset key)
 "-"            = "DiagramZoomOut"
 "="            = "DiagramZoomIn"
 # In Diagram/Fullscreen mode: Arrow keys (Up/Down/Left/Right) and hjkl pan the diagram
+# In [ui.nav_binds]: "s" = "ToggleDiagram" provides single-key toggle from Results mode
 
 # Actions
 "ctrl-r"       = "Reload"

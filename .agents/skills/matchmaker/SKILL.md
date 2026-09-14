@@ -164,14 +164,19 @@ Matchmaker features **built-in native Rust renderers** for files, directories, m
 - **Source Code & Text**: Native syntect syntax highlighting with line numbers (replaces `bat` and `cat`).
 - **Directories**: Native directory tree renderer (replaces `eza --tree` and `tree`).
 - **Markdown**: Native Ratatui Markdown parser with headers, tables, task lists, code fences, and Mermaid diagram extraction.
+- **Mermaid Diagrams**: Native inline Kitty Unicode Placeholders (`inline_diagrams = true`) and modal SVG/PNG rasterizer (`s` / `ToggleDiagram`). Features automatic Omarchy dark/light theme sync and transparent alpha backgrounds.
 - **Images & Media**: Native Kitty graphics protocol with aspect ratio fitting, pan, and zoom (replaces `chafa` and `catimg`).
 
 ```toml
 [preview]
 show = true
 wrap = true
-media = true        # enables native Kitty image/video/pdf protocol
-markdown = true     # enables native markdown rendering
+media = true            # enables native Kitty image/video/pdf protocol
+markdown = true         # enables native markdown rendering
+diagrams = true         # enables Mermaid diagram handling
+inline_diagrams = true  # enables Kitty Unicode Placeholders (\u{10EEEE}) inline rendering
+diagram_theme = "auto"  # "auto" (Omarchy/COLORFGBG detection), "dark", "light"
+diagram_background = "transparent" # "transparent" (borderless flow) or "solid"
 
 # Native preview (files, directories, markdown, images) — NO command needed:
 [[preview.layout]]
@@ -199,26 +204,36 @@ Multiple preview layouts cycle with `ctrl-/`.
 ```toml
 [binds]
 # Standard binds (work in both modes)
-"ctrl-j"    = "Down"
-"ctrl-k"    = "Up"
-"ctrl-u"    = "Cancel"        # clear query
-"enter"     = "Accept"
-"esc"       = "Quit"
+"ctrl-j"       = "Down"
+"ctrl-k"       = "Up"
+"ctrl-shift-j" = "PreviewDown(5)"   # Scroll preview down while typing in filter mode
+"ctrl-shift-k" = "PreviewUp(5)"     # Scroll preview up while typing in filter mode
+"ctrl-u"       = "Cancel"           # clear query
+"enter"        = "Accept"
+"esc"          = "Quit"
+
+# Preview & Diagram Navigation
+"s"            = "ToggleDiagram"    # Modal diagram viewer (focuses nearest diagram to preview scroll)
+"ctrl-s"       = "ToggleDiagram"
+"0"            = "DiagramResetZoom" # Reset diagram zoom (0 dedicated reset key)
+"-"            = "DiagramZoomOut"
+"="            = "DiagramZoomIn"
+# In Diagram/Fullscreen mode: Arrow keys (Up/Down/Left/Right) and hjkl pan the diagram
 
 # Actions
-"ctrl-r"    = "Reload"
-"ctrl-/"    = "CyclePreview"
-"ctrl-p"    = "SwitchPreview"
-"alt-p"     = "Print({-})"          # print selected without closing
+"ctrl-r"       = "Reload"
+"ctrl-/"       = "CyclePreview"
+"ctrl-p"       = "SwitchPreview"
+"alt-p"        = "Print({-})"       # print selected without closing
 
 # Execute without closing mm
-"ctrl-x"    = "ExecuteSilent(cp {2} ~/target/)"
+"ctrl-x"       = "ExecuteSilent(cp {2} ~/target/)"
 
 # Replace mm process with editor
-"ctrl-e"    = "Become($EDITOR {2})"
+"ctrl-e"       = "Become($EDITOR {2})"
 
 # ReloadNext cycles through additional_commands
-"ctrl-z"    = "ReloadNext"
+"ctrl-z"       = "ReloadNext"
 ```
 
 ### Output Template

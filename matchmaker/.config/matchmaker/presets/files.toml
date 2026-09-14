@@ -57,7 +57,10 @@ scrollbar = true
 media = true
 media_fit = "fit"
 markdown = true
-diagrams = false
+diagrams = true
+inline_diagrams = true
+diagram_theme = "auto"
+diagram_background = "transparent"
 
 # Layout 0: Standard split (60% preview, 40% list)
 [[preview.layout]]
@@ -78,7 +81,7 @@ sides = "LEFT"
 color = "Gray"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[s]} {darkgray:diagram} {cyan,bold:[m]} {darkgray:mcat} {cyan,bold:[M]} {darkgray:mcat-i} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[C-y]} {darkgray:copy}"
+content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[s]} {darkgray:diagram} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[C-y]} {darkgray:copy}"
 match_indent = false
 row_connection = "Full"
 
@@ -91,17 +94,17 @@ esc = "ToggleFocus"
 ctrl-c = "Quit"
 ctrl-j = "Down"
 ctrl-k = "Up"
+ctrl-shift-j = "PreviewDown(5)"
+ctrl-shift-k = "PreviewUp(5)"
+ctrl-J = "PreviewDown(5)"
+ctrl-K = "PreviewUp(5)"
 ctrl-y = "Accept"
 ctrl-d = "PreviewHalfPageDown"
 ctrl-u = "PreviewHalfPageUp"
 s = "ToggleDiagram"
 ctrl-s = "ToggleDiagram"
-m = 'Execute(mcat {})'
-M = 'Execute(mcat -I {})'
-shift-m = 'Execute(mcat -I {})'
 tab = "ToggleFocus"
 ctrl-i = "ToggleFocus"
-ctrl-o = 'Execute(mcat -I {})'
 ctrl-v = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 ctrl-e = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 ctrl-l = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
@@ -116,8 +119,16 @@ ctrl-c = "Quit"
 ctrl-v = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'
 j = "Down"
 k = "Up"
+up = "Up"
+down = "Down"
+left = "PreviewHScroll(-6)"
+right = "PreviewHScroll(6)"
 ctrl-j = "Down"
 ctrl-k = "Up"
+ctrl-shift-j = "PreviewDown(5)"
+ctrl-shift-k = "PreviewUp(5)"
+ctrl-J = "PreviewDown(5)"
+ctrl-K = "PreviewUp(5)"
 J = "PreviewDown(5)"
 K = "PreviewUp(5)"
 shift-j = "PreviewDown(5)"
@@ -136,14 +147,9 @@ ctrl-s = "ToggleDiagram"
 "=" = "DiagramZoomIn"
 "-" = "DiagramZoomOut"
 "0" = "DiagramResetZoom"
-"z" = "DiagramResetZoom"
 " " = "Toggle"
-m = 'Execute(mcat {})'
-M = 'Execute(mcat -I {})'
-shift-m = 'Execute(mcat -I {})'
 tab = "ToggleFocus"
 ctrl-i = "ToggleFocus"
-ctrl-o = 'Execute(mcat -I {})'
 e = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 l = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
 h = ["ChDir(..)", "Cancel", "Reload"]

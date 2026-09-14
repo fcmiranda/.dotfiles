@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-mcat --zoom
-
-
 ajustar acentos não aparecendo
 
 nvim

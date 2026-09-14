@@ -39,6 +39,7 @@
         "kanshi",
         "fonts",
         "stow",
+        "matchmaker",
         "shell",
         "deps"
       ]

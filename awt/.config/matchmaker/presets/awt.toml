@@ -27,7 +27,7 @@ style.fg = "Cyan"
 style.modifier = "BOLD"
 
 [footer]
-content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {yellow,bold:[c]} {darkgray:New}  •  {magenta,bold:[m]} {darkgray:Merge}  •  {yellow,bold:[R]} {darkgray:Rebase}  •  {cyan,bold:[r]} {darkgray:Rename}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
+content = " {cyan,bold:[Enter]} {darkgray:Connect}  •  {yellow,bold:[c]} {darkgray:New}  •  {magenta,bold:[m]} {darkgray:Merge}  •  {magenta,bold:[S]} {darkgray:Ship}  •  {yellow,bold:[R]} {darkgray:Rebase}  •  {cyan,bold:[r]} {darkgray:Rename}  •  {blue,bold:[P]} {darkgray:PR}  •  {red,bold:[d]} {darkgray:Delete}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
 row_connection = "Full"
 match_indent = false
 style.fg = "gray"
@@ -222,8 +222,13 @@ output_template = "{=session}\t{=path}"
     "Reload",
 ]
 "@merge_worktree" = '''Confirm({magenta,bold:} Merge into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=raw}" "{=path}" "{=session}" "{=base}")'''
+"@ship_worktree" = '''Confirm({magenta,bold:󱓍} Ship (Merge & Push) into {=branch}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-merge.sh "{=raw}" "{=path}" "{=session}" "{=base}" --push)'''
 "@rebase_worktree" = '''Confirm({yellow,bold:󱓎} Rebase {=branch} onto {=base}? (Enter/Esc) | ~/.config/matchmaker/scripts/awt-rebase.sh "{=raw}" "{=path}" "{=base}")'''
 "@rename_worktree" = '''Prompt({cyan,bold:} Rename branch to: | ~/.config/matchmaker/scripts/awt-rename.sh "{=raw}" "{=path}" "{input}" | {=raw})'''
+"@pr_worktree" = [
+    '''Execute(~/.config/matchmaker/scripts/awt-pr.sh)''',
+    "Reload",
+]
 "@fetch_remotes" = [
     '''Execute(
         echo "Fetching remotes for {=raw}..."
@@ -254,7 +259,9 @@ output_template = "{=session}\t{=path}"
 "nav^^G" = "Pos(-1)"
 "nav^^c" = "@new_worktree"
 "nav^^m" = "@merge_worktree"
+"nav^^S" = "@ship_worktree"
 "nav^^R" = "@rebase_worktree"
 "nav^^r" = "@rename_worktree"
+"nav^^P" = "@pr_worktree"
 "nav^^d" = "@delete_worktree"
 "nav^^u" = "@fetch_remotes"

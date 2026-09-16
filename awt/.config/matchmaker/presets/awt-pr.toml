@@ -1,0 +1,112 @@
+# Matchmaker Agent Worktree PR Preset (`mm -o awt-pr`)
+# Interactive GitHub PR browser and worktree provisioner with live preview.
+
+[tui]
+percentage = 35
+min = 12
+max = 25
+restore_fullscreen = false
+
+[ui]
+nav_mode = true
+nav_bar = "Plain"
+nav_color = "white"
+
+[ui.parent_peek]
+enabled = false
+
+[query]
+status_inline = true
+prompt = "PR > "
+prompt_style.fg = "white"
+prompt_style.modifier = "BOLD"
+
+[header]
+header_lines = 1
+style.fg = "Cyan"
+style.modifier = "BOLD"
+
+[footer]
+content = " {cyan,bold:[Enter]} {darkgray:Checkout Worktree}  •  {blue,bold:[p]} {darkgray:Preview}  •  {darkgray,bold:[q]} {darkgray:Quit}"
+row_connection = "Full"
+match_indent = false
+style.fg = "gray"
+style.modifier = "DIM"
+
+[matcher]
+sort = "smart"
+typo_tolerance = true
+
+[results]
+reverse = false
+column_spacing = 2
+
+[results.current_style]
+bg = "darkgray"
+modifier = "BOLD"
+
+[results.current_nav_bar_style]
+fg = "cyan"
+modifier = "BOLD"
+
+[columns]
+split = "\t"
+default = "title"
+max_columns = 5
+names = [
+    { name = "number" },
+    { name = "branch" },
+    { name = "author" },
+    { name = "updated" },
+    { name = "title" },
+]
+
+[previewer]
+debounce_ms = 20
+delay_clear = true
+
+[preview]
+show = true
+
+[[preview.layout]]
+command = '''
+num="{=number}"
+num="${num#\#}"
+if [ -n "$num" ]; then
+    echo "━━━ GitHub Pull Request #$num ━━━━━━━━━━━━━━━━━━━━━━━━━"
+    gh pr view "$num" 2>/dev/null | head -n 120
+fi
+'''
+side = "right"
+percentage = 55
+
+[start.command]
+command = '''
+printf "NUMBER\tBRANCH\tAUTHOR\tUPDATED\tTITLE\n"
+if command -v gh >/dev/null 2>&1; then
+    gh pr list --limit 30 --json number,title,author,headRefName,updatedAt --template \
+      '{{range .}}{{tablerow (printf "#%v" .number) .headRefName .author.login (timeago .updatedAt) .title}}{{end}}' 2>/dev/null
+fi
+'''
+
+[start]
+ansi = true
+mode = "nav"
+output_template = "{=number}\t{=branch}"
+
+[binds]
+"ctrl-j" = "Down"
+"ctrl-k" = "Up"
+"ctrl-p" = "SwitchPreview"
+
+# Nav Mode Binds (active when mode = "nav")
+"nav^^j" = "Down"
+"nav^^k" = "Up"
+"nav^^down" = "Down"
+"nav^^up" = "Up"
+"nav^^enter" = "Accept"
+"nav^^q" = "Quit"
+"nav^^esc" = "Quit"
+"nav^^p" = "SwitchPreview"
+"nav^^g" = "Pos(0)"
+"nav^^G" = "Pos(-1)"

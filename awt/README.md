@@ -83,11 +83,13 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 | `awt` | — | Open interactive Matchmaker TUI dashboard in current pane (30% height). |
 | `awt popup` | **`awp`** / `Ctrl+Shift+G` | Open full floating AWT modal ($85\% \times 75\%$) in Tmux. |
 | `awt -c` / `awt new` / `awt add` | **`awc`** | Launch the interactive 5-step Conventional Commits wizard. |
-| `awt -c <branch> [base] [flags]` | — | Create/provision worktree from specific base branch (`--continue`, `--no-tmux`). |
+| `awt -c <branch> [base] [flags] [-- cmd]` | — | Create worktree, optionally dispatch inline command in session & connect. |
 | `awt <branch>` / `awt switch <branch>` | — | Switch to existing worktree or auto-create from current `HEAD` if not yet provisioned. |
+| `awt pr [number]` | — | Interactive GitHub PR browser (`gh pr list`) or direct PR worktree checkout. |
 | `awt rm <branch> [-f] [--no-delete-branch]` | — | Delete worktree directory, Git branch (or keep ref), and kill session. |
 | `awt rebase [base]` | — | Safely rebase current worktree onto base branch with auto-stash. |
-| `awt merge [branch] [flags]` | — | Merge current worktree into base with hooks (`--squash`, `--no-commit`, `--no-remove`, `--no-tmux`). |
+| `awt merge [branch] [flags]` | — | Merge current worktree into base with hooks (`--squash`, `--rebase`, `--no-commit`, `--no-remove`, `--no-tmux`). |
+| `awt ship [branch] [flags]` | — | Merge active worktree into base, push to remote origin, and clean up. |
 | `awt clone <repo> [dir]` | **`awtc`** | Clone repository in `.bare` layout and provision initial worktree. |
 | `awt help` / `awt -h` | — | Display CLI help, usage options, and flag reference. |
 
@@ -95,8 +97,9 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 * **`awt <branch>`** *(Fast Jump & Auto-Provision)*:
   - If the worktree folder already exists, it immediately switches your Tmux client to that session.
   - If the worktree folder does not exist, it automatically creates the worktree (supporting both new and existing local/remote Git branches like `fecavmi` or `fecavmi-bk`) based on current `HEAD` and connects you.
-* **`awt -c <branch> [base]`** *(Explicit Creation with Base Branch)*:
-  - Allows specifying an explicit base branch as the 2nd argument (e.g. `awt -c feat/oauth staging` or `awt -c fecavmi main`).
+* **`awt -c <branch> [base] [-- <cmd...>]`** *(Explicit Creation with Base Branch & Inline Dispatch)*:
+  - Allows specifying an explicit base branch as the 2nd argument (e.g. `awt -c feat/oauth staging`).
+  - Everything after `--` is executed inside the newly provisioned worktree session (e.g. `awt -c fix/bug main -- cargo test`).
   - Running `awt -c` without arguments opens the full interactive 5-step wizard (`awc`).
 * **Existing Branches**:
   - Both commands gracefully detect existing Git branches without erroring, linking the worktree directory directly to the pre-existing branch.
@@ -105,6 +108,9 @@ This symlinks all presets, scripts, hooks, and CLI executables into:
 * `--continue`, `--ai-continue`: Resume the active AI conversation in the newly created worktree session.
 * `--no-continue`, `--fresh`: Start with a fresh AI session (skip the resume prompt).
 * `--ai=<cmd>`: Explicitly specify the AI launch command (e.g. `--ai="opencode -s id"`).
+* `-- <cmd...>`: Inline agent dispatch: launch specified command in the new worktree session.
+* `--rebase` / `--no-rebase`: Rebase branch onto target base before executing merge.
+* `--push` / `--ship`: Push target branch to remote origin after successful local merge.
 * `--no-tmux`, `--no-connect`: Create or merge worktree without creating/switching the Tmux session.
 * `--squash` / `--no-squash`: Squash all commits into one on merge (default: fast-forward or linear merge).
 * `--no-commit`: Perform merge without auto-committing (leaves changes staged in the index).
@@ -121,9 +127,11 @@ When inside the interactive Matchmaker dashboard (`awt` / `awp`):
 | Keybinding | Action | Description |
 | :---: | :--- | :--- |
 | **`Enter`** | **Connect / Switch** | Connect to or create the Tmux session for the selected worktree. |
-| **`c`** / **`ctrl-n`** | **New Worktree** | Launch the 4-step Conventional Commits creation wizard. |
-| **`m`** | **Merge Worktree** | Merge active branch into target base, execute hooks, and clean up. |
+| **`c`** / **`ctrl-n`** | **New Worktree** | Launch the 5-step Conventional Commits creation wizard. |
+| **`m`** | **Merge Worktree** | Merge active branch into target base locally, execute hooks, and clean up. |
+| **`S`** *(Shift+S)* | **Ship Worktree** | Atomic merge into target base, push to remote origin, and clean up. |
 | **`R`** *(Shift+R)* | **Rebase on Base** | Safely auto-stash changes and rebase branch onto configured base. |
+| **`P`** *(Shift+P)* | **Checkout PR** | Open interactive GitHub PR selector (`gh pr list`) with live description preview. |
 | **`r`** / **`ctrl-r`** | **Rename Branch** | Open prompt popover to rename branch in Git, folder, and Tmux. |
 | **`d`** / **`ctrl-d`** | **Delete Worktree** | Confirm popover to delete worktree, kill session, and redirect. |
 | **`p`** / **`ctrl-p`** | **Cycle Preview** | Toggle through Status, Diff vs Base, and Commit stats. |

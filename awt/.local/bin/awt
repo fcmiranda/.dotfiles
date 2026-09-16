@@ -11,13 +11,15 @@ awt - Agent Worktree Manager & Multi-Agent Git Orchestrator
 USAGE:
     awt                                     Open interactive Matchmaker TUI dashboard
     awt -c | new | add [flags]              Launch interactive 5-step Conventional Commits wizard (awc)
-    awt -c <branch> [base] [flags]          Create/provision worktree from explicit base branch and connect
+    awt -c <branch> [base] [flags] [-- cmd] Create/provision worktree, run inline command & connect
     awt <branch> | switch <branch>          Switch to existing worktree session (or auto-create from HEAD)
     awt popup                               Open floating AWT modal in Tmux (85% × 75%) (awp)
+    awt pr [number]                         Interactive PR checkout or direct PR worktree provision
     awt clone <repo> [dir]                  Clone repository into .bare container layout (awtc)
     awt rm | remove <branch> [flags]        Delete worktree, Git branch, and kill Tmux session
     awt rebase [base]                       Rebase active worktree onto base branch with auto-stash
     awt merge [branch] [flags]              Merge active worktree into base branch with hooks
+    awt ship [branch] [flags]               Merge into base, push to origin, and clean up worktree
     awt help | -h | --help                  Show this help message
 
 FLAGS & OPTIONS:
@@ -25,6 +27,9 @@ FLAGS & OPTIONS:
     --continue, --ai-continue               Resume active AI conversation in the new worktree session
     --no-continue, --fresh                  Start with a fresh AI session (skip resume prompt)
     --ai=<cmd>                              Specify explicit AI launch command (e.g. --ai="opencode -s id")
+    -- <command> [args...]                  Inline agent dispatch: launch command in new worktree session
+    --rebase / --no-rebase                  Rebase active branch onto target before merging
+    --push / --ship                         Push target branch to remote origin after successful merge
     --squash / --no-squash                  Squash all commits on merge (default: no-squash / ff)
     --no-commit                             Perform merge without auto-committing (staged)
     --no-remove                             Keep worktree directory after merge
@@ -106,7 +111,7 @@ case "$1" in
         target=""
         for arg in "$@"; do
             case "$arg" in
-                --squash|--no-squash|--no-commit|--no-remove|--no-tmux|--no-connect|--no-rebase)
+                --squash|--no-squash|--no-commit|--no-remove|--no-tmux|--no-connect|--no-rebase|--rebase|--push|--ship)
                     flags+=("$arg")
                     ;;
                 *)
@@ -121,8 +126,49 @@ case "$1" in
         session_name="${repo_parent}/${cur_folder}"
         [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$cur_folder"
         merge_script="$HOME/.config/matchmaker/scripts/awt-merge.sh"
+        [ -x "$merge_script" ] || merge_script="$(dirname "$0")/../../.config/matchmaker/scripts/awt-merge.sh"
         if [[ -x "$merge_script" ]]; then
             exec "$merge_script" "$target" "$repo_root" "$session_name" "" "${flags[@]}"
+        fi
+        exit 0
+        ;;
+    ship)
+        shift
+        flags=()
+        target=""
+        for arg in "$@"; do
+            case "$arg" in
+                --squash|--no-squash|--no-commit|--no-remove|--no-tmux|--no-connect|--no-rebase|--rebase|--push|--ship)
+                    flags+=("$arg")
+                    ;;
+                *)
+                    [[ -z "$target" ]] && target="$arg" || flags+=("$arg")
+                    ;;
+            esac
+        done
+        flags+=("--push")
+        repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+        repo_parent="$(basename "$(dirname "$repo_root")")"
+        cur_folder="$(basename "$repo_root")"
+        session_name="${repo_parent}/${cur_folder}"
+        [[ "$repo_parent" == ".dotfiles" ]] && session_name="_dotfiles/$cur_folder"
+        merge_script="$HOME/.config/matchmaker/scripts/awt-merge.sh"
+        [ -x "$merge_script" ] || merge_script="$(dirname "$0")/../../.config/matchmaker/scripts/awt-merge.sh"
+        if [[ -x "$merge_script" ]]; then
+            exec "$merge_script" "$target" "$repo_root" "$session_name" "" "${flags[@]}"
+        fi
+        exit 0
+        ;;
+    pr)
+        shift
+        pr_script="$HOME/.config/matchmaker/scripts/awt-pr.sh"
+        [ -x "$pr_script" ] || pr_script="$(dirname "$0")/../../.config/matchmaker/scripts/awt-pr.sh"
+        if [[ -x "$pr_script" ]]; then
+            exec "$pr_script" "$@"
+        else
+            echo "awt: awt-pr.sh not found."
+            exit 1
         fi
         exit 0
         ;;
@@ -210,6 +256,13 @@ while [[ $# -gt 0 ]]; do
             extra_flags+=("$1")
             shift
             ;;
+        --)
+            shift
+            ai_continue_mode="custom"
+            custom_ai_cmd="$*"
+            extra_flags+=("--ai=$custom_ai_cmd")
+            break
+            ;;
         *)
             if [[ -z "$branch" ]]; then
                 branch="$1"
@@ -247,13 +300,32 @@ else
     sess="${repo_parent}/${branch_clean}"
 fi
 
-# If the worktree directory already exists, connect directly
+# If the worktree directory already exists, dispatch command (if provided) and connect
 if [[ -d "$target_dir" ]]; then
-    if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
+    if [ -n "$custom_ai_cmd" ] && [ "$custom_ai_cmd" != "__FRESH__" ]; then
         if tmux has-session -t "$sess" 2>/dev/null; then
-            exec sesh connect "$sess"
+            tmux send-keys -t "$sess:0.0" "$custom_ai_cmd" C-m
         else
-            exec sesh connect "$target_dir"
+            tmux new-session -d -s "$sess" -c "$target_dir"
+            tmux send-keys -t "$sess:0.0" "$custom_ai_cmd" C-m
+        fi
+        if [[ $no_connect -eq 1 ]]; then
+            echo "✓ Dispatched '$custom_ai_cmd' in session '$sess'"
+            exit 0
+        fi
+    fi
+
+    if [[ $no_connect -eq 0 ]]; then
+        if command -v sesh >/dev/null 2>&1; then
+            if tmux has-session -t "$sess" 2>/dev/null; then
+                exec sesh connect "$sess"
+            else
+                exec sesh connect "$target_dir"
+            fi
+        elif [ -n "$TMUX" ]; then
+            tmux switch-client -t "$sess" 2>/dev/null || cd "$target_dir"
+        else
+            cd "$target_dir"
         fi
     else
         cd "$target_dir"
@@ -278,7 +350,7 @@ fi
 
 echo "✓ Worktree ready at $target_dir"
 
-if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
+if [[ $no_connect -eq 0 ]]; then
     # AI continuation resolution for direct CLI creation
     ai_cmd=""
     if [[ "$ai_continue_mode" == "custom" ]]; then
@@ -297,14 +369,38 @@ if [[ $no_connect -eq 0 ]] && command -v sesh >/dev/null 2>&1; then
     fi
 
     if [ -n "$ai_cmd" ] && [ "$ai_cmd" != "__FRESH__" ]; then
-        if ! tmux has-session -t "$sess" 2>/dev/null; then
+        if tmux has-session -t "$sess" 2>/dev/null; then
+            tmux send-keys -t "$sess:0.0" "$ai_cmd" C-m
+        else
             tmux new-session -d -s "$sess" -c "$target_dir"
             tmux send-keys -t "$sess:0.0" "$ai_cmd" C-m
         fi
-        exec sesh connect "$sess"
+        if command -v sesh >/dev/null 2>&1; then
+            exec sesh connect "$sess"
+        elif [ -n "$TMUX" ]; then
+            tmux switch-client -t "$sess" 2>/dev/null || cd "$target_dir"
+        else
+            cd "$target_dir"
+        fi
     else
-        exec sesh connect "$target_dir"
+        if command -v sesh >/dev/null 2>&1; then
+            exec sesh connect "$target_dir"
+        elif [ -n "$TMUX" ]; then
+            tmux switch-client -t "$sess" 2>/dev/null || cd "$target_dir"
+        else
+            cd "$target_dir"
+        fi
     fi
 else
+    # Headless / --no-connect mode: spawn in background tmux session if command was given
+    if [ -n "$custom_ai_cmd" ] && [ "$custom_ai_cmd" != "__FRESH__" ]; then
+        if tmux has-session -t "$sess" 2>/dev/null; then
+            tmux send-keys -t "$sess:0.0" "$custom_ai_cmd" C-m
+        else
+            tmux new-session -d -s "$sess" -c "$target_dir"
+            tmux send-keys -t "$sess:0.0" "$custom_ai_cmd" C-m
+        fi
+        echo "✓ Dispatched '$custom_ai_cmd' in background session '$sess'"
+    fi
     cd "$target_dir"
 fi

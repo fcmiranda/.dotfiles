@@ -25,8 +25,9 @@ connect_tmux=1
 ai_continue_mode="auto"
 custom_ai_cmd=""
 
-for arg in "$@"; do
-    case "$arg" in
+shift 2>/dev/null || true
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --no-tmux|--no-connect)
             connect_tmux=0
             ;;
@@ -38,9 +39,16 @@ for arg in "$@"; do
             ;;
         --ai=*)
             ai_continue_mode="custom"
-            custom_ai_cmd="${arg#*=}"
+            custom_ai_cmd="${1#*=}"
+            ;;
+        --)
+            shift
+            ai_continue_mode="custom"
+            custom_ai_cmd="$*"
+            break
             ;;
     esac
+    shift
 done
 
 while true; do

@@ -57,7 +57,8 @@ install_packages \
     pacsea-bin \
     jless \
     mcat \
-    intelli-shell
+    intelli-shell \
+    mermaid-cli
 
 install_plugins \
     zsh-plugins \

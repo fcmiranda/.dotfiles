@@ -139,6 +139,12 @@ sesh list
 # Audit documentation integrity, broken links, and root cleanliness
 ./scripts/docs-lint.sh
 
+# Render Mermaid diagram to PNG image
+mmdc -i {{mmd_file}} -o {{output_png}} -b transparent -t dark
+
+# Render Mermaid diagram to SVG vector
+mmdc -i {{mmd_file}} -o {{output_svg}} -b transparent -t dark
+
 # Sync custom.commands into IntelliShell local database
 intelli-sync
 
@@ -150,3 +156,4 @@ $ (stow.sh) package: find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name
 $ (./stow.sh) package: find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' -printf '%f\n' 2>/dev/null
 $ (sesh) session: sesh list 2>/dev/null
 $ (mm) file: find . -maxdepth 3 -type f \( -name '*.md' -o -name '*.markdown' -o -name '*.mmd' \) 2>/dev/null
+$ (mmdc) mmd_file: find . -maxdepth 4 -type f \( -name '*.mmd' -o -name '*.mermaid' \) 2>/dev/null

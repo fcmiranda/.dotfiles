@@ -218,6 +218,23 @@ The table below consolidates the definitive keybindings across all layers, audit
 
 ---
 
+### 🖼️ Layer 2.5: Neovim In-Editor Visual Intelligence & Mermaid Hover
+
+| Keybinding / Trigger | Scope | Target Action | Ergonomic Mechanics | KLM Timing ($T$) |
+| :--- | :---: | :--- | :--- | :---: |
+| **`K`** | Normal Mode | **Smart Universal Hover** (Mermaid Diagram / Image or LSP) | Home Row tap on `k` (Right Middle) | $100\text{ ms}$ |
+| **Cursor Hover** (`CursorMoved`) | Normal Mode | **Automatic Floating Popup** (`80 × 40`) on Link / Diagram | Zero extra keystroke: hover on link | $0\text{ ms}$ |
+| **`<leader>mi`** | Normal Mode | **Direct Mermaid / Image Preview Popup** | Home Row inward roll: Space $\rightarrow$ m $\rightarrow$ i | $130\text{ ms}$ |
+| **`<leader>uI`** | Normal Mode | **Toggle Automatic Cursor Hover** (`:ImageHoverToggle`) | Space $\rightarrow$ u $\rightarrow$ Shift+I | $140\text{ ms}$ |
+| **`:ImageHover`** | Ex Command | **Open Visual Preview Modal** for target under cursor | Command palette invocation | $180\text{ ms}$ |
+
+* **Zero Buffer Clutter:** Images and Mermaid diagrams render in an ephemeral, rounded floating popup (`border = "rounded"`) directly beside the cursor rather than disrupting buffer layout.
+* **Smart Treesitter Link Recognition:** Treesitter queries for `markdown_inline` and `markdown` match both standard inline images (`![alt](url)`), markdown links (`[label](chart.mmd)` / `[arch](diagram.png)`), and fenced ````mermaid```` code blocks.
+* **Universal Link Fallback:** Bare URLs and quoted file paths in any filetype (Lua, Python, Rust, etc.) are detected and rendered on the fly.
+* **Sub-100ms Graphics Pipeline:** Leverages native Kitty Graphics Protocol through Ghostty and Tmux passthrough with local `mmdc` headless compilation.
+
+---
+
 ## 🔬 4. Biomechanical Audit Summary & Verdict
 
 ```text

@@ -15,6 +15,7 @@ player = "pw-play"
 response = "~/.local/share/sounds/ai/01-crystal-chime.wav"
 question = "~/.local/share/sounds/ai/02-gentle-ping.wav"
 permission = "~/.local/share/sounds/ai/06-cyber-pulse.wav"
+error = "~/.local/share/sounds/ai/10-arcade-blip.wav"
 
 [theme]
 active_spinner = "minidot"

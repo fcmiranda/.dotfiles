@@ -51,6 +51,10 @@ min = 25
 "ctrl-f" = "@reloadnext"
 "ctrl-j" = "Down"
 "ctrl-k" = "Up"
+"ctrl-shift-j" = "PreviewDown(5)"
+"ctrl-shift-k" = "PreviewUp(5)"
+"ctrl-shift-J" = "PreviewDown(5)"
+"ctrl-shift-K" = "PreviewUp(5)"
 "ctrl-p" = "SwitchPreview"
 "ctrl-e" = "Execute(nvim {+})"
 "ctrl-l" = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]

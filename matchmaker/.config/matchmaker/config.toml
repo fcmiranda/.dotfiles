@@ -110,6 +110,10 @@ ansi = false # don't set to true here
 "ctrl-shift-." = "PrevColumn"
 
 # Preview
+"ctrl-shift-j" = "PreviewDown(5)"
+"ctrl-shift-k" = "PreviewUp(5)"
+"ctrl-shift-J" = "PreviewDown(5)"
+"ctrl-shift-K" = "PreviewUp(5)"
 "shift+scrollup" = "PreviewUp"
 "shift+scrolldown" = "PreviewDown"
 "alt-/" = "PreviewJump"

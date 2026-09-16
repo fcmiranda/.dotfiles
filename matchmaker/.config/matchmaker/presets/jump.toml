@@ -128,11 +128,15 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 # Foco e modos
 "esc"           = "ToggleFocus"
 
-# Navegação do cursor
+# Navegação do cursor e preview no modo filtro
 "ctrl-j"        = "Down"
 "ctrl-k"        = "Up"
 "alt-j"         = "Down"
 "alt-k"         = "Up"
+"ctrl-shift-j"  = "PreviewDown(5)"
+"ctrl-shift-k"  = "PreviewUp(5)"
+"ctrl-shift-J"  = "PreviewDown(5)"
+"ctrl-shift-K"  = "PreviewUp(5)"
 
 # Navegação de diretórios (entrar / descer)
 "ctrl-l"        = ["ChDir({=})", "Cancel", "Reload", "Pos(0)", "FocusNav"]
@@ -178,6 +182,10 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "K"             = "PreviewUp(5)"
 "shift-j"       = "PreviewDown(5)"
 "shift-k"       = "PreviewUp(5)"
+"ctrl-shift-j"  = "PreviewDown(5)"
+"ctrl-shift-k"  = "PreviewUp(5)"
+"ctrl-shift-J"  = "PreviewDown(5)"
+"ctrl-shift-K"  = "PreviewUp(5)"
 "ctrl-d"        = "PreviewHalfPageDown"
 
 # Navegação de diretórios (entrar / descer)

@@ -1,20 +1,56 @@
 # Open interactive Matchmaker worktree dashboard
 awt
 
+# Open floating AWT modal in Tmux (85% × 75%)
+awp
+
+# Open floating AWT modal in Tmux (85% × 75%)
+awt popup
+
+# Launch 5-step Conventional Commits creation wizard
+awc
+
 # Launch 5-step Conventional Commits creation wizard
 awt -c
 
 # Create worktree from explicit base branch
 awt -c {{branch}} {{base}}
 
+# Create worktree with base branch and dispatch inline agent command
+awt -c {{branch}} {{base}} -- {{command}}
+
+# Switch to existing worktree (or auto-create) and dispatch inline agent command
+awt {{branch}} -- {{command}}
+
 # Switch to existing worktree session (or auto-create from HEAD)
 awt switch {{branch}}
 
-# Open floating AWT modal in Tmux (85% × 75%)
-awt popup
+# Interactive GitHub Pull Request picker (gh pr list) into isolated worktree
+awt pr
 
-# Clone repository into .bare container layout
-awt clone {{repo_url}} {{target_dir}}
+# Checkout GitHub Pull Request directly into isolated worktree
+awt pr {{pr_number}}
+
+# Merge active worktree into base branch, push to origin, and clean up
+awt ship
+
+# Merge specific worktree into base branch, push to origin, and clean up
+awt ship {{branch}}
+
+# Merge active worktree into base branch with hooks
+awt merge {{branch}}
+
+# Perform linear rebase onto origin base before fast-forward merge
+awt merge --rebase {{branch}}
+
+# Merge active worktree into base branch and push to remote origin
+awt merge --push {{branch}}
+
+# Squash and merge active worktree into base branch
+awt merge --squash {{branch}}
+
+# Rebase active worktree onto base branch with auto-stash
+awt rebase {{base}}
 
 # Delete worktree, Git branch, and kill Tmux session
 awt rm {{branch}}
@@ -22,11 +58,68 @@ awt rm {{branch}}
 # Force delete dirty worktree, Git branch, and Tmux session
 awt rm -f {{branch}}
 
-# Rebase active worktree onto base branch with auto-stash
-awt rebase {{base}}
+# Clone repository into .bare container layout
+awt clone {{repo_url}} {{target_dir}}
 
-# Merge active worktree into base branch with hooks
-awt merge {{branch}}
+# Clone repository into .bare container layout and provision worktree
+awtc {{repo_url}}
+
+# Jump to next agent needing attention (permission/question) via ACPD
+~/.config/tmux/ai-agent-triage-jump.sh
+
+# Open AI agent bell notification queue ring popup
+~/.config/tmux/ai-agent-bell-popup.sh
+
+# Open interactive Sesh session picker in Tmux popup
+~/.config/tmux/sesh-picker.sh
+
+# Open interactive Tmux window picker with live pane preview and agent status
+~/.config/tmux/window-picker.sh
+
+# Paste files or clipboard into last visited Matchmaker target directory
+ptl {{files}}
+
+# Paste files or clipboard into target directory and navigate there
+ptg {{files}}
+
+# Paste files or clipboard into selected directory without changing directory
+pt {{files}}
+
+# Move files into last visited Matchmaker target directory
+mtl {{files}}
+
+# Move files into target directory and navigate there
+mtg {{files}}
+
+# Move files into selected directory without changing directory
+mt {{files}}
+
+# Jump to directory matching frecency query with fallback to Matchmaker
+j {{query}}
+
+# Interactive frecency jump picker with Matchmaker
+ji
+
+# Interactive Matchmaker Jump widget (frecency & tree navigation)
+mm -o jump
+
+# List frecency directories ranked by usage
+mm list --dirs
+
+# List bookmarked directories and files
+mm list --bookmarks
+
+# Add directory manually to frecency database
+mm add {{dir}}
+
+# Live-reload Markdown preview with inline Kitty Unicode diagrams
+mm md -w {{file}}
+
+# Connect to or create a session with Sesh
+sesh connect {{session}}
+
+# List active sessions and configured paths
+sesh list
 
 # Dry-run GNU Stow symlink validation
 ./stow.sh -n
@@ -46,26 +139,14 @@ awt merge {{branch}}
 # Audit documentation integrity, broken links, and root cleanliness
 ./scripts/docs-lint.sh
 
-# Interactive Matchmaker Jump widget (frecency & tree navigation)
-mm -o jump
-
-# List frecency directories ranked by usage
-mm list --dirs
-
-# List bookmarked directories and files
-mm list --bookmarks
-
-# Add directory manually to frecency database
-mm add {{dir}}
-
-# Connect to or create a session with Sesh
-sesh connect {{session}}
-
-# List active sessions and configured paths
-sesh list
+# Sync custom.commands into IntelliShell local database
+intelli-sync
 
 $ (awt) branch: git branch --format='%(refname:short)' 2>/dev/null
 $ (awt) base: git branch --format='%(refname:short)' 2>/dev/null
+$ (awt) pr_number: gh pr list --limit 30 --json number,title --template '{{range .}}{{tablerow .number .title}}{{end}}' 2>/dev/null
+$ (awtc) repo_url: gh repo list --limit 20 --json nameWithOwner -q '.[].nameWithOwner' 2>/dev/null
 $ (stow.sh) package: find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' -printf '%f\n' 2>/dev/null
 $ (./stow.sh) package: find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' ! -name 'scripts' ! -name 'docs' -printf '%f\n' 2>/dev/null
 $ (sesh) session: sesh list 2>/dev/null
+$ (mm) file: find . -maxdepth 3 -type f \( -name '*.md' -o -name '*.markdown' -o -name '*.mmd' \) 2>/dev/null

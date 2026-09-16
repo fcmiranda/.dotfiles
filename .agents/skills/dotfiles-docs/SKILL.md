@@ -93,6 +93,11 @@ docs/
 ### Rule 4: Link First, Never Duplicate
 - If a concept is explained in `docs/architecture/terminal-ergonomics-and-ux-manifesto.md` or `zero-friction-file-transfer-benchmark.md`, **link to it**. Do NOT copy-paste paragraphs into package instruction files or root notes.
 
+### Rule 5: IntelliShell Command Catalog Sync
+- Whenever an agent or developer creates, alters, or deprecates a CLI command, shell alias, script, or workflow entrypoint (such as `awt`, `awc`, `awp`, `ptl`, `stow.sh`, etc.):
+- **The agent MUST update `intelli-shell/.config/intelli-shell/custom.commands` in the SAME commit.**
+- Keep descriptions concise, format placeholders with `{{param}}`, and provide dynamic completion helpers (`$ (cmd) param: ...`) where applicable. Run `intelli-sync` to verify parsing.
+
 ---
 
 ## 🔍 3. Code-to-Documentation Audit Checklist

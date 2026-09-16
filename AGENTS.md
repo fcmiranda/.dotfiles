@@ -44,6 +44,7 @@ See [.shell/install/README.md](.shell/install/README.md) for the current bootstr
 - **Root Directory Non-Proliferation**: NEVER create loose markdown files in the repository root (`/`). All documentation belongs under categorized folders in `docs/` (`architecture/`, `shell/`, `tmux/`, `desktop/`, `theme/`, `articles/`).
 - **Single Source of Truth**: Link to existing documentation rather than duplicating explanations across files.
 - **Validation**: Run `./scripts/docs-lint.sh` to verify link integrity and root cleanliness before finalizing commits.
+- **IntelliShell Command Catalog Sync**: Whenever an agent creates, alters, or deprecates a CLI command, shell alias, script, or workflow entrypoint (e.g., `awt`, `awc`, `ptl`, `stow.sh`, etc.), the agent MUST update `intelli-shell/.config/intelli-shell/custom.commands` in the SAME commit to maintain immediate interactive command palette discoverability (`Ctrl+T` / `intelli-sync`).
 - **Documentation Skill**: When auditing or updating documentation, activate the `.agents/skills/dotfiles-docs/SKILL.md` skill.
 
 ## Useful References

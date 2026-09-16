@@ -141,6 +141,7 @@ player = "pw-play"
 response   = "~/.local/share/sounds/ai/01-crystal-chime.wav"  # Agent completed turn
 question   = "~/.local/share/sounds/ai/02-gentle-ping.wav"    # Interactive question asked
 permission = "~/.local/share/sounds/ai/06-cyber-pulse.wav"    # High-priority approval required
+error      = "~/.local/share/sounds/ai/10-arcade-blip.wav"    # Execution error / conflict alert
 ```
 
 * **Zero-Gaze Monitoring:** Developers can switch to other workspaces or read documentation without constantly polling the terminal. A distinct sonic frequency immediately communicates agent state transitions without breaking cognitive focus.

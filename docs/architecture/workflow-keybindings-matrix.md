@@ -21,8 +21,10 @@ This document provides a comprehensive audit and definitive reference of all key
 | :--- | :---: | :--- | :--- | :---: |
 | **`Ctrl + G`** | Global / Shell | **Lazygitrs Floating Popup (`90% × 88%`)** | Inward roll: CapsLock (Pinky) + G (Index) | $130\text{ ms}$ |
 | **`Ctrl + Shift + G`** | Global / Tmux | **AWT Worktree Manager Popup (`85% × 75%`)** | Inward chord: CapsLock (Pinky) + Shift + G | $140\text{ ms}$ |
+| **`Ctrl + Shift + I`** (`C-S-i`) | Global / Tmux | **AI Attention Triage Direct Focus Jump** | Inward chord: CapsLock (Pinky) + Shift + I (No Alt, MacBook-ergonomic) | $140\text{ ms}$ |
 | **`Alt + o`** (`M-o`) | Global / Tmux | **OpenCode AI Floating Popup (`85% × 85%`)** | Left Thumb (Alt) + Right Ring (O) | $140\text{ ms}$ |
 | **`Alt + a`** (`M-a`) | Global / Tmux | **Jump to / Create dedicated AI Window** | Left Thumb (Alt) + Left Pinky (A) | $130\text{ ms}$ |
+| **`Alt + i`** (`M-i`) | Global / Tmux | **AI Attention Triage Jump (Meta fallback)** | Left Thumb (Alt) + Right Middle (I) | $130\text{ ms}$ |
 | **`Ctrl + 0..9`** | Tmux | **Direct Window Select (Windows 0 to 9)** | CapsLock (Pinky) + Number Key | $130\text{ ms}$ |
 | **`Ctrl + Shift + 0..9`** | Tmux | **Move & Shift Window to Slot 0..9** | Left Pinky + Left Ring + Number Key | $160\text{ ms}$ |
 
@@ -37,7 +39,8 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Prefix + s`** | **Window Picker (Matchmaker `75% × 60%`)** | `s` = **S**witch / **S**elect window. Centered Golden Ratio modal with live preview. |
 | **`Prefix + S`** | **Fullscreen Window Picker** | Shift+S opens maximized picker for large multi-monitor overviews. |
 | **`Prefix + t`** | **Sesh Workspace / Task Picker** | `t` = **T**ask / **T**eleport to project sessions. |
-| **`Prefix + i`** | **AI Agent Bell / Alert HUD** | `i` = **I**ntelligence / **I**nspect agent turn or question. Cycles pending alerts. |
+| **`Prefix + i`** | **AI Agent Bell / Alert HUD** | `i` = **I**ntelligence / **I**nspect agent turn or question. Cycles pending alerts via floating popup HUD. |
+| **`Prefix + I`** | **AI Agent Attention Triage Direct Jump** | Shift+I direct focus jump without opening an intermediate popup. |
 | **`Prefix + n`** | **New Window (Current Path)** | `n` = **N**ew window. Aligned with universal browser tab creation. |
 | **`Prefix + w`** | **Close Pane / Window (`kill-pane`)** | `w` = Close **W**indow. Universal browser/IDE closing chord. |
 | **`Prefix + W`** | **Kill Entire Session (`kill-session`)** | Shift+W symmetry: uppercase destroys the parent container. |
@@ -166,12 +169,17 @@ The table below consolidates the definitive keybindings across all layers, audit
 | :--- | :--- | :--- | :--- | :---: | :--- |
 | **`Ctrl + G`** | Global / Shell | Open Lazygitrs Floating Popup | Inward roll: CapsLock (Pinky) + G (Index) | $130\text{ ms}$ | $H=0$. Immediate access to Git workspace without context switching. |
 | **`Ctrl + Shift + G`** | Global / Tmux | AWT Worktree Manager Popup | Inward chord: CapsLock (Pinky) + Shift + G | $140\text{ ms}$ | Direct access to worktrees; symmetric to `Ctrl+G`. |
+| **`Ctrl + Shift + I`** | Global / Tmux | AI Agent Triage Direct Focus Jump | Inward chord: CapsLock (Pinky) + Shift + I | $140\text{ ms}$ | Home Row, no-Alt, MacBook-ergonomic focus switch to next agent needing attention. |
 | **`Alt + o`** | Global / Tmux | OpenCode AI Floating Popup | Left Thumb (Alt) + Right Ring (O) | $140\text{ ms}$ | Zero wrist displacement; instant overlay for agent interaction. |
 | **`Alt + a`** | Global / Tmux | Focus / Create Dedicated AI Window | Left Thumb (Alt) + Left Pinky (A) | $130\text{ ms}$ | High-frequency jump to primary agent workspace. |
+| **`Alt + i`** | Global / Tmux | AI Agent Triage (Meta Fallback) | Left Thumb (Alt) + Right Middle (I) | $130\text{ ms}$ | Zero-prefix focus switch when Meta/Alt is enabled. |
 | **`Prefix + s`** | Tmux Multiplexer | Window Picker (`75% × 60%`) | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `s` | $240\text{ ms}$ | Prefix guard protects against accidental modal popups during fast typing. |
 | **`Prefix + t`** | Tmux Multiplexer | Sesh Workspace Picker | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `t` | $240\text{ ms}$ | `t` = Task/Teleport; mnemonic alignment with project workflows. |
-| **`Prefix + i`** | Tmux Multiplexer | AI Agent Bell / Alert HUD | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `i` | $240\text{ ms}$ | `i` = Intelligence; cycles pending questions and permission alerts. |
+| **`Prefix + i`** | Tmux Multiplexer | AI Agent Bell / Alert HUD | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `i` | $240\text{ ms}$ | `i` = Intelligence; cycles pending questions and permission alerts in popup HUD. |
+| **`Prefix + I`** | Tmux Multiplexer | AI Agent Triage Direct Jump | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `I` | $240\text{ ms}$ | Direct focus jump to next agent requiring attention (without popup). |
 | **`Prefix + w`** | Tmux Multiplexer | Close Pane / Window (`kill-pane`) | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `w` | $240\text{ ms}$ | Prefix guard prevents accidental pane destruction. |
+| **`S`** (in `awt`) | Matchmaker AWT | Ship Worktree (Merge & Push) | Shift + S (Left Pinky + Left Ring) | $140\text{ ms}$ | Atomic local merge into base and push to remote origin. |
+| **`P`** (in `awt`) | Matchmaker AWT | Checkout GitHub PR Worktree | Shift + P (Left Pinky + Right Pinky) | $140\text{ ms}$ | Interactive PR list with live preview and dedicated worktree checkout. |
 | **`<Tab>`** (Empty) | Shell / ZLE | Matchmaker Directory Jump | Left Pinky single tap on Tab | $100\text{ ms}$ | **Object-First ergonomics:** Empty prompt immediately surfaces directory jumper. |
 | **`<Tab>`** (Ghost) | Shell / ZLE | Accept Inline Autosuggestion | Left Pinky single tap on Tab | $100\text{ ms}$ | Accepted only when `$CURSOR -eq $#BUFFER`, preventing midline ghost-text hijacking. |
 | **`<Tab>`** (Command) | Shell / ZLE | Auto-space & Matchmaker FTB | Left Pinky single tap on Tab | $100\text{ ms}$ | Eliminates manual spacebar typing after aliases/commands. |

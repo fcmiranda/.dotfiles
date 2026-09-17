@@ -146,12 +146,11 @@ omarchy-theme-bg-next             # next built-in wallpaper
 ## Hardware / system helpers
 
 ```bash
-omarchy-cmd-screenshot            # screenshot utility
-omarchy-cmd-screenrecord
-omarchy-cmd-screensaver
-omarchy-cmd-share
-omarchy-cmd-audio-switch         # switch audio output device
-omarchy-cmd-mic-mute             # mute mic (variant per hardware)
+omarchy-capture-screenshot            # screenshot utility
+omarchy-capture-screenrecording       # screen recording utility
+omarchy-screensaver
+omarchy-audio-output-switch         # switch audio output device
+omarchy-audio-input-mute            # mute mic (variant per hardware)
 omarchy-brightness-display       # display brightness control
 omarchy-brightness-keyboard       # keyboard backlight
 omarchy-battery-status           # battery info / present / remaining / capacity

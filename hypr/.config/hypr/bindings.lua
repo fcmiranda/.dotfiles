@@ -57,10 +57,10 @@ o.bind("SUPER + SHIFT + ALT + X", "X Post", "omarchy-launch-webapp 'https://x.co
 -- Screenshots & Screen Recording
 -- ==============================================================================
 hl.unbind("SUPER + SHIFT + S")
-o.bind("SUPER + SHIFT + S", "Screenshot (region)", 'bash -c \'slurp | grim -g - - | satty --filename - --copy-command "wl-copy" --output-filename "$HOME/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"\'')
-o.bind("SUPER + SHIFT + ALT + S", "Screenshot (fullscreen)", 'bash -c \'grim - | satty --filename - --copy-command "wl-copy" --output-filename "$HOME/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"\'')
+o.bind("SUPER + SHIFT + S", "Screenshot (region)", "omarchy-capture-screenshot region")
+o.bind("SUPER + SHIFT + ALT + S", "Screenshot (fullscreen)", "omarchy-capture-screenshot fullscreen")
 o.bind("SUPER + SHIFT + Escape", "Kill stuck screenshot", "bash -c 'pkill -x hyprpicker; pkill -x slurp'")
-o.bind("SUPER + SHIFT + R", "Toggle screen recording", "omarchy-cmd-screenrecord")
+o.bind("SUPER + SHIFT + R", "Toggle screen recording", "omarchy-capture-screenrecording")
 
 -- ==============================================================================
 -- Custom Launcher / Menu Overrides

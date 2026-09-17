@@ -31,22 +31,37 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
 
   // Fast path: verify if we already registered this conversation and if server is still up.
   const safePath = (workspacePath || '').replace(/[^a-zA-Z0-9]/g, '_');
-  const sentinel = `/tmp/agy-registered-${safePath}.sentinel`;
+  const safeConv = (conversationId || 'default').replace(/[^a-zA-Z0-9-]/g, '_');
+  const sentinel = `/tmp/agy-registered-${safePath}-${safeConv}.sentinel`;
+  let candidatePort = initialPort;
   try {
     const stored = readFileSync(sentinel, 'utf-8').trim();
-    if (stored === conversationId) {
+    let storedId = stored;
+    let storedPort = initialPort;
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object') {
+        storedId = parsed.conversationId;
+        storedPort = parsed.port || initialPort;
+      }
+    } catch (_) {}
+
+    if (storedId === conversationId) {
+      candidatePort = storedPort;
       try {
-        const checkRes = await fetch(`http://127.0.0.1:${initialPort}/session-api/session`);
+        const checkRes = await fetch(`http://127.0.0.1:${storedPort}/session-api/session`);
         if (checkRes.ok) {
           const currentSessionData = await checkRes.json();
-          if (currentSessionData && currentSessionData.sessionId === conversationId) {
-            log(LOG_FILE, `Already registered (sentinel hit & verified), keeping icon`);
-            setLazygitrsIcon(tmuxPane, '#[fg=#a6e3a1]#[fg=default]');
-            return;
+          if (currentSessionData && (!currentSessionData.workspacePath || currentSessionData.workspacePath === workspacePath)) {
+            if (currentSessionData.sessionId === conversationId) {
+              log(LOG_FILE, `Already registered (sentinel hit & verified on port ${storedPort}), keeping icon`);
+              setLazygitrsIcon(tmuxPane, '#[fg=#a6e3a1]#[fg=default]');
+              return;
+            }
           }
         }
       } catch (e) {
-        log(LOG_FILE, `Sentinel hit but server unverified: ${e.message}`);
+        log(LOG_FILE, `Sentinel hit but server unverified on port ${storedPort}: ${e.message}`);
       }
       // Server is no longer reachable or session changed - clear stale sentinel!
       try { unlinkSync(sentinel); } catch (e) {}
@@ -58,11 +73,11 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   let isAlreadyRegistered = false;
   let foundTarget = false;
   let API_BASE_URL = '';
-  let port = initialPort;
+  let port = candidatePort;
 
-  // Phase 1: Scan candidate ports. Try the port from .lazygitrs.port
+  // Phase 1: Scan candidate ports. Try the port from sentinel or .lazygitrs.port
   // first, then the sequential range 47657-47756.
-  const portsToScan = [...new Set([initialPort, ...CANDIDATE_PORTS])];
+  const portsToScan = [...new Set([candidatePort, initialPort, ...CANDIDATE_PORTS])];
   for (const p of portsToScan) {
     API_BASE_URL = `http://127.0.0.1:${p}/session-api`;
     log(LOG_FILE, `Checking port and URL: ${API_BASE_URL}`);
@@ -157,7 +172,6 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     bridgeStatus = '⚠️ Lazygitrs offline';
     fallbackWarning = ' (Start lazygitrs to integrate)';
     setLazygitrsIcon(tmuxPane, '');
-    notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning}`);
     return;
   }
 
@@ -165,6 +179,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
   try {
     if (!isAlreadyRegistered) {
       log(LOG_FILE, `Registering session on port ${port}...`);
+      const homeDir = process.env.HOME || '/home/fecavmi';
       const res = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,7 +188,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
           sessionId: conversationId,
           cli: 'antigravity',
           force: true,
-          notifyCommand: `/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-tmux-injector.sh {{workspace_path}} {{prompt}}`
+          notifyCommand: `${homeDir}/.gemini/hooks/lazygit-tmux-injector.sh {{workspace_path}} {{prompt}}`
         }),
       });
 
@@ -189,8 +204,7 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
           bridgeStatus = '✅ Registered Lazygitrs session';
         }
         setLazygitrsIcon(tmuxPane, '#[fg=#a6e3a1]#[fg=default]');
-        notifyTmux(tmuxPane, `[AGY] ${bridgeStatus}${fallbackWarning} - conversation id: ${conversationId}`);
-        log(LOG_FILE, `Registration successful`);
+        log(LOG_FILE, `Registration successful: ${bridgeStatus} for session ${conversationId} on port ${port}`);
       }
     } else {
       bridgeStatus = '✅ Lazygitrs session already registered';
@@ -199,10 +213,9 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
     }
 
     // Persist registration so subsequent hook invocations skip the scan.
-    try { writeFileSync(sentinel, conversationId); } catch (e) {}
+    try { writeFileSync(sentinel, JSON.stringify({ conversationId, port })); } catch (e) {}
   } catch (e) {
     log(LOG_FILE, `Error during registration: ${e.message}`);
-    notifyTmux(tmuxPane, `[AGY] ⚠️ Registration error: ${e.message}`);
   }
 }
 
@@ -210,8 +223,10 @@ async function registerLazygitrs(conversationId, tmuxPane, initialPort, workspac
 async function unregisterLazygitrs(conversationId, tmuxPane, initialPort, workspacePath) {
   log(LOG_FILE, `Unregistering lazygitrs session ${conversationId} pane ${tmuxPane}...`);
   const safePath = (workspacePath || '').replace(/[^a-zA-Z0-9]/g, '_');
-  const sentinel = `/tmp/agy-registered-${safePath}.sentinel`;
+  const safeConv = (conversationId || 'default').replace(/[^a-zA-Z0-9-]/g, '_');
+  const sentinel = `/tmp/agy-registered-${safePath}-${safeConv}.sentinel`;
   try { unlinkSync(sentinel); } catch (e) {}
+  try { unlinkSync(`/tmp/agy-registered-${safePath}.sentinel`); } catch (e) {}
 
   setLazygitrsIcon(tmuxPane, '');
 
@@ -244,7 +259,7 @@ async function main() {
 
   const tmuxPane = getActiveTmuxPane();
 
-  const conversationId = ctx.session_id || process.env.ANTIGRAVITY_CONVERSATION_ID;
+  const conversationId = ctx.conversationId || ctx.session_id || process.env.ANTIGRAVITY_CONVERSATION_ID;
   
   let workspacePath = process.cwd();
   if (ctx && ctx.workspacePaths && ctx.workspacePaths.length > 0) {

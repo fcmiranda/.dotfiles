@@ -52,7 +52,7 @@ return {
           enabled = true,
           -- Render in sleek floating popup on cursor hover (no buffer clutter)
           inline = false,
-          float = false, -- Default to false (on-demand via K; no auto-popup spam while editing)
+          float = true, -- Default to true (auto-hover active; toggle anytime via <leader>mt)
           max_width = 80,
           max_height = 40,
         },
@@ -72,10 +72,33 @@ return {
           border = "rounded",
           title = " 󰄧 Mermaid / Image Preview ",
           title_pos = "center",
-          focusable = false,
+          footer = " [Click: 󰍉 Lightbox Zoom | K: Dismiss] ",
+          footer_pos = "center",
+          focusable = true,
           backdrop = false,
           col = -1, -- Sidecar layout: right margin leaves the code 100% visible on the left
           row = 1,  -- Top-aligned in the editor viewport
+          w = { is_snacks_image_hover = true },
+          keys = {
+            ["<LeftMouse>"] = function()
+              vim.cmd("ImageLightbox")
+            end,
+            ["<2-LeftMouse>"] = function()
+              vim.cmd("ImageLightbox")
+            end,
+            ["<CR>"] = function()
+              vim.cmd("ImageLightbox")
+            end,
+            q = "close",
+            ["<Esc>"] = "close",
+          },
+          on_buf = function(win)
+            for _, k in ipairs({ "<LeftMouse>", "<2-LeftMouse>", "<CR>" }) do
+              vim.keymap.set("n", k, function()
+                vim.cmd("ImageLightbox")
+              end, { buffer = win.buf, silent = true, nowait = true })
+            end
+          end,
         },
       })
     end,
@@ -117,8 +140,17 @@ return {
       -- ensures injected treesitter parsers (e.g. markdown_inline) are parsed,
       -- and provides fallback detection for non-treesitter buffers and links.
       local Snacks = require("snacks")
+      local last_active_src = nil
       if Snacks.image and Snacks.image.doc then
         Snacks.image.doc.at_cursor = function(cb)
+          local orig_cb = cb
+          cb = function(src, pos)
+            if src and src ~= "" then
+              last_active_src = src
+            end
+            return orig_cb(src, pos)
+          end
+
           local buf = vim.api.nvim_get_current_buf()
           local cursor = vim.api.nvim_win_get_cursor(0)
           local cursor_line = cursor[1]
@@ -249,16 +281,17 @@ return {
       -- 4. Interactive Centered Lightbox Modal with Zoom & Pan:
       -- Opens the diagram or image under cursor in a dedicated, high-contrast centered modal.
       -- Controls:
-      --   - Zoom in:  '+' or '=' or ']'
-      --   - Zoom out: '-' or '_' or '['
+      --   - Zoom in:  '+', '=', ']' or Mouse Wheel Up (<ScrollWheelUp>)
+      --   - Zoom out: '-', '_', '[' or Mouse Wheel Down (<ScrollWheelDown>)
       --   - Pan:      'h', 'j', 'k', 'l' or Arrow keys (fast pan: 'H', 'J', 'K', 'L')
-      --   - Reset:    '0' (resets zoom to 100% and centers image)
-      --   - Close:    'q' or '<Esc>'
-      local function open_image_lightbox()
+      --   - Reset:    '0' or Double Click (<2-LeftMouse>)
+      --   - Close:    'q', '<Esc>' or Right Click (<RightMouse>)
+      local function open_image_lightbox(override_src)
         if not (Snacks.image and Snacks.image.doc) then
           return
         end
-        Snacks.image.doc.at_cursor(function(src)
+
+        local function launch(src)
           if not src or src == "" then
             vim.notify("No image or Mermaid diagram under cursor to inspect.", vim.log.levels.WARN, { title = "Image Lightbox" })
             return
@@ -300,7 +333,25 @@ return {
             placement.opts.pos = { center_row, center_col }
             placement:update()
 
-            win:set_title(string.format(" 󰄧 Mermaid / Image Lightbox [Zoom: %d%%] ", math.floor(zoom_factor * 100)))
+            local zoom_pct = math.floor(zoom_factor * 100)
+            local zoom_icon = "󰄧"
+            local zoom_status = ""
+            if zoom_pct > 100 then
+              zoom_icon = "󰍉" -- Zoom In
+              if zoom_factor >= 3.5 then
+                zoom_status = " (Max)"
+              end
+            elseif zoom_pct < 100 then
+              zoom_icon = "󰍋" -- Zoom Out
+              if zoom_factor <= 0.25 then
+                zoom_status = " (Min)"
+              end
+            else
+              zoom_icon = "󰄧"
+              zoom_status = " (1:1)"
+            end
+
+            win:set_title(string.format(" 󰄧 Mermaid / Image Lightbox │ %s %d%%%s ", zoom_icon, zoom_pct, zoom_status))
           end
 
           local function apply_zoom(delta)
@@ -329,20 +380,24 @@ return {
             border = "rounded",
             enter = true,
             backdrop = 60,
-            title = " 󰄧 Mermaid / Image Lightbox [Zoom: 100%] ",
+            title = " 󰄧 Mermaid / Image Lightbox │ 󰄧 100% (1:1) ",
             title_pos = "center",
-            footer = " [+/-: Zoom | h/j/k/l: Pan | 0: Reset | q/Esc: Close] ",
+            footer = " 󰍉 [+] In  󰍋 [-] Out  󰑐 [0] 100%  󰆤 [h/j/k/l] Pan  󰅖 [q/Esc] Close ",
             footer_pos = "center",
             keys = {
               q = "close",
               ["<Esc>"] = "close",
+              ["<RightMouse>"] = "close",
               ["="] = function() apply_zoom(0.15) end,
               ["+"] = function() apply_zoom(0.15) end,
               ["-"] = function() apply_zoom(-0.15) end,
               ["_"] = function() apply_zoom(-0.15) end,
               ["]"] = function() apply_zoom(0.15) end,
               ["["] = function() apply_zoom(-0.15) end,
+              ["<ScrollWheelUp>"] = function() apply_zoom(0.15) end,
+              ["<ScrollWheelDown>"] = function() apply_zoom(-0.15) end,
               ["0"] = function() reset_view() end,
+              ["<2-LeftMouse>"] = function() reset_view() end,
               h = function() apply_pan(-4, 0) end,
               l = function() apply_pan(4, 0) end,
               j = function() apply_pan(0, 2) end,
@@ -390,6 +445,15 @@ return {
               end
             end)
           end)
+        end
+
+        if override_src and override_src ~= "" then
+          launch(override_src)
+          return
+        end
+
+        Snacks.image.doc.at_cursor(function(src)
+          launch(src or last_active_src)
         end)
       end
 
@@ -410,21 +474,49 @@ return {
       vim.keymap.set("n", "<leader>mz", open_image_lightbox, { desc = "Mermaid / Image Lightbox Zoom Modal" })
       vim.keymap.set("n", "<leader>mI", open_image_lightbox, { desc = "Mermaid / Image Lightbox (Centered Modal)" })
 
-      -- Toggle continuous auto-hover on CursorMoved (default: off)
-      local auto_hover_enabled = false
+      -- Double-click on diagram or image in Markdown to launch Lightbox
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = { "markdown", "text", "rmd", "quarto" },
+        group = vim.api.nvim_create_augroup("snacks_image_markdown_clicks", { clear = true }),
+        callback = function(args)
+          vim.keymap.set("n", "<2-LeftMouse>", function()
+            if Snacks.image and Snacks.image.doc then
+              Snacks.image.doc.at_cursor(function(src)
+                if src then
+                  open_image_lightbox(src)
+                else
+                  vim.cmd.normal({ "viw", bang = true })
+                end
+              end)
+            end
+          end, { buffer = args.buf, silent = true, desc = "Double-click image/diagram to open Lightbox" })
+        end,
+      })
+
+      -- Auto-hover on CursorMoved (default: enabled)
+      local auto_hover_enabled = true
+      local auto_hover_group = vim.api.nvim_create_augroup("snacks_image_auto_hover_toggle", { clear = true })
+
+      local function register_auto_hover()
+        vim.api.nvim_create_autocmd("CursorMoved", {
+          group = auto_hover_group,
+          callback = vim.schedule_wrap(function()
+            if auto_hover_enabled and Snacks.image and Snacks.image.doc then
+              Snacks.image.doc.hover()
+            end
+          end),
+        })
+      end
+
+      -- Register immediately on load
+      register_auto_hover()
+
       local function toggle_auto_hover()
         auto_hover_enabled = not auto_hover_enabled
         Snacks.image.config.doc.float = auto_hover_enabled
-        local group = vim.api.nvim_create_augroup("snacks_image_auto_hover_toggle", { clear = true })
+        vim.api.nvim_clear_autocmds({ group = auto_hover_group })
         if auto_hover_enabled then
-          vim.api.nvim_create_autocmd("CursorMoved", {
-            group = group,
-            callback = vim.schedule_wrap(function()
-              if auto_hover_enabled and Snacks.image and Snacks.image.doc then
-                Snacks.image.doc.hover()
-              end
-            end),
-          })
+          register_auto_hover()
           if Snacks.image and Snacks.image.doc then
             Snacks.image.doc.hover()
           end

@@ -41,9 +41,10 @@ The visual intelligence stack consists of three coordinated subsystems:
   * Diagram links: `[Architecture](diagram.mmd)`
   * Fenced code blocks: ```` ```mermaid ... ``` ````
   * Bare URLs and quoted file paths across all languages (Lua, Rust, Python, etc.)
-* **Zero Buffer Disruption (Sidecar Layout):** Renders in an ephemeral, rounded floating window (`border = "rounded"`) pinned to the right margin (`relative = "win", col = -1`) and vertically tracked with the cursor line. This ensures 100% of the Mermaid source code remains visible and editable on the left while simultaneously rendering the graphic on the right with zero text occlusion.
-* **On-Demand First & Toggle Control:** Defaults to on-demand preview via **`K`** (Universal Hover) to eliminate visual disruption while typing. Toggle continuous auto-preview on cursor movement at any time using **`<leader>mt`** or **`<leader>um`**.
-* **Interactive Lightbox Modal (Zoom & Pan):** Pressing **`<leader>mz`** or **`<leader>mI`** opens a focused, centered modal dialog (`width = 88%`, `height = 88%`) with darkened backdrop. Supports interactive zooming (`+`/`-`), 2D panning (`h`/`j`/`k`/`l` or Arrows, fast pan `H`/`J`/`K`/`L`), zoom reset (`0`), and instant dismissal (`q`/`<Esc>`).
+* **Zero Buffer Disruption (Sidecar Layout):** Renders in an ephemeral, rounded floating window (`border = "rounded"`) pinned to the right margin (`relative = "editor", col = -1`) and vertically tracked with the cursor line. This ensures 100% of the Mermaid source code remains visible and editable on the left while simultaneously rendering the graphic on the right with zero text occlusion.
+* **Default Auto-Hover & Ergonomic Toggle:** Defaults to continuous auto-preview on cursor movement so Mermaid diagrams and images render instantly in the sidecar as you navigate. Toggle between continuous auto-hover and on-demand (`K`) mode anytime via **`<leader>mt`** or **`<leader>um`**.
+* **Click-to-Zoom Interaction:** Clicking directly on the floating sidecar image or double-clicking (`<2-LeftMouse>`) an image link or Mermaid block in Markdown instantly opens the centered Lightbox modal.
+* **Interactive Lightbox Modal (Zoom & Pan):** Pressing **`<leader>mz`** / **`<leader>mI`**, running `:ImageLightbox`, or clicking the image opens a focused, centered modal dialog (`width = 88%`, `height = 88%`) with darkened backdrop. Features dynamic zoom percentage badges in the title (`󰍉 120%` for Zoom In, `󰍋 85%` for Zoom Out, `󰄧 100%` for 1:1), interactive scaling (`+`/`-` or mouse wheel `<ScrollWheelUp>`/`<ScrollWheelDown>`), 2D panning (`h/j/k/l` or Arrows, fast pan `H/J/K/L`), zoom reset (`0` or double-click `<2-LeftMouse>`), and instant dismissal (`q`, `<Esc>`, or right-click `<RightMouse>`).
 
 ### 2.2 Safe Wayland Clipboard Architecture (`lua/config/options.lua`)
 
@@ -89,11 +90,13 @@ end
 
 | Shortcut / Trigger | Mode | Context | Action & Behavior |
 | :--- | :---: | :---: | :--- |
+| **Cursor Hover** | Normal | Markdown | **Auto Sidecar Preview (Default):** Ephemeral sidecar popup automatically displays rendered visual when cursor rests on link/block. |
 | **`K`** | Normal | Markdown / Any | **Smart Universal Hover:** On-demand sidecar diagram/image preview if cursor is on link/block; falls back to LSP hover otherwise. |
+| **`<LeftMouse>` (on Hover)** | Normal | Floating Sidecar | **Click-to-Zoom:** Clicking the sidecar preview opens the centered Lightbox modal. |
+| **`<2-LeftMouse>`** | Normal | Markdown | **Double-Click to Zoom:** Double-clicking an image link or diagram block directly opens the Lightbox modal. |
 | **`<leader>mi`** | Normal | Any | **Explicit Visual Preview:** Forces preview popup open in sidecar for target under cursor. |
-| **`<leader>mz`** / **`<leader>mI`** | Normal | Markdown / Any | **Interactive Lightbox Modal:** Centered dialog with backdrop, dynamic zoom (`+`/`-`), pan (`h/j/k/l`), reset (`0`), and close (`q`/`<Esc>`). |
-| **`<leader>mt`** / **`<leader>um`** | Normal | Any | **Toggle Automatic Hover:** Toggles between On-Demand (`K`) and continuous auto-preview on cursor movement (`:ImageHoverToggle`). |
-| **Cursor Hover** | Normal | Markdown | **Auto Hover Preview (when toggled):** Ephemeral sidecar popup automatically displays rendered visual when cursor rests on link/block. |
+| **`<leader>mz`** / **`<leader>mI`** | Normal | Markdown / Any | **Interactive Lightbox Modal:** Centered dialog with backdrop, dynamic zoom (`+`/`-` or wheel), pan (`h/j/k/l`), reset (`0` / double-click), and close (`q`/`<Esc>`/right-click). |
+| **`<leader>mt`** / **`<leader>um`** | Normal | Any | **Toggle Automatic Hover:** Toggles between continuous auto-preview on cursor movement and on-demand (`K`) mode (`:ImageHoverToggle`). |
 | **`p`** | Normal | Markdown | **Smart Paste (After):** If image in clipboard, saves to `assets/` and pre-selects alt text in Select Mode. If text, normal paste. |
 | **`P`** | Normal | Markdown | **Smart Paste Before (Before):** Same as `p`, inserting before the current cursor line. |
 | **`<C-v>`** | Insert | Markdown | **Smart Insert Paste:** Directly pastes image from clipboard and switches to Select Mode for captioning without leaving Insert context. |

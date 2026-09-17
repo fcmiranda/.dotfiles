@@ -222,11 +222,13 @@ The table below consolidates the definitive keybindings across all layers, audit
 
 | Keybinding / Trigger | Scope | Target Action | Ergonomic Mechanics | KLM Timing ($T$) |
 | :--- | :---: | :--- | :--- | :---: |
+| **Cursor Hover** (`CursorMoved`) | Normal Mode | **Auto Sidecar Preview (Default)** on Link / Diagram | Zero extra keystroke: hover on link/block | $0\text{ ms}$ |
 | **`K`** | Normal Mode | **Smart Universal Hover** (Mermaid Diagram / Image or LSP in Sidecar) | Home Row tap on `k` (Right Middle) | $100\text{ ms}$ |
+| **`<LeftMouse>` (on Hover)** | Normal Mode | **Click-to-Zoom Lightbox Modal** from Sidecar Preview | Single mouse click on floating preview | $120\text{ ms}$ |
+| **`<2-LeftMouse>`** | Normal Mode | **Double-Click to Lightbox Modal** in Markdown | Double-click on link or diagram block | $140\text{ ms}$ |
 | **`<leader>mi`** | Normal Mode | **Direct Sidecar Image / Diagram Preview** | Home Row inward roll: Space $\rightarrow$ m $\rightarrow$ i | $130\text{ ms}$ |
-| **`<leader>mz`** / **`<leader>mI`** | Normal Mode | **Interactive Lightbox Modal** (Zoom `+`/`-`, Pan `h/j/k/l`, Reset `0`) | Space $\rightarrow$ m $\rightarrow$ z / Space $\rightarrow$ m $\rightarrow$ Shift+I | $130\text{ ms}$ |
+| **`<leader>mz`** / **`<leader>mI`** | Normal Mode | **Interactive Lightbox Modal** (Zoom `+`/`-` or wheel, Pan `h/j/k/l`, Reset `0`) | Space $\rightarrow$ m $\rightarrow$ z / Space $\rightarrow$ m $\rightarrow$ Shift+I | $130\text{ ms}$ |
 | **`<leader>mt`** / **`<leader>um`** | Normal Mode | **Toggle Automatic Cursor Hover** (`:ImageHoverToggle`) | Space $\rightarrow$ m $\rightarrow$ t / Space $\rightarrow$ u $\rightarrow$ m | $130\text{ ms}$ |
-| **Cursor Hover** (`CursorMoved`) | Normal Mode | **Auto Sidecar Preview** (when auto-hover is enabled) | Zero extra keystroke: hover on link/block | $0\text{ ms}$ |
 | **`:ImageHover`** | Ex Command | **Open Visual Preview** in right-margin sidecar | Command palette invocation | $180\text{ ms}$ |
 | **`:ImageLightbox`** | Ex Command | **Open Interactive Lightbox Modal** with zoom and pan | Command palette invocation | $180\text{ ms}$ |
 | **`p`** (in Markdown) | Normal Mode | **Smart Paste After** (Clipboard Image $\rightarrow$ Save + Select Alt, or Text) | Home Row tap on `p` | $100\text{ ms}$ |
@@ -235,8 +237,9 @@ The table below consolidates the definitive keybindings across all layers, audit
 | **`<leader>p`** / **`<leader>ip`** | Normal Mode | **Explicit Paste Image** (`:PasteImage`) | Space $\rightarrow$ p / Space $\rightarrow$ i $\rightarrow$ p | $130\text{ ms}$ |
 | **`:PasteImage`** | Ex Command | **Paste Image with VS Code Style Alt Selection** | Command palette invocation | $180\text{ ms}$ |
 
-* **Zero Buffer Clutter & Non-Occluding Sidecar:** Images and Mermaid diagrams render in an ephemeral, rounded floating window (`border = "rounded"`) docked to the right margin (`relative = "editor", col = -1, row = 1`), keeping 100% of the Mermaid source code completely visible and editable without text occlusion.
-* **Interactive Lightbox Modal:** Centered 88% modal dialog with darkened backdrop for deep visual inspection, supporting dynamic scaling (`+`/`-`), 2D panning (`h/j/k/l` or arrows), reset (`0`), and instant dismissal (`q`/`<Esc>`).
+* **Zero Buffer Clutter & Non-Occluding Sidecar:** Images and Mermaid diagrams render in an ephemeral, rounded floating window (`border = "rounded"`) docked to the right margin (`relative = "editor", col = -1, row = 1`), keeping 100% of the Mermaid source code completely visible and editable without text occlusion. Auto-hover is active by default.
+* **Interactive Lightbox Modal with Zoom Badges:** Centered 88% modal dialog with darkened backdrop for deep visual inspection. Displays real-time zoom percentage badges (`󰍉 120%` for Zoom In, `󰍋 85%` for Zoom Out, `󰄧 100%` for 1:1), supporting dynamic scaling (`+`/`-` or mouse wheel `<ScrollWheelUp>`/`<ScrollWheelDown>`), 2D panning (`h/j/k/l` or arrows), reset (`0` or double click), and instant dismissal (`q`, `<Esc>`, or right-click).
+* **Click-to-Zoom Interaction:** Clicking directly on the floating sidecar preview window or double-clicking on an image/diagram in Markdown automatically enters the centered Lightbox modal.
 * **VS Code-Style Alt Text Selection:** When pasting an image from the system clipboard via `p` or `P`, it automatically saves to `assets/` and pre-selects the alt text `image` in Neovim Select Mode (`vi]<C-g>`). Typing any character immediately replaces it with your custom caption, while `<Esc>` keeps the default label.
 * **Safe Wayland Clipboard Isolation:** The Wayland clipboard provider in `options.lua` guarantees that `wl-paste` strictly requests `text/plain` for text registers, completely preventing unprintable raw image binary escape sequences (`\8E\E5l...`) from polluting registers or documents.
 * **Smart Contextual Pasting:** Pressing `p` or `P` in Markdown inspects the system clipboard via `wl-paste` and magic bytes (`\x89PNG`, `\xFF\xD8\xFF`, `GIF8`, `WEBP`) in sub-1ms; if an image is detected, it triggers the image paste pipeline; otherwise, it executes standard text pasting with zero disruption.

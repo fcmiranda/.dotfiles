@@ -12,6 +12,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**Zero-Friction Frecency 2.0 File Transfer Benchmark & Guide**](architecture/zero-friction-file-transfer-benchmark.md): Quantitative KLM-GOMS benchmark comparing 6 transfer paradigms (220ms `ptl` to 7200ms AI agents), 5 architectural pillars, and operational cheat-sheet (`pt`, `ptg`, `ptl`, `mt`, `mtg`, `mtl`, `j`, `ji`).
 - [**Neovim Visual Intelligence & Smart Image Clipboard Workflow**](architecture/neovim-visual-workflow.md): Architecture, safe Wayland clipboard isolation, Mermaid hover preview, and VS Code-parity smart image pasting with Select Mode captioning.
 - [**Smart & Context-Aware Patterns Roadmap**](architecture/smart-patterns-roadmap.md): Architectural catalog of active event-driven intelligence and future roadmap (semantic breadcrumbs, workspace indicators, command alerts, scratchpads, and Neovim LSP sync).
+- [**Open-Source AI Cockpit Stack Blueprint**](architecture/open-source-ai-tmux-stack-plan.md): Architecture and distribution strategy for the open-source `acpd` + `lazygitrs` + `mm` + `tmux` terminal AI cockpit stack.
 
 ### 🐚 1. Shell & Navigation (`docs/shell/`)
 - [**Smart Tab Completion & Matchmaker**](shell/completion.md): Context-aware `<Tab>`, auto-spacing on aliases (`gco<Tab>`), dual backends (`Ctrl+N` vs `Ctrl+F`), and the [`ftb.toml`](../matchmaker/.config/matchmaker/presets/ftb.toml) preset with on-demand preview (`Ctrl+P`).

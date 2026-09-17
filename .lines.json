@@ -1,11 +1,42 @@
 {
   "version": 1,
-  "revision": 497,
+  "revision": 1378,
   "session": {
-    "sessionId": "8fa30741-ca40-41cb-ba59-b768a07c06fe",
+    "sessionId": "ea3cbe95-8487-45ea-9a6c-633daa3dcf03",
     "cli": "antigravity",
-    "notifyCommand": "/home/fecavmi/.dotfiles/main/antigravity/.gemini/hooks/lazygit-tmux-injector.sh {{workspace_path}} {{prompt}}"
+    "notifyCommand": "/home/fecavmi/.gemini/hooks/lazygit-tmux-injector.sh {{workspace_path}} {{prompt}}"
   },
   "workspacePath": "/home/fecavmi/.dotfiles/main",
-  "notes": []
+  "notes": [
+    {
+      "id": "antigravity/.gemini/hooks/lazygit-hook.mjs-55-New-1789666477727723399",
+      "file": "antigravity/.gemini/hooks/lazygit-hook.mjs",
+      "line": 55,
+      "panel": "New",
+      "comment": "o que e isso?",
+      "created_at": "2026-09-17T17:34:37.727Z",
+      "status": "addressed"
+    },
+    {
+      "id": "antigravity/.gemini/hooks/lazygit-hook.mjs-55-New-1789666552559614404",
+      "file": "antigravity/.gemini/hooks/lazygit-hook.mjs",
+      "line": 55,
+      "panel": "New",
+      "comment": "entendi obrigado",
+      "created_at": "2026-09-17T17:35:52.559Z",
+      "status": "addressed"
+    },
+    {
+      "id": "antigravity/.gemini/hooks/lazygit-hook.mjs-55-agent",
+      "file": "antigravity/.gemini/hooks/lazygit-hook.mjs",
+      "line": 55,
+      "panel": "New",
+      "comment": "Dúvida esclarecida com sucesso\nDe nada! Fico à disposição sempre que precisar revisar ou entender qualquer ponto do código.",
+      "rationale": "De nada! Fico à disposição sempre que precisar revisar ou entender qualquer ponto do código.",
+      "source": "agent",
+      "author": "Antigravity",
+      "created_at": "2026-09-17T17:36:00.805Z",
+      "status": "addressed"
+    }
+  ]
 }

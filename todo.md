@@ -1,7 +1,27 @@
-ajustar acentos não aparecendo
 
-nvim
-funcionalidade passar o mouse no md e ver preview de imagem
+tmux
+ - loading state incorreto, ja respondeu e continua loading
+  - criar funcionalidade reabrir ultima aba com o arquivo/sessao que estava 
+workflow  worktree start
+ - update worktree main   
+
+workflow features
+- move tab tmux
+- side bar tmux
+
+ideas
+ - create a suggestion notification usage for keyindings like plugin for intellig 
+
+
+hello
+
+Meu Texto Copiado
+
+
+![aviao](assets/2026-09-16-21-30-19.png)
+
+
+ajustar acentos não aparecendo
 
 
 revisar atalhos

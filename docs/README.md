@@ -10,6 +10,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**Terminal Ergonomics & UX Architecture Manifesto**](architecture/terminal-ergonomics-and-ux-manifesto.md): Core HCI principles, KLM/GOMS ($H=0$), Doherty threshold (<100ms), pure icon badges, universal Omarchy theme color synchronization, and the Ergonomic Stability Rule.
 - [**Workflow Keybindings & Ergonomic Reference Matrix**](architecture/workflow-keybindings-matrix.md): Complete multi-layer cheat-sheet and biomechanical audit of all global, Tmux, Zsh, and Lazygitrs shortcuts.
 - [**Zero-Friction Frecency 2.0 File Transfer Benchmark & Guide**](architecture/zero-friction-file-transfer-benchmark.md): Quantitative KLM-GOMS benchmark comparing 6 transfer paradigms (220ms `ptl` to 7200ms AI agents), 5 architectural pillars, and operational cheat-sheet (`pt`, `ptg`, `ptl`, `mt`, `mtg`, `mtl`, `j`, `ji`).
+- [**Neovim Visual Intelligence & Smart Image Clipboard Workflow**](architecture/neovim-visual-workflow.md): Architecture, safe Wayland clipboard isolation, Mermaid hover preview, and VS Code-parity smart image pasting with Select Mode captioning.
 - [**Smart & Context-Aware Patterns Roadmap**](architecture/smart-patterns-roadmap.md): Architectural catalog of active event-driven intelligence and future roadmap (semantic breadcrumbs, workspace indicators, command alerts, scratchpads, and Neovim LSP sync).
 
 ### 🐚 1. Shell & Navigation (`docs/shell/`)

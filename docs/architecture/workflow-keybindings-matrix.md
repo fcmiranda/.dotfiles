@@ -22,8 +22,6 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Ctrl + G`** | Global / Shell | **Lazygitrs Floating Popup (`90% × 88%`)** | Inward roll: CapsLock (Pinky) + G (Index) | $130\text{ ms}$ |
 | **`Ctrl + Shift + G`** | Global / Tmux | **AWT Worktree Manager Popup (`85% × 75%`)** | Inward chord: CapsLock (Pinky) + Shift + G | $140\text{ ms}$ |
 | **`Ctrl + Shift + I`** (`C-S-i`) | Global / Tmux | **AI Attention Triage Direct Focus Jump** | Inward chord: CapsLock (Pinky) + Shift + I (No Alt, MacBook-ergonomic) | $140\text{ ms}$ |
-| **`Alt + o`** (`M-o`) | Global / Tmux | **OpenCode AI Floating Popup (`85% × 85%`)** | Left Thumb (Alt) + Right Ring (O) | $140\text{ ms}$ |
-| **`Alt + a`** (`M-a`) | Global / Tmux | **Jump to / Create dedicated AI Window** | Left Thumb (Alt) + Left Pinky (A) | $130\text{ ms}$ |
 | **`Alt + i`** (`M-i`) | Global / Tmux | **AI Attention Triage Jump (Meta fallback)** | Left Thumb (Alt) + Right Middle (I) | $130\text{ ms}$ |
 | **`Ctrl + 0..9`** | Tmux | **Direct Window Select (Windows 0 to 9)** | CapsLock (Pinky) + Number Key | $130\text{ ms}$ |
 | **`Ctrl + Shift + 0..9`** | Tmux | **Move & Shift Window to Slot 0..9** | Left Pinky + Left Ring + Number Key | $160\text{ ms}$ |
@@ -170,8 +168,6 @@ The table below consolidates the definitive keybindings across all layers, audit
 | **`Ctrl + G`** | Global / Shell | Open Lazygitrs Floating Popup | Inward roll: CapsLock (Pinky) + G (Index) | $130\text{ ms}$ | $H=0$. Immediate access to Git workspace without context switching. |
 | **`Ctrl + Shift + G`** | Global / Tmux | AWT Worktree Manager Popup | Inward chord: CapsLock (Pinky) + Shift + G | $140\text{ ms}$ | Direct access to worktrees; symmetric to `Ctrl+G`. |
 | **`Ctrl + Shift + I`** | Global / Tmux | AI Agent Triage Direct Focus Jump | Inward chord: CapsLock (Pinky) + Shift + I | $140\text{ ms}$ | Home Row, no-Alt, MacBook-ergonomic focus switch to next agent needing attention. |
-| **`Alt + o`** | Global / Tmux | OpenCode AI Floating Popup | Left Thumb (Alt) + Right Ring (O) | $140\text{ ms}$ | Zero wrist displacement; instant overlay for agent interaction. |
-| **`Alt + a`** | Global / Tmux | Focus / Create Dedicated AI Window | Left Thumb (Alt) + Left Pinky (A) | $130\text{ ms}$ | High-frequency jump to primary agent workspace. |
 | **`Alt + i`** | Global / Tmux | AI Agent Triage (Meta Fallback) | Left Thumb (Alt) + Right Middle (I) | $130\text{ ms}$ | Zero-prefix focus switch when Meta/Alt is enabled. |
 | **`Prefix + s`** | Tmux Multiplexer | Window Picker (`75% × 60%`) | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `s` | $240\text{ ms}$ | Prefix guard protects against accidental modal popups during fast typing. |
 | **`Prefix + t`** | Tmux Multiplexer | Sesh Workspace Picker | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `t` | $240\text{ ms}$ | `t` = Task/Teleport; mnemonic alignment with project workflows. |
@@ -215,20 +211,35 @@ The table below consolidates the definitive keybindings across all layers, audit
 | **`d`** (on note) | Lazygitrs Diff | Delete Review Note | Left Middle tap on Home Row `d` | $100\text{ ms}$ | Destructive single-note dismissal with auto-selection of next note. |
 | **`Enter` / `o`** | Lazygitrs Diff | View Note Full Details Popup | Right Pinky tap / Right Ring reach | $100\text{ ms}$ / $110\text{ ms}$ | Full markdown rendering of rationale, author, and timestamp. |
 | **`Esc`** | Lazygitrs Global | Hierarchical Context Unwind / Close | Left Pinky tap (keyd CapsLock tap) | $100\text{ ms}$ | $H=0$. Unwinds diff/submenu $\rightarrow$ Files list $\rightarrow$ closes popup. |
+| **`K`** | Neovim Normal | Smart Universal Hover (Visual/LSP) | Right Middle tap on Home Row `k` | $100\text{ ms}$ | $H=0$. Previews Mermaid diagram/image or delegates to LSP hover. |
+| **`p`** | Neovim Markdown | Smart Image Paste After Cursor | Right Pinky reach to `p` | $100\text{ ms}$ | Automatically saves to `assets/` and activates Select Mode for captioning. |
+| **`P`** | Neovim Markdown | Smart Image Paste Before Cursor | Shift + P (Pinky + Ring) | $140\text{ ms}$ | Direct counterpart to `p` inserting above the cursor with alt selection. |
 
 ---
 
 ### 🖼️ Layer 2.5: Neovim In-Editor Visual Intelligence & Mermaid Hover
+> For full architectural specifications, Wayland clipboard isolation runbooks, and KLM benchmarks, see [**Neovim Visual Intelligence & Smart Image Clipboard Workflow**](neovim-visual-workflow.md).
 
 | Keybinding / Trigger | Scope | Target Action | Ergonomic Mechanics | KLM Timing ($T$) |
 | :--- | :---: | :--- | :--- | :---: |
-| **`K`** | Normal Mode | **Smart Universal Hover** (Mermaid Diagram / Image or LSP) | Home Row tap on `k` (Right Middle) | $100\text{ ms}$ |
-| **Cursor Hover** (`CursorMoved`) | Normal Mode | **Automatic Floating Popup** (`80 × 40`) on Link / Diagram | Zero extra keystroke: hover on link | $0\text{ ms}$ |
-| **`<leader>mi`** | Normal Mode | **Direct Mermaid / Image Preview Popup** | Home Row inward roll: Space $\rightarrow$ m $\rightarrow$ i | $130\text{ ms}$ |
-| **`<leader>uI`** | Normal Mode | **Toggle Automatic Cursor Hover** (`:ImageHoverToggle`) | Space $\rightarrow$ u $\rightarrow$ Shift+I | $140\text{ ms}$ |
-| **`:ImageHover`** | Ex Command | **Open Visual Preview Modal** for target under cursor | Command palette invocation | $180\text{ ms}$ |
+| **`K`** | Normal Mode | **Smart Universal Hover** (Mermaid Diagram / Image or LSP in Sidecar) | Home Row tap on `k` (Right Middle) | $100\text{ ms}$ |
+| **`<leader>mi`** | Normal Mode | **Direct Sidecar Image / Diagram Preview** | Home Row inward roll: Space $\rightarrow$ m $\rightarrow$ i | $130\text{ ms}$ |
+| **`<leader>mz`** / **`<leader>mI`** | Normal Mode | **Interactive Lightbox Modal** (Zoom `+`/`-`, Pan `h/j/k/l`, Reset `0`) | Space $\rightarrow$ m $\rightarrow$ z / Space $\rightarrow$ m $\rightarrow$ Shift+I | $130\text{ ms}$ |
+| **`<leader>mt`** / **`<leader>um`** | Normal Mode | **Toggle Automatic Cursor Hover** (`:ImageHoverToggle`) | Space $\rightarrow$ m $\rightarrow$ t / Space $\rightarrow$ u $\rightarrow$ m | $130\text{ ms}$ |
+| **Cursor Hover** (`CursorMoved`) | Normal Mode | **Auto Sidecar Preview** (when auto-hover is enabled) | Zero extra keystroke: hover on link/block | $0\text{ ms}$ |
+| **`:ImageHover`** | Ex Command | **Open Visual Preview** in right-margin sidecar | Command palette invocation | $180\text{ ms}$ |
+| **`:ImageLightbox`** | Ex Command | **Open Interactive Lightbox Modal** with zoom and pan | Command palette invocation | $180\text{ ms}$ |
+| **`p`** (in Markdown) | Normal Mode | **Smart Paste After** (Clipboard Image $\rightarrow$ Save + Select Alt, or Text) | Home Row tap on `p` | $100\text{ ms}$ |
+| **`P`** (in Markdown) | Normal Mode | **Smart Paste Before** (Clipboard Image $\rightarrow$ Save + Select Alt, or Text) | Shift + P (Pinky + Ring) | $140\text{ ms}$ |
+| **`<C-v>`** (in Markdown) | Insert Mode | **Smart Insert Paste** (Clipboard Image $\rightarrow$ Select Alt, or Text) | CapsLock (Pinky) + V | $130\text{ ms}$ |
+| **`<leader>p`** / **`<leader>ip`** | Normal Mode | **Explicit Paste Image** (`:PasteImage`) | Space $\rightarrow$ p / Space $\rightarrow$ i $\rightarrow$ p | $130\text{ ms}$ |
+| **`:PasteImage`** | Ex Command | **Paste Image with VS Code Style Alt Selection** | Command palette invocation | $180\text{ ms}$ |
 
-* **Zero Buffer Clutter:** Images and Mermaid diagrams render in an ephemeral, rounded floating popup (`border = "rounded"`) directly beside the cursor rather than disrupting buffer layout.
+* **Zero Buffer Clutter & Non-Occluding Sidecar:** Images and Mermaid diagrams render in an ephemeral, rounded floating window (`border = "rounded"`) docked to the right margin (`relative = "editor", col = -1, row = 1`), keeping 100% of the Mermaid source code completely visible and editable without text occlusion.
+* **Interactive Lightbox Modal:** Centered 88% modal dialog with darkened backdrop for deep visual inspection, supporting dynamic scaling (`+`/`-`), 2D panning (`h/j/k/l` or arrows), reset (`0`), and instant dismissal (`q`/`<Esc>`).
+* **VS Code-Style Alt Text Selection:** When pasting an image from the system clipboard via `p` or `P`, it automatically saves to `assets/` and pre-selects the alt text `image` in Neovim Select Mode (`vi]<C-g>`). Typing any character immediately replaces it with your custom caption, while `<Esc>` keeps the default label.
+* **Safe Wayland Clipboard Isolation:** The Wayland clipboard provider in `options.lua` guarantees that `wl-paste` strictly requests `text/plain` for text registers, completely preventing unprintable raw image binary escape sequences (`\8E\E5l...`) from polluting registers or documents.
+* **Smart Contextual Pasting:** Pressing `p` or `P` in Markdown inspects the system clipboard via `wl-paste` and magic bytes (`\x89PNG`, `\xFF\xD8\xFF`, `GIF8`, `WEBP`) in sub-1ms; if an image is detected, it triggers the image paste pipeline; otherwise, it executes standard text pasting with zero disruption.
 * **Smart Treesitter Link Recognition:** Treesitter queries for `markdown_inline` and `markdown` match both standard inline images (`![alt](url)`), markdown links (`[label](chart.mmd)` / `[arch](diagram.png)`), and fenced ````mermaid```` code blocks.
 * **Universal Link Fallback:** Bare URLs and quoted file paths in any filetype (Lua, Python, Rust, etc.) are detected and rendered on the fly.
 * **Sub-100ms Graphics Pipeline:** Leverages native Kitty Graphics Protocol through Ghostty and Tmux passthrough with local `mmdc` headless compilation.
@@ -259,6 +270,7 @@ The table below consolidates the definitive keybindings across all layers, audit
 
 ## 🔗 Related Documentation
 * [`docs/architecture/terminal-ergonomics-and-ux-manifesto.md`](terminal-ergonomics-and-ux-manifesto.md): Core HCI philosophy and cognitive models.
+* [`docs/architecture/neovim-visual-workflow.md`](neovim-visual-workflow.md): Neovim visual intelligence, Mermaid hover preview, and smart image clipboard architecture.
 * [`docs/architecture/zero-friction-file-transfer-benchmark.md`](zero-friction-file-transfer-benchmark.md): Quantitative KLM-GOMS benchmark and architectural guide for Zero-Friction Frecency 2.0 file transfer and navigation.
 * [`docs/tmux/popups-ergonomics-and-golden-ratio.md`](../tmux/popups-ergonomics-and-golden-ratio.md): Golden Ratio geometry and visual semiotics.
 * [`docs/GIT_WORKTREE_AGENTIC_WORKFLOW.md`](../GIT_WORKTREE_AGENTIC_WORKFLOW.md): Agent worktree orchestrator and multi-agent Git workflow.

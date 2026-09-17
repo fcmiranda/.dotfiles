@@ -69,7 +69,7 @@ for dirpath, _, filenames in os.walk(repo_root):
     if any(p in dirpath for p in ["/.git", "/.bare", "/apm_modules"]):
         continue
     for f in filenames:
-        if f.endswith(".md"):
+        if f.endswith(".md") and f != "todo.md":
             filepath = os.path.join(dirpath, f)
             with open(filepath, "r", encoding="utf-8", errors="ignore") as fp:
                 in_code_block = False

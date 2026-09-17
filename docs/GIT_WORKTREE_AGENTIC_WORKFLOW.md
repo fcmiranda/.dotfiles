@@ -130,11 +130,11 @@ graph TD
     B -->|Yes| C["wt remove feat-branch && git branch -d feat-branch"]
     B -->|No| D{"Has main already been pushed?"}
     
-    D -->|No (Local)| E["In main: git reset --hard HEAD~1"]
+    D -->|"No (Local)"| E["In main: git reset --hard HEAD~1"]
     E --> F["./stow.sh -r <package> (Restores previous $HOME)"]
     F --> G["In feature branch: fix or git revert <commit>"]
     
-    D -->|Yes (Remote)| H["In main: git revert -m 1 <merge-commit>"]
+    D -->|"Yes (Remote)"| H["In main: git revert -m 1 <merge-commit>"]
     H --> I["./stow.sh -r <package> && git push origin main"]
     I --> J["In feature branch: apply incremental fixes"]
 ```

@@ -28,7 +28,7 @@ graph TD
         E[tmux-acp TPM Plugin]
         F[Waybar Custom Module]
         G[Matchmaker Window Picker]
-        E <..> G
+        E <-.-> G
     end
 ```
 

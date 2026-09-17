@@ -145,6 +145,15 @@ mmdc -i {{mmd_file}} -o {{output_png}} -b transparent -t dark
 # Render Mermaid diagram to SVG vector
 mmdc -i {{mmd_file}} -o {{output_svg}} -b transparent -t dark
 
+# Save image from Wayland clipboard to PNG file
+wl-paste -t image/png > {{output_png}}
+
+# List available MIME types currently in Wayland clipboard
+wl-paste --list-types
+
+# Convert any image format to PNG via ImageMagick
+magick {{input_image}} {{output_png}}
+
 # Sync custom.commands into IntelliShell local database
 intelli-sync
 

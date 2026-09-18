@@ -7,10 +7,10 @@ min = 12
 max = 25
 restore_fullscreen = false
 
-[ui]
-nav_mode = true
-nav_bar = "Plain"
-nav_color = "white"
+[ui.nav]
+active = true
+bar = "Plain"
+color = "white"
 
 [ui.parent_peek]
 enabled = false
@@ -34,13 +34,17 @@ style.fg = "gray"
 style.modifier = "DIM"
 
 [matcher]
-sort = "smart"
 typo_tolerance = true
+
+[matcher.sort]
+threshold = "smart"
 
 [results]
 reverse = false
 column_spacing = 2
-symlink_target = false
+
+[results.symlink]
+active = false
 
 [results.current_style]
 bg = "darkgray"

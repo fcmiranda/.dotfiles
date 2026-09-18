@@ -1,7 +1,7 @@
-[ui]
-nav_mode = true
-nav_bar = "Plain"
-nav_color = "Black"
+[ui.nav]
+active = true
+bar = "Plain"
+color = "Black"
 
 [tui]
 percentage = 100
@@ -49,7 +49,9 @@ prompt = ""
 
 [start]
 mode = "nav"
-additional_commands = []
+
+[start.command]
+additional = []
 
 [binds]
 "ctrl-j" = "Down"

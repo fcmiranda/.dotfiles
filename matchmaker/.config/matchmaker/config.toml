@@ -6,6 +6,17 @@ max = 120
 # --- UI ---
 [ui]
 border = { type = "Rounded" }
+# sort_menu = { columns = 4, show_title = true }
+# default_sort = "Natural"
+
+# Folder-specific sort rules (evaluated top-to-bottom on startup and directory changes)
+# [[folder_rules]]
+# path = "~/Downloads"
+# sort = "ModifiedReverse"
+#
+# [[folder_rules]]
+# path = "*/screenshots"
+# sort = "CreatedReverse"
 
 [query]
 prompt_style.fg = "Gray"
@@ -23,9 +34,15 @@ prompt_style.fg = "Gray"
 show = true
 wrap = true
 scroll_wrap = true
-media = true
+markdown = true
+
+[preview.media]
+active = true
 
 [[preview.layout]]
+command = '''p={1}; p="${p/#\~/$HOME}"; if [ -d "$p" ]; then mm tree "$p" 2>/dev/null || eza --tree --level=2 --icons=always --git-ignore --color=always "$p" 2>/dev/null || ls -la "$p"; else mime=$(file -b --mime-type "$p" 2>/dev/null); if [[ "$mime" == image/* ]]; then if command -v chafa >/dev/null 2>&1; then chafa --probe=off --format=symbols --size=80x35 "$p" 2>/dev/null; elif command -v img2txt >/dev/null 2>&1; then img2txt -f ansi -W 60 "$p" 2>/dev/null; fi; echo ""; identify "$p" 2>/dev/null || file "$p"; else bat --style=numbers --color=always --line-range=:300 "$p" 2>/dev/null || cat "$p"; fi; fi'''
+
+
 side = "right"
 percentage = 40
 min = 30
@@ -67,7 +84,7 @@ ansi = false # don't set to true here
 [binds]
 # Essentia
 "ctrl-c" = "Quit"
-"esc" = "Quit"
+"esc" = "Quit(1)"
 "enter" = "@accept"
 "alt-enter" = "@Accept"
 "ctrl-enter" = "@accept_2"
@@ -110,10 +127,6 @@ ansi = false # don't set to true here
 "ctrl-shift-." = "PrevColumn"
 
 # Preview
-"ctrl-shift-j" = "PreviewDown(5)"
-"ctrl-shift-k" = "PreviewUp(5)"
-"ctrl-shift-J" = "PreviewDown(5)"
-"ctrl-shift-K" = "PreviewUp(5)"
 "shift+scrollup" = "PreviewUp"
 "shift+scrolldown" = "PreviewDown"
 "alt-/" = "PreviewJump"
@@ -163,8 +176,10 @@ ansi = false # don't set to true here
 "@open" = "Execute($EDITOR {1})"
 "@open_2" = "Become($EDITOR {1})"
 "@reload" = "Reload"
-"@next" = ["ReloadNext", "Cancel"]
-"@prev" = ["ReloadPrev", "Cancel"]
+"@next" = "ReloadNext"
+"@prev" = "ReloadPrev"
+"@cycle" = "ReloadNext"
+"*" = "@bookmark"
 "@help" = "Help"
 "@break" = "Redraw" # invalid unicode or unsupported emoji can break rendering
 

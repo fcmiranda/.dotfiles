@@ -6,8 +6,8 @@ percentage = 100
 min = 10
 max = 9999
 
-[ui]
-nav_mode = false
+[ui.nav]
+active = false
 
 [ui.border]
 sides = ""
@@ -18,13 +18,17 @@ prompt_style.fg = "Cyan"
 status_inline = true
 
 [matcher]
-sort = "smart"
-sort_cap = 2000
 depth_penalty = 15
-frecency = true
-frecency_weight = 2
 typo_tolerance = true
 dir_first = false
+
+[matcher.sort]
+threshold = "smart"
+cap = 2000
+
+[matcher.frecency]
+active = true
+weight = 2
 
 [results]
 icons = true
@@ -48,8 +52,10 @@ delay_clear = true
 show = true
 wrap = true
 scroll_wrap = true
-media = true
-media_protocol = "kitty"
+
+[preview.media]
+active = true
+protocol = "kitty"
 
 [preview.border]
 sides = "LEFT"
@@ -72,7 +78,9 @@ fi
 
 [start]
 ansi = false
-additional_commands = [
+
+[start.command]
+additional = [
     "",
     "mm list 2>/dev/null"
 ]

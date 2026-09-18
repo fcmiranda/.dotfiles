@@ -6,34 +6,39 @@ percentage = 43               # Altura do TUI em % da tela (descomente para modo
 
 [query]
 status_inline = true          # true (contador de resultados na barra de busca) / false
-filter_prompt_style.fg = "blue"          # Muda a cor (ex: Yellow, Cyan, #fab387, etc.)
-filter_prompt_style.modifier = "BOLD"      # Aplica Negrito ("BOLD", "ITALIC", "DIM", etc.)
-filter_underline = true       # Underline aparece quando o filtro está focado e desaparece no modo de navegação
-filter_underline_style.fg = "#8999f1" # Cor do underline no foco ("blue", "gray", "cyan", etc.)
+
+[query.filter]
+prompt_style.fg = "blue"          # Muda a cor (ex: Yellow, Cyan, #fab387, etc.)
+prompt_style.modifier = "BOLD"      # Aplica Negrito ("BOLD", "ITALIC", "DIM", etc.)
+underline = true       # Underline aparece quando o filtro está focado e desaparece no modo de navegação
+underline_style.fg = "#8999f1" # Cor do underline no foco ("blue", "gray", "cyan", etc.)
 
 # Prompts e cores por modo:
-local_prompt = "> "
-local_prompt_style.fg = "cyan"
-local_underline_style.fg = "cyan"
+[query.local]
+prompt = "> "
+prompt_style.fg = "cyan"
+underline_style.fg = "cyan"
 
-frecency_prompt = "󱅤 "
-frecency_prompt_style.fg = "#8999f1"
-frecency_underline_style.fg = "#8999f1"
+[query.frecency]
+prompt = "󱅤 "
+prompt_style.fg = "#8999f1"
+underline_style.fg = "#8999f1"
 
-bookmarks_prompt = " "
-bookmarks_prompt_style.fg = "#f9e2af"
-bookmarks_underline_style.fg = "#f9e2af"
+[query.bookmarks]
+prompt = " "
+prompt_style.fg = "#f9e2af"
+underline_style.fg = "#f9e2af"
 
-[ui]
-nav_mode = true               # true (modo navegação habilitado) / false
-nav_focus_on_start = "picker" # Inicia na lista de resultados (NavBar) para navegação VIM instantânea na Home Row
-nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
-nav_color = "Darkgray"        # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
-# nav_bold = false            # true / false (barra em negrito)
-# nav_blink = false           # true / false (barra piscando)
-# nav_blink_rate = "Slow"     # "Slow", "Medium", "Fast"
-nav_hints = true              # Dicas de atalhos em modo navegação
-nav_hints_columns = 4         # Grid de atalhos alinhado em 4 colunas no rodapé (estilo sort menu)
+[ui.nav]
+active = true               # true (modo navegação habilitado) / false
+focus_on_start = "picker" # Inicia na lista de resultados (NavBar) para navegação VIM instantânea na Home Row
+bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+color = "Darkgray"        # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
+# bold = false            # true / false (barra em negrito)
+# blink = false           # true / false (barra piscando)
+# blink_rate = "Slow"     # "Slow", "Medium", "Fast"
+hints = true              # Dicas de atalhos em modo navegação
+hints_columns = 4         # Grid de atalhos alinhado em 4 colunas no rodapé (estilo sort menu)
 
 [ui.parent_peek]
 enabled = false               # true (mostra painel com pasta pai à esquerda) / false
@@ -48,17 +53,20 @@ style.modifier = "DIM"        # "DIM", "BOLD", "ITALIC", "UNDERLINED", "REVERSED
 match_indent = false          # true / false
 
 [matcher]
-sort = "smart"                # Algoritmo de ordenação: "smart", "score", "exact", "alphabetical", "frecency", "none"
-sort_cap = 2000               # Limite máximo de itens a ordenar
 depth_penalty = 15            # Penalidade por profundidade de pasta
-frecency = true               # true / false (histórico de relevância/frecência)
-frecency_weight = 2           # Peso do score de frecência
 typo_tolerance = true         # true / false (tolerância a erros de digitação)
 dir_first = true              # true / false (prioriza pastas no topo da lista)
 
+[matcher.sort]
+threshold = "smart"                # Algoritmo de ordenação: "smart", "score", "exact", "alphabetical", "frecency", "none"
+cap = 2000               # Limite máximo de itens a ordenar
+
+[matcher.frecency]
+active = true               # true / false (histórico de relevância/frecência)
+weight = 2           # Peso do score de frecência
+
 [results]
 scroll_wrap = true             # true (navegação circular: volta ao início no último item e vice-versa)
-tier_separator = "Underline"
 # Grossura / tipo de borda do navbar exclusivo para o item focado:
 current_nav_bar = "Plain" # "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
 max = 15                      # Quantidade máxima de linhas visíveis
@@ -67,19 +75,27 @@ icons = true                  # true (ativa ícones Nerd Font por tipo de arquiv
 uncolor_current_icon = true   # true (ícone focado herda cor do foco - estilo Yazi) / false
 invert_current_icon = false   # true (inverte cor do ícone no foco: Azul<->Amarelo, Vermelho<->Ciano) / false
 row_connection = "Full"       # Destaque da linha: "Full" (barra sólida contínua), "Capped" (somente coluna ativa), "Disjoint" (colunas separadas)
-symlink_target = true         # true (mostra '-> destino' em links simbólicos) / false
-symlink_target_style.fg = "cyan" # Cor do texto de destino do symlink
 
-bookmark_folder_icon = "󰮟"
-bookmark_file_icon = "󱀻"
-bookmark_icon_style.fg = "#f9e2af"
-frecency_folder_icon = "󰪻"
-frecency_folder_icon_style.fg = "#8999f1"
-frecency_icon = "󱋢"
-frecency_icon_style.fg = "#8999f1"
+[results.tier]
+separator = "Underline"
 
-[results.tier_separator_style]
+[results.tier.style]
 fg = "#555555"   # ou "Cyan", "Blue", "Gray", "#555555", etc.
+
+[results.symlink]
+active = true         # true (mostra '-> destino' em links simbólicos) / false
+style.fg = "cyan" # Cor do texto de destino do symlink
+
+[results.bookmark]
+folder_icon = "󰮟"
+file_icon = "󱀻"
+icon_style.fg = "#f9e2af"
+
+[results.frecency]
+folder_icon = "󰪻"
+folder_icon_style.fg = "#8999f1"
+icon = "󱋢"
+icon_style.fg = "#8999f1"
 
 # Estilo independente para a célula da barra do navbar no item focado:
 [results.current_nav_bar_style]
@@ -107,10 +123,12 @@ delay_clear = true            # true (evita flicker retendo preview anterior at�
 
 [preview]
 show = true
-media = true
-media_fit = "fit"
-media_size = 0             # Resolução máxima do downscaling em pixels (ex: 512, 800, 1280, 1920; 0 = original/sem downscale)
 scrollbar = true
+
+[preview.media]
+active = true
+fit = "fit"
+size = 0             # Resolução máxima do downscaling em pixels (ex: 512, 800, 1280, 1920; 0 = original/sem downscale)
 
 [[preview.layout]]
 side = "right"                # Posição do preview: "right", "left", "top", "bottom"
@@ -156,7 +174,7 @@ percentage = 60               # Tamanho balanceado do painel em % (Proporção �
 "ctrl-p"        = "SwitchPreview"
 "ctrl-v"        = "@paste_into"
 
-[ui.nav_binds]
+[ui.nav.binds]
 # Modos de dados (ciclar fontes e favoritos)
 "tab"           = "@reloadnext"
 "shift-backtab" = "@reloadprev"
@@ -232,18 +250,18 @@ style.modifier = "BOLD"       # "BOLD", "DIM", "ITALIC", "UNDERLINED"
 separator_style.fg = "Cyan"   # Cor do separador
 
 [start]
+
+[start.command]
+command = ""
 # Fontes de dados cicláveis via @reloadnext (ctrl-f / f / b):
 # Índice 0: "" -> Usa AsyncWalker nativo para pasta/arquivos locais.
 # Índice 1: Lista global de pastas por frecência via mm list --dirs.
 # Índice 2: Lista exclusiva de pastas favoritadas via mm list --bookmarks.
-additional_commands = [
+additional = [
     "",
     "mm list --dirs 2>/dev/null",
     "mm list --bookmarks 2>/dev/null"
 ]
-
-[start.command]
-command = ""
 
 # Regras automáticas de ordenação por pasta (avaliadas em ordem top-to-bottom)
 [[folder_rules]]

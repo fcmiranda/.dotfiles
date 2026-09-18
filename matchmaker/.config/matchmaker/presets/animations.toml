@@ -1,7 +1,7 @@
-[ui]
-nav_mode = true
-nav_bar = "Plain"
-nav_color = "Cyan"
+[ui.nav]
+active = true
+bar = "Plain"
+color = "Cyan"
 
 [tui]
 percentage = 80
@@ -52,7 +52,9 @@ prompt = " Hyprland Animations > "
 
 [start]
 mode = "nav"
-additional_commands = []
+
+[start.command]
+additional = []
 
 [binds]
 "ctrl-j" = "Down"

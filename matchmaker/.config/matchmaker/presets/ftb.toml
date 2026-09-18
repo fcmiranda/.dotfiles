@@ -16,8 +16,10 @@ prompt_style.fg = "Cyan"
 prompt_style.modifier = "BOLD"
 
 [matcher]
-sort = "smart"
 typo_tolerance = true
+
+[matcher.sort]
+threshold = "smart"
 
 [results]
 reverse = false

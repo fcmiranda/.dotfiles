@@ -3,13 +3,13 @@
 # Supports 60% Golden Ratio split and 95% Full-Modal preview toggle via Ctrl+P.
 # Supports Ctrl+V to insert the file path directly into the origin pane/AI prompt.
 
-[ui]
-nav_mode = true
-nav_focus_on_start = "filter"
-nav_bar = "Plain"
-nav_color = "Darkgray"
-nav_hints = true
-nav_hints_columns = 4
+[ui.nav]
+active = true
+focus_on_start = "filter"
+bar = "Plain"
+color = "Darkgray"
+hints = true
+hints_columns = 4
 
 [tui]
 percentage = 100
@@ -21,21 +21,27 @@ prompt_style.fg = "Cyan"
 status_inline = true
 
 [matcher]
-sort = "smart"
-sort_cap = 2000
 depth_penalty = 15
-frecency = true
-frecency_weight = 2
 typo_tolerance = true
 dir_first = true
+
+[matcher.sort]
+threshold = "smart"
+cap = 2000
+
+[matcher.frecency]
+active = true
+weight = 2
 
 [results]
 icons = true
 scroll_wrap = true
 row_connection = "Full"
-tier_separator = "Underline"
 
-[results.tier_separator_style]
+[results.tier]
+separator = "Underline"
+
+[results.tier.style]
 fg = "#555555"
 
 [results.current_style]
@@ -54,13 +60,17 @@ delay_clear = true
 show = true
 wrap = true
 scrollbar = true
-media = true
-media_fit = "fit"
 markdown = true
-diagrams = true
-inline_diagrams = true
-diagram_theme = "auto"
-diagram_background = "transparent"
+
+[preview.media]
+active = true
+fit = "fit"
+
+[preview.diagrams]
+active = true
+inline = true
+theme = "auto"
+background = "transparent"
 
 # Layout 0: Standard split (60% preview, 40% list)
 [[preview.layout]]
@@ -115,7 +125,7 @@ ctrl-e = 'Execute(~/.config/tmux/scrollback-open.sh {} "$MM_ORIGIN_CWD")'
 ctrl-l = ["ChDir({=})", "Cancel", "Reload", "Pos(0)"]
 ctrl-h = ["ChDir(..)", "Cancel", "Reload"]
 
-[ui.nav_binds]
+[ui.nav.binds]
 enter = "CyclePreview"
 esc = "Quit"
 q = "Quit"

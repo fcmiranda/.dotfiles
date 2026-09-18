@@ -4,10 +4,10 @@ min = 8
 max = 20
 restore_fullscreen = false
 
-[ui]
-nav_mode = true
-nav_bar = "Plain"
-nav_color = "white"
+[ui.nav]
+active = true
+bar = "Plain"
+color = "white"
 
 [query]
 status_inline = false

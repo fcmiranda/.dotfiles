@@ -1,7 +1,7 @@
-[ui]
-nav_mode = true
-nav_bar = "Plain"
-nav_color = "Magenta"
+[ui.nav]
+active = true
+bar = "Plain"
+color = "Magenta"
 
 [tui]
 percentage = 20 # height
@@ -58,7 +58,9 @@ status_inline = true
 
 [start]
 mode = "nav"
-additional_commands = []
+
+[start.command]
+additional = []
 
 [binds]
 # Standard / query mode navigation & actions

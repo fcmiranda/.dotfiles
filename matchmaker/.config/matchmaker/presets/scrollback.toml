@@ -8,13 +8,13 @@
 # Keymap mirrors jump.toml; nav starts in filter; preview shows the token's
 # scrollback context with highlight (toggle with Ctrl+P).
 
-[ui]
-nav_mode = true
-nav_focus_on_start = "filter"
-nav_bar = "Plain"
-nav_color = "Darkgray"
-nav_hints = true
-nav_hints_columns = 3
+[ui.nav]
+active = true
+focus_on_start = "filter"
+bar = "Plain"
+color = "Darkgray"
+hints = true
+hints_columns = 3
 
 [tui]
 percentage = 100
@@ -23,16 +23,18 @@ max = 9999
 [start]
 sort = false
 mode = "all"
+
+[start.command]
 command = "cat /tmp/scrollback-extract-all.txt"
-additional_commands = [
+additional = [
   "cat /tmp/scrollback-extract-url.txt",
   "cat /tmp/scrollback-extract-path.txt",
   "cat /tmp/scrollback-extract-sha.txt",
   "cat /tmp/scrollback-extract-all.txt",
 ]
 
-[matcher]
-sort_threshold = false
+[matcher.sort]
+threshold = false
 
 [query]
 prompt = "> "
@@ -107,7 +109,7 @@ abort_empty = true
 "sha^^shift-backtab" = ["SetPrompt(path> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-path.txt)", "SetMode(path)", "Pos(0)"]
 "sha^^backtab" = ["SetPrompt(path> )", "SetQuery()", "Reload(cat /tmp/scrollback-extract-path.txt)", "SetMode(path)", "Pos(0)"]
 
-[ui.nav_binds]
+[ui.nav.binds]
 "enter" = "Accept"
 "esc" = "Quit"
 "q" = "Quit"

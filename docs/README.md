@@ -34,6 +34,7 @@ Welcome to the central documentation index for this Arch Linux + Omarchy dotfile
 - [**MacBook Display Notch Adaptation**](desktop/macbook-notch.md): Linux kernel GRUB parameters and dynamic split-bar Waybar integration for Apple Silicon MacBook notch screens.
 - [**Nerd Fonts Configuration**](desktop/nerd-fonts.md): Font glyph setup and symbol rendering.
 - [**Hyprland Crash Recovery**](desktop/hyprland-crash-fix.md): Crash triage and stability fixes.
+- [**Hibiki Keystroke Visualizer**](desktop/hibiki-keystroke-visualizer.md): Wayland native GTK4 Layer Shell keystroke badge and bubble overlay, Mechvibes mechanical audio engine, and Hyprland integration.
 
 ### 🎨 4. Theme & Design System (`docs/theme/`)
 - [**System Theming Architecture**](theme/system-theme.md): The Omarchy theme rendering pipeline, `colors.toml` template generation, overrides, and live reload hooks.

@@ -58,7 +58,8 @@ install_packages \
     jless \
     mcat \
     intelli-shell \
-    mermaid-cli
+    mermaid-cli \
+    hibiki
 
 install_plugins \
     zsh-plugins \

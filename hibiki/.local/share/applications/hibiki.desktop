@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Hibiki
+Comment=Elevating the tactile dialogue. A high-fidelity visual and auditory companion that gives your keystrokes a modern resonance.
+Exec=hibiki
+Icon=hibiki
+Terminal=false
+Type=Application
+Categories=Utility;GTK;
+StartupNotify=true

@@ -124,6 +124,7 @@ percentage = 55
 command = '''
 main_branch="main"
 current_wt=$(git rev-parse --show-toplevel 2>/dev/null)
+TAB="$(printf '\t')"
 
 # Header line (consumed by header_lines = 1)
 printf "BRANCH\tBASE\tSTATUS\tMAIN ↕\tREMOTE ⇅\tAGE\tCOMMIT\tSESSION\tPATH\n"
@@ -134,7 +135,7 @@ git worktree list --porcelain 2>/dev/null | awk '
 /^HEAD /     { head = substr($0, 6, 7) }
 /^branch /   { branch = substr($0, 8); sub("refs/heads/", "", branch) }
 END          { if (path && !bare) printf "%s\t%s\t%s\n", path, (branch ? branch : head), head }
-' | while IFS=$'\t' read -r wt_path branch head; do
+' | while IFS="$TAB" read -r wt_path branch head; do
     # Session name calculation for Sesh
     repo_parent=$(basename "$(dirname "$wt_path")")
     repo_base=$(basename "$wt_path")

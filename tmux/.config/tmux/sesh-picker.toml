@@ -1,21 +1,23 @@
-[ui]
-nav_mode = true
-nav_basic = true
-nav_bar = "Plain"
-nav_color = "Black"
-nav_prompt = ""
+[ui.nav]
+active = true
+basic = true
+bar = "Plain"
+color = "Black"
+prompt = ""
 
 [start]
 sort = false
 ansi = true
+
+[start.command]
 command = "sesh list --icons"
 
 [tui]
 percentage = 100
 max = 9999
 
-[matcher]
-sort_threshold = false
+[matcher.sort]
+threshold = false
 
 [ui.border]
 sides = ""

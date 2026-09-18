@@ -2,8 +2,8 @@
 sort = false
 ansi = true
 
-[matcher]
-sort_threshold = false
+[matcher.sort]
+threshold = false
 
 [columns]
 split = '\t'
@@ -45,13 +45,13 @@ content = " {cyan,bold:[Enter]} {darkgray:Switch Window}  •  {green,bold:[c]} 
 row_connection = "Full"
 match_indent = false
 
-[ui]
-nav_mode = true
-nav_focus_on_start = "picker"
-nav_bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
-nav_color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
+[ui.nav]
+active = true
+focus_on_start = "picker"
+bar = "Plain"             # Estilo da barra na lista: "Plain" (│), "Thick" (█), "Double" (║), "Rounded" (│), "QuadrantOutside" (▌), "QuadrantInside" (▐)
+color = "black"           # Cor da barra: nomes ("black", "gray", "cyan", "lightblue", etc.) ou hex ("#000000", "#1e1e2e")
 
-[ui.nav_binds]
+[ui.nav.binds]
 "c"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
 "C"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-create.sh)", "@reload"]
 "d"     = ["ExecuteSilent(printf '%s\\n' '{=}' | $HOME/.config/tmux/window-picker-delete.sh)", "@reload"]

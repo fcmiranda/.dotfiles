@@ -41,7 +41,10 @@ fi
 IFS='
 '
 for target in $window_list; do
-  [ -n "$target" ] && tmux kill-window -t "$target" 2>/dev/null || true
+  if [ -n "$target" ]; then
+    "$HOME/.config/tmux/record-window-state.sh" --push "$target" 2>/dev/null || true
+    tmux kill-window -t "$target" 2>/dev/null || true
+  fi
 done
 unset IFS
 

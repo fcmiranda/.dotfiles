@@ -157,6 +157,17 @@ magick {{input_image}} {{output_png}}
 # Sync custom.commands into IntelliShell local database
 intelli-sync
 
+# Launch Hibiki Wayland keystroke visualizer (launcher GUI)
+hibiki
+
+# Launch Hibiki keystroke visualizer directly without UI launcher (daemon / overlay mode)
+hibiki --no-ui
+
+# Reopen last closed Tmux window/tab with file, command, path, and session (Ctrl+Shift+T)
+~/.config/tmux/reopen-window.sh
+
+
+
 $ (awt) branch: git branch --format='%(refname:short)' 2>/dev/null
 $ (awt) base: git branch --format='%(refname:short)' 2>/dev/null
 $ (awt) pr_number: gh pr list --limit 30 --json number,title --template '{{range .}}{{tablerow .number .title}}{{end}}' 2>/dev/null

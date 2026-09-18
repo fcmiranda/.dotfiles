@@ -21,6 +21,7 @@ This document provides a comprehensive audit and definitive reference of all key
 | :--- | :---: | :--- | :--- | :---: |
 | **`Ctrl + G`** | Global / Shell | **Lazygitrs Floating Popup (`90% × 88%`)** | Inward roll: CapsLock (Pinky) + G (Index) | $130\text{ ms}$ |
 | **`Ctrl + Shift + G`** | Global / Tmux | **AWT Worktree Manager Popup (`85% × 75%`)** | Inward chord: CapsLock (Pinky) + Shift + G | $140\text{ ms}$ |
+| **`Ctrl + Shift + T`** (`C-S-t`) | Global / Tmux | **Reopen Last Closed Window / Tab** | Inward chord: CapsLock (Pinky) + Shift + T (VSCode-style tab restore with file, command, path & session) | $140\text{ ms}$ |
 | **`Ctrl + Shift + I`** (`C-S-i`) | Global / Tmux | **AI Attention Triage Direct Focus Jump** | Inward chord: CapsLock (Pinky) + Shift + I (No Alt, MacBook-ergonomic) | $140\text{ ms}$ |
 | **`Alt + i`** (`M-i`) | Global / Tmux | **AI Attention Triage Jump (Meta fallback)** | Left Thumb (Alt) + Right Middle (I) | $130\text{ ms}$ |
 | **`Ctrl + 0..9`** | Tmux | **Direct Window Select (Windows 0 to 9)** | CapsLock (Pinky) + Number Key | $130\text{ ms}$ |
@@ -36,11 +37,14 @@ This document provides a comprehensive audit and definitive reference of all key
 | :--- | :--- | :--- |
 | **`Prefix + s`** | **Window Picker (Matchmaker `75% × 60%`)** | `s` = **S**witch / **S**elect window. Centered Golden Ratio modal with live preview. |
 | **`Prefix + S`** | **Fullscreen Window Picker** | Shift+S opens maximized picker for large multi-monitor overviews. |
+| **`Prefix + f`** | **Vimium Window Hints (1-touch Jump)** | `f` = **F**ollow / **F**ind window. In-situ Home-Row hints (`a, s, d, f, j, k, l, ;, g, h`) overlaid directly on tabs ($T_R = 0\text{ ms}$). |
 | **`Prefix + t`** | **Sesh Workspace / Task Picker** | `t` = **T**ask / **T**eleport to project sessions. |
+| **`Prefix + T`** | **Reopen Last Closed Window / Tab** | Shift+T mnemonic: uppercase of sesh `t`, aligned with browser/IDE tab restore with file, command, path & session. |
+| **`Prefix + u`** | **Undo Close Tab (`reopen-window.sh`)** | `u` = **U**ndo close tab. Aligned with Matchmaker file manager undo muscle memory. |
 | **`Prefix + i`** | **AI Agent Bell / Alert HUD** | `i` = **I**ntelligence / **I**nspect agent turn or question. Cycles pending alerts via floating popup HUD. |
 | **`Prefix + I`** | **AI Agent Attention Triage Direct Jump** | Shift+I direct focus jump without opening an intermediate popup. |
 | **`Prefix + n`** | **New Window (Current Path)** | `n` = **N**ew window. Aligned with universal browser tab creation. |
-| **`Prefix + w`** | **Close Pane / Window (`kill-pane`)** | `w` = Close **W**indow. Universal browser/IDE closing chord. |
+| **`Prefix + w`** | **Close Pane / Window (`close-window.sh`)** | `w` = Close **W**indow. Records path, active file & command to reopen stack before closing. |
 | **`Prefix + W`** | **Kill Entire Session (`kill-session`)** | Shift+W symmetry: uppercase destroys the parent container. |
 | **`Prefix + o`** | **AI Split Pane (35% Right Side)** | `o` = **O**penCode side-by-side split. Toggle closes split if already open. |
 | **`Prefix + N`** | **Neovim Floating Scratchpad (`90% × 90%`)** | Quick scratchpad editor over the active workspace. |
@@ -170,6 +174,7 @@ The table below consolidates the definitive keybindings across all layers, audit
 | **`Ctrl + Shift + I`** | Global / Tmux | AI Agent Triage Direct Focus Jump | Inward chord: CapsLock (Pinky) + Shift + I | $140\text{ ms}$ | Home Row, no-Alt, MacBook-ergonomic focus switch to next agent needing attention. |
 | **`Alt + i`** | Global / Tmux | AI Agent Triage (Meta Fallback) | Left Thumb (Alt) + Right Middle (I) | $130\text{ ms}$ | Zero-prefix focus switch when Meta/Alt is enabled. |
 | **`Prefix + s`** | Tmux Multiplexer | Window Picker (`75% × 60%`) | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `s` | $240\text{ ms}$ | Prefix guard protects against accidental modal popups during fast typing. |
+| **`Prefix + f`** | Tmux Multiplexer | Vimium Window Hints (1-touch Jump) | Inward roll: CapsLock + Space $\rightarrow$ `f` | $240\text{ ms}$ | Replaces legacy `find-window` with instant Home-Row hints ($H=0$). |
 | **`Prefix + t`** | Tmux Multiplexer | Sesh Workspace Picker | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `t` | $240\text{ ms}$ | `t` = Task/Teleport; mnemonic alignment with project workflows. |
 | **`Prefix + i`** | Tmux Multiplexer | AI Agent Bell / Alert HUD | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `i` | $240\text{ ms}$ | `i` = Intelligence; cycles pending questions and permission alerts in popup HUD. |
 | **`Prefix + I`** | Tmux Multiplexer | AI Agent Triage Direct Jump | Left Pinky (CapsLock) + Thumb (Space) $\rightarrow$ `I` | $240\text{ ms}$ | Direct focus jump to next agent requiring attention (without popup). |

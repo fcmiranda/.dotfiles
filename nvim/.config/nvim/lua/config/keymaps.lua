@@ -51,3 +51,46 @@ end
 vim.keymap.set("n", "<leader>mm", function() mm_picker("nvim") end, { desc = "Matchmaker File Picker" })
 vim.keymap.set("n", "<leader>mj", function() mm_picker("jump") end, { desc = "Matchmaker Jump Picker" })
 
+-- =============================================================================
+-- Reopen Last Closed Buffer (<leader>br / <C-S-t>)
+-- =============================================================================
+local closed_buffers = {}
+
+vim.api.nvim_create_autocmd("BufDelete", {
+  group = vim.api.nvim_create_augroup("ReopenClosedBuffer", { clear = true }),
+  callback = function(args)
+    local name = vim.api.nvim_buf_get_name(args.buf)
+    if name ~= "" and vim.fn.filereadable(name) == 1 then
+      table.insert(closed_buffers, name)
+      if #closed_buffers > 25 then
+        table.remove(closed_buffers, 1)
+      end
+    end
+  end,
+})
+
+local function reopen_closed_buffer()
+  while #closed_buffers > 0 do
+    local file = table.remove(closed_buffers)
+    if vim.fn.filereadable(file) == 1 then
+      vim.cmd("edit " .. vim.fn.fnameescape(file))
+      vim.notify("Reopened: " .. vim.fn.fnamemodify(file, ":t"), vim.log.levels.INFO)
+      return
+    end
+  end
+  -- Fallback to recent files (oldfiles)
+  local oldfiles = vim.v.oldfiles or {}
+  for _, file in ipairs(oldfiles) do
+    if vim.fn.filereadable(file) == 1 and vim.fn.bufnr(file) == -1 then
+      vim.cmd("edit " .. vim.fn.fnameescape(file))
+      vim.notify("Reopened (history): " .. vim.fn.fnamemodify(file, ":t"), vim.log.levels.INFO)
+      return
+    end
+  end
+  vim.notify("No closed buffers to reopen", vim.log.levels.WARN)
+end
+
+vim.keymap.set("n", "<leader>br", reopen_closed_buffer, { desc = "Reopen Last Closed Buffer" })
+vim.keymap.set("n", "<C-S-t>", reopen_closed_buffer, { desc = "Reopen Last Closed Buffer" })
+
+

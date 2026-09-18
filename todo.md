@@ -1,4 +1,9 @@
 
+popup ou atalho para referenciar sessoes/janelas/panes a ideas
+criar agente dotfiles UX/ergonomia/performance
+
+para abrir uma nova aba, usar ctrl t ou ctrl n?
+
 tmux
  - loading state incorreto, ja respondeu e continua loading
   - criar funcionalidade reabrir ultima aba com o arquivo/sessao que estava 

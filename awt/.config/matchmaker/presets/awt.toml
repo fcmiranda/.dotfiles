@@ -254,8 +254,11 @@ output_template = "{=session}\t{=path}"
 "ctrl-d" = "@delete_worktree"
 "ctrl-r" = "@rename_worktree"
 "ctrl-u" = "@fetch_remotes"
+"esc" = "FocusNav"
 
 # Nav Mode Binds (active when mode = "nav")
+"nav^^/" = "FocusFilter"
+"nav^^i" = "FocusFilter"
 "nav^^j" = "Down"
 "nav^^k" = "Up"
 "nav^^J" = "PreviewDown(5)"

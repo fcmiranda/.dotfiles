@@ -20,6 +20,18 @@ if [[ "$old_branch" == "main" || "$old_branch" == "master" ]]; then
     exit 0
 fi
 
+# 1.1 Self-heal worktree path if it was moved or out of sync
+if [[ ! -d "$wt_path" ]]; then
+    git worktree repair >/dev/null 2>&1 || true
+    detected_path=$(git worktree list --porcelain 2>/dev/null | awk -v b="refs/heads/$old_branch" '
+        /^worktree / { p = substr($0, 10) }
+        $0 == "branch " b { print p; exit }
+    ')
+    if [[ -n "$detected_path" && -d "$detected_path" ]]; then
+        wt_path="$detected_path"
+    fi
+fi
+
 # 2. Rename branch in Git
 if ! git -C "$wt_path" branch -m "$old_branch" "$new_branch" 2>/dev/null; then
     printf "\n\033[1;31m󰅖 Failed to rename branch '%s' to '%s'!\033[0m\n" "$old_branch" "$new_branch" >/dev/tty
@@ -28,14 +40,17 @@ if ! git -C "$wt_path" branch -m "$old_branch" "$new_branch" 2>/dev/null; then
 fi
 
 # 3. Rename worktree folder if necessary
-repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-repo_parent=$(basename "$(dirname "$wt_path")")
-old_folder=$(basename "$wt_path")
+parent_dir="$(dirname "$wt_path")"
+repo_parent="$(basename "$parent_dir")"
+old_folder="$(basename "$wt_path")"
 new_folder="${new_branch//\//-}"
-target_new="$repo_root/../$new_folder"
+target_new="$parent_dir/$new_folder"
 
 if [[ -d "$wt_path" && "$wt_path" != "$target_new" && ! -d "$target_new" ]]; then
-    git worktree move "$wt_path" "$target_new" 2>/dev/null || mv "$wt_path" "$target_new" 2>/dev/null || true
+    if ! git -C "$wt_path" worktree move --force "$wt_path" "$target_new" 2>/dev/null; then
+        mv "$wt_path" "$target_new" 2>/dev/null || true
+        git -C "$target_new" worktree repair "$target_new" 2>/dev/null || true
+    fi
     wt_path="$target_new"
 fi
 

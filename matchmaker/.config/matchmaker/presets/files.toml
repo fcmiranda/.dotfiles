@@ -16,7 +16,7 @@ percentage = 100
 max = 9999
 
 [query]
-prompt = "󰈞 > "
+prompt = " > "
 prompt_style.fg = "Cyan"
 status_inline = true
 
@@ -89,7 +89,6 @@ max = 0
 [preview.border]
 sides = "LEFT"
 color = "Gray"
-title = " 󰄧 Mermaid & 󰋩 Photos "
 title_fg = "Cyan"
 
 [footer]

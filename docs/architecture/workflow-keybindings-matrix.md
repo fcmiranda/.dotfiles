@@ -50,7 +50,7 @@ This document provides a comprehensive audit and definitive reference of all key
 | **`Prefix + Tab`** | **Last Active Window (MRU Toggle)** | Instant toggle between the two most recent windows. |
 | **`Prefix + y`** | **Token Extract / Yank (`75% × 60%`)** | `y` = **Y**ank tokens, URLs, hashes, paths via Matchmaker. Inward chord ($H=0$). Dynamic 60%/95% preview toggle (`Ctrl+P`). |
 | **`Prefix + E`** | **Full Scrollback in Neovim** | Captures complete ANSI scrollback history into read-only Neovim buffer. |
-| **`Prefix + e`** / **`C-e`** | **Workspace Files Peek (`75% × 60%`)** | `e` = **E**xplore workspace files via Matchmaker popup. Dynamic 60%/95% full-modal preview toggle (`Ctrl+P` / `P`), native Markdown & Mermaid rendering, AI prompt insert (`Ctrl+V`). |
+| **`Prefix + e`** / **`C-e`** | **Workspace Files Peek (`75% × 60%`)** | `e` = **E**xplore workspace files via Matchmaker popup (` 󰈞 󰄧 󰋩 `). Dynamic 60%/100% full preview modal (`Enter`), native Markdown, Mermaid & Photos rendering with Kitty graphics passthrough, diagram zoom (`+`/`-`/`0`), inspector (`s`), AI prompt insert (`Ctrl+V`). |
 ### 🐚 Layer 2: Smart Shell (`zsh`) & Object-First Navigation Widgets
 
 | Keybinding | Widget / Function | Behavior & Context Awareness |

@@ -36,7 +36,7 @@ if [ -z "${TMUX_POPUP:-}" ]; then
       -S "fg=$BLUE" \
       -s "fg=default" \
       -b rounded \
-      -T " 󰈞 " \
+      -T " 󰈞 󰄧 󰋩 " \
       -w "$WIDTH" -h "$HEIGHT" \
       -E "TMUX_POPUP=1 $0 '$ORIGIN_ARG' '$CWD_ARG' '$FULLSCREEN_ARG'"
   }

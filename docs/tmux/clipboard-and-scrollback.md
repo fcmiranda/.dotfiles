@@ -82,19 +82,25 @@ Rule of thumb: `Prefix + E` = **read** (long-form inspection in Neovim), `Prefix
 
 ## 4. Workspace Files Peek (`Prefix + e` / `Prefix + C-e`)
 
-Browse workspace files and AI-generated code in a popup via `mm -o files` — inspect files with syntax-highlighted previews, tree, and native Markdown & Mermaid rendering without leaving the AI chat window.
+Browse workspace files and AI-generated code in a popup via `mm -o files` — inspect files with syntax-highlighted previews, tree, and native Markdown, Mermaid diagrams & Photos rendering without leaving the AI chat window.
 
 Bind ([`tmux.conf`](../../tmux/.config/tmux/tmux.conf)):
 - `Prefix + e` / `Prefix + C-e`: Opens Golden Ratio popup (`75% × 60%`) via inward roll (`e` = Explorer).
 
 Architecture ([`dir-peek.sh`](../../tmux/.config/tmux/dir-peek.sh) and preset [`files.toml`](../../matchmaker/.config/matchmaker/presets/files.toml)):
-1. **Themed Popup & Pure Icon Badge**: Uses theme blue/cyan border with pure icon badge ` 󰈞 `, with frozen backdrop protection when an agent streams.
-2. **Native Markdown & Mermaid Rendering**: Automatically routes `.md`, `.markdown`, `.mmd` files through `mm md --text`, rendering styled headers, tables, task lists, and vector Unicode Mermaid diagrams. Supports high-resolution Kitty Graphics Protocol rendering with `allow-passthrough all` enabled in tmux to pass diagram imagery seamlessly into popups without clipping or overflow.
-3. **Dynamic Exclusive Fullscreen Preview (`Enter` / `Esc`)**:
+1. **Themed Popup & Pure Icon Badge**: Uses theme blue/cyan border with pure icon badge ` 󰈞 󰄧 󰋩 ` (Explorer, Mermaid diagrams, and Photos), with frozen backdrop protection when an agent streams.
+2. **Native Markdown, Mermaid & Photos Rendering**: Automatically routes `.md`, `.markdown`, `.mmd`, `.png`, `.jpg`, `.webp` through native media and diagram pipelines with Kitty Graphics Protocol passthrough.
+3. **Diagram & Photo Zoom Controls & HUD Icons**:
+   - `s`: Toggles diagram inspector modal (`󰄧`).
+   - `+` / `ctrl-+`: Zooms in (`󰍉`).
+   - `-` / `ctrl--`: Zooms out (`󰍋`).
+   - `0` / `ctrl-0`: Resets zoom to 100% 1:1 (`󰑐`).
+   - `n` / `N`: Jumps to next/previous diagram in markdown (`󰒭`).
+4. **Dynamic Exclusive Fullscreen Preview (`Enter` / `Esc`)**:
    - Layout 0: Standard Golden Ratio split (**40% list / 60% preview**).
-   - Layout 1: Exclusive 100% fullscreen preview mode (**0% list / 100% preview**) displaying only the preview content and dedicated navigation shortcuts in the footer (`[j/k]` scroll, `[J/K]` jump 5, `[C-d/u]` half page, `[n/N]` diagram jump, `[+/-/0]` zoom, `[d]` text/image toggle, `[esc/enter]` back).
+   - Layout 1: Exclusive 100% fullscreen preview mode (**0% list / 100% preview**) displaying only the preview content and dedicated navigation shortcuts in the footer.
    - Pressing `Esc` or `Enter` immediately returns to the normal split view.
-4. **Origin Pane & AI Prompt Insertion (`Ctrl+V` / `y`)**:
+5. **Origin Pane & AI Prompt Insertion (`Ctrl+V` / `y`)**:
    - `y` / `Ctrl+Y`: Copies path(s) to system clipboard and closes modal.
    - `Enter`: Expands to exclusive 100% fullscreen preview modal.
    - `Ctrl+V`: Injects the path directly into the origin pane (`MM_ORIGIN_PANE`) — instant referencing into the active AI prompt.

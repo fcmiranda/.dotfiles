@@ -16,7 +16,7 @@ percentage = 100
 max = 9999
 
 [query]
-prompt = "> "
+prompt = "󰈞 > "
 prompt_style.fg = "Cyan"
 status_inline = true
 
@@ -79,9 +79,11 @@ max = 0
 [preview.border]
 sides = "LEFT"
 color = "Gray"
+title = " 󰄧 Mermaid & 󰋩 Photos "
+title_fg = "Cyan"
 
 [footer]
-content = " {cyan,bold:[enter]} {darkgray:fullscreen} {cyan,bold:[C-v]} {darkgray:insert} {cyan,bold:[J/K]} {darkgray:preview} {cyan,bold:[s]} {darkgray:diagram} {cyan,bold:[C-e]} {darkgray:edit} {cyan,bold:[C-y]} {darkgray:copy}"
+content = " {cyan,bold:󰍍 [enter]} {darkgray:full} {cyan,bold:󰄧 [s]} {darkgray:diagram} {cyan,bold:󰍉 [+]} {darkgray:in} {cyan,bold:󰍋 [-]} {darkgray:out} {cyan,bold:󰑐 [0]} {darkgray:1:1} {cyan,bold:󰆤 [J/K]} {darkgray:scroll} {cyan,bold:󱞪 [C-v]} {darkgray:insert} {cyan,bold:󰏫 [C-e]} {darkgray:edit} {cyan,bold:󰆏 [C-y]} {darkgray:copy}"
 match_indent = false
 row_connection = "Full"
 
@@ -102,6 +104,10 @@ ctrl-y = "Accept"
 ctrl-d = "PreviewHalfPageDown"
 ctrl-u = "PreviewHalfPageUp"
 ctrl-s = "ToggleDiagram"
+"ctrl-=" = "DiagramZoomIn"
+"ctrl-+" = "DiagramZoomIn"
+"ctrl--" = "DiagramZoomOut"
+"ctrl-0" = "DiagramResetZoom"
 tab = "ToggleFocus"
 ctrl-i = "ToggleFocus"
 ctrl-v = 'ExecuteSilent(test -n "$MM_ORIGIN_PANE" && tmux send-keys -t "$MM_ORIGIN_PANE" -l -- {})'

@@ -1,9 +1,11 @@
-// Make the backtick (grave) key a live key in us-intl layout.
-// Without this, us-intl maps <TLDE> to dead_grave / dead_tilde,
-// requiring two keypresses to produce a literal `.
-// dead_acute on the apostrophe key (<AC11>) is untouched.
-// Shift+~ remains dead_tilde so ã, õ, etc. can be composed.
+// Ensure backtick (grave) and tilde are proper dead keys in us-intl layout,
+// and map both <TLDE> and <LSGT> for compatibility across ANSI and Apple ISO keyboards.
+// Unshifted: dead_grave (` + a -> à)
+// Shifted: dead_tilde (~ + a -> ã, ~ + o -> õ)
+// Level 3 (AltGr): literal grave (`)
+// Level 4 (AltGr+Shift): literal asciitilde (~)
 partial alphanumeric_keys
 xkb_symbols "fixgrave" {
-    key <TLDE> { [ grave, dead_tilde ] };
+    key <TLDE> { [ dead_grave, dead_tilde, grave, asciitilde ] };
+    key <LSGT> { [ dead_grave, dead_tilde, grave, asciitilde ] };
 };

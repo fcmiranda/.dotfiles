@@ -30,4 +30,18 @@ For inactive background tabs, `@ai_agent_state` is rendered in `#[fg=#{@ai_agent
 - `@ai_agent_state_color`: Hex color string configured in `config.toml` (e.g. `#f9e2af`, `#cba6f7`, `#f38ba8`, `#94e2d5`).
 - `@ai_agent_state_raw`: Raw state identifier string (`busy`, `working`, `question`, `awaiting_input`, `permission`, `error`, `idle`, `closed`).
 
+---
+
+## 4. In-Situ Vimium-Style Window Hints (`Prefix + f`)
+
+To navigate tabs with zero screen occlusion and sub-100ms latency without opening modal pickers, `Prefix + f` activates the `window_hints` keytable:
+
+- **Visual State**: The session pill turns into `󰌌 JUMP` (`@PREFIX_COLOR`), inactive tab indices (`#I:`) transform into high-contrast Powerline half-round pills (`a`, `s`, `d`...), and the active window displays its bracketed hint (`[s]`).
+- **Home-Row Mapping**:
+  - Windows 0 to 3: `a`, `s`, `d`, `f` (Left hand Home Row)
+  - Windows 4 to 7: `j`, `k`, `l`, `;` (Right hand Home Row)
+  - Windows 8 & 9: `g`, `h` (Inner reaches)
+  - Fallback: Direct numbers `0..9` also work within hint mode.
+- **Single-Key & Cascading Exit**: Pressing any assigned hint key jumps immediately to that window and restores the root keytable ($T_{\text{exec}} \approx 380\text{ ms}$, $T_R = 0\text{ ms}$). Pressing `CapsLock` (emitting `Esc`) or any unmapped key cancels without switching.
+
 See [`tmux/.config/tmux/tmux.conf`](../../tmux/.config/tmux/tmux.conf), [`acpd/.config/acpd/config.toml`](../../acpd/.config/acpd/config.toml), and [`popup-isolation-and-debounce.md`](popup-isolation-and-debounce.md) for debounce, popup isolation, and option wiring details.

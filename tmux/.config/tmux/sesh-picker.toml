@@ -23,7 +23,7 @@ threshold = false
 sides = ""
 
 [query]
-prompt = "⚡ "
+prompt = " "
 status_inline = true
 
 [footer]
